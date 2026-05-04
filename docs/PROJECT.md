@@ -83,7 +83,7 @@ Zitrone, Bergamotte, Mandarine, Minze, Grüner Tee, Meeresnoten, Neroli, Maiglö
 
 1. **Dynamic filters via EAV-lite pattern.** Two tables — `attributes` (groups) and `attribute_values` (options) — instead of hardcoded tables per filter group. Admin can add new Noten or even a whole new filter group without migrations.
 2. **Categories are separate from filters.** A perfume *belongs to* "Damen" (category) but is *filtered by* "Blumig" (attribute value). Categories drive menu and URLs; attributes drive the filter UI.
-3. **Variants are first-class.** Prices, SKUs, and stock live on `product_variants` (e.g., 30ml / 50ml / 100ml each with own price). Product card price ranges are computed from variants.
+3. **Variants are first-class.** Prices live on `product_variants` (e.g., 30ml / 50ml / 100ml each with own price). Product card price ranges are computed from variants. **No SKUs or stock counts** — this is a showcase site, not an e-commerce platform; the shop tracks inventory elsewhere and customers order via WhatsApp/phone/email.
 4. **Translations in a polymorphic table.** Trilingual content (DE/AR/EN) on the public site only. Admin dashboard reads/writes the German fields directly; AR/EN are managed as translations.
 5. **No e-commerce.** No `orders`, `carts`, `payments`, `shipments`, `reviews`, `contact_messages` tables. Customers contact the shop directly via WhatsApp/phone/email links.
 6. **PostgreSQL specifics.** Use `jsonb` (not `json`) for the `payload` column on `page_sections` — it supports indexing and faster querying. Use `timestamptz` for all timestamps so timezones are handled correctly. Foreign keys should use `ON DELETE CASCADE` on pivot tables and `ON DELETE SET NULL` on `categories.parent_id`.
@@ -144,7 +144,6 @@ Translatable fields: `name` — the display label.
 products
 ─ id                  bigint, PK
 ─ slug                varchar, unique
-─ sku_base            varchar, nullable       (e.g., "D1", "D2")
 ─ brand               varchar, nullable
 ─ is_active           bool, default true
 ─ is_featured         bool, default false     (homepage "Luxus-Highlights" row)
@@ -159,11 +158,9 @@ Translatable fields: `name`, `short_description`, `description`, `meta_title`, `
 product_variants
 ─ id                  bigint, PK
 ─ product_id          bigint, FK → products.id, indexed
-─ sku                 varchar, unique         (e.g., "D1-30ML")
 ─ size_ml             smallint                (30, 50, 100, …)
 ─ price               decimal(10,2)
-─ compare_at_price    decimal(10,2), nullable (for "was/now" pricing)
-─ stock_quantity      int, default 0
+─ compare_at_price    decimal(10,2), nullable (for "was/now" display only)
 ─ is_default          bool, default false     (which variant shows by default)
 ─ is_active           bool, default true
 ─ created_at, updated_at
