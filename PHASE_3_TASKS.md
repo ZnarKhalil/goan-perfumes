@@ -66,13 +66,13 @@
 ### 1. Routing & controller skeleton
 
 - [x] `routes/dashboard.php` (Categories only this step; rest added per resource step). Required from `web.php`.
-- [ ] `app/Http/Controllers/Dashboard/` directory with: `ProductController`, ~~`CategoryController`~~ ✅, `AttributeController`, `AttributeValueController`, `PromotionController`, `PageSectionController`, `SettingsController`.
+- [ ] `app/Http/Controllers/Dashboard/` directory with: `ProductController`, ~~`CategoryController`~~ ✅, ~~`AttributeController`~~ ✅, ~~`AttributeValueController`~~ ✅, `PromotionController`, `PageSectionController`, `SettingsController`.
 - [x] CategoryController `index`/`create`/`edit` return `Inertia::render('dashboard/categories/...')` with documented payload shape.
 - [x] Wayfinder regen step (`php artisan wayfinder:generate`) emits `@/actions/App/Http/Controllers/Dashboard/...` and `@/routes/dashboard/...`.
 
 ### 2. FormRequests
 
-- [ ] `Store{X}Request` + `Update{X}Request` for: Product, ~~Category~~ ✅, Attribute, AttributeValue, Promotion, PageSection, Settings.
+- [ ] `Store{X}Request` + `Update{X}Request` for: Product, ~~Category~~ ✅, ~~Attribute~~ ✅, ~~AttributeValue~~ ✅, Promotion, PageSection, Settings.
 - [x] Shared traits in `app/Http/Requests/Concerns/`: `ValidatesTranslatedFields` (locale × field rule generator) and `ValidatesCategoryFields`. Authorization gated on `auth()->user()?->is_admin`.
 - [x] DE name required; other DE fields + all AR/EN fields nullable. Slug uniqueness scoped (Store: unique; Update: ignore self).
 
@@ -82,28 +82,28 @@
 - [x] `resources/js/components/dashboard/media-uploader.tsx` — multi/single mode, drag-reorder via `@dnd-kit/*`, primary toggle, alt-text per item.
 - [x] `resources/js/components/dashboard/data-table.tsx` — minimal table wrapper with column config + actions slot.
 - [x] `resources/js/components/dashboard/slug-field.tsx` — debounced auto-fill from the DE name, untouched-flag tracking via ref.
-- [ ] `resources/js/components/dashboard/variant-row-editor.tsx` — deferred to Step 3.3 (Products).
+- [x] `resources/js/components/dashboard/variant-row-editor.tsx` — controlled variant list editor for Product forms; supports add/remove, size, price, compare-at price, active flag, one default variant, and dotted validation errors.
 - [x] `resources/js/components/ui/tabs.tsx` — shadcn Tabs primitive (Radix wrapper).
 - [x] Dependencies installed: `@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities`, `@radix-ui/react-tabs`.
 
 ### 4. Sidebar navigation
 
-- [x] `AppSidebar` → `mainNavItems` extended with **Kategorien** in this step. Other entries land in their respective resource steps.
+- [x] `AppSidebar` → `mainNavItems` extended with **Kategorien** and **Attribute**. Other entries land in their respective resource steps.
 - [ ] Group separator above "Einstellungen" if the list feels cluttered (re-evaluate after all resources land).
 
 ### 5. Resource: Categories (smallest — good first integration) ✅
 
 - [x] `dashboard/categories/index.tsx` — table with banner thumbnail, DE name, parent, sort, active badge, edit/delete buttons.
 - [x] `dashboard/categories/{create,edit}.tsx` — form with TranslationTabs (name/desc/meta), parent select (excludes self + descendants on edit), sort, active checkbox, banner upload (MediaUploader single + remove flag).
-- [x] Controller + requests wired; **9 Feature tests** cover index render, store w/ banner + translations, missing-DE-name rejection, duplicate-slug rejection, update + banner replacement, translation deletion when blanked, destroy + banner cleanup, descendant exclusion in parent select. **67/67** Pest tests, **220** assertions.
+- [x] Controller + requests wired; **11 Feature tests** cover index render, store w/ banner + translations, missing-DE-name rejection, duplicate-slug rejection, update + banner replacement, translation deletion when blanked, destroy + banner cleanup, descendant exclusion in parent select, no show route, and server-side cycle rejection. **69/69** Pest tests, **224** assertions after the Category slice.
 - [x] **Side note**: `UserFactory::admin()` state added (was needed for tests). Phase 0 middleware redirects non-admins to `/` (302) instead of 403 — test asserts the actual behavior.
 - [x] **Side note**: trait `ValidatesTranslatedFields` was originally over-eager (required *all* fields on the required locale). Refactored to take an explicit `requiredOn:` list — only `name` is required.
 
-### 6. Resource: Attributes (with inline AttributeValues editor)
+### 6. Resource: Attributes (with inline AttributeValues editor) ✅
 
-- [ ] `dashboard/attributes/index.tsx` — table; create/edit/delete.
-- [ ] `dashboard/attributes/edit.tsx` — main form (code, sort, is_filterable, is_multiple, name translations) **plus** a nested values editor using `data-table` + a side panel for create/edit-value (so admins don't navigate away). Posts to the nested `attributes.values.*` routes.
-- [ ] AttributeValueController + requests; tests including nested-route auth + uniqueness scoping per attribute.
+- [x] `dashboard/attributes/index.tsx` — table with DE name, code, value count, selection mode, filterable badge, sort, edit/delete actions.
+- [x] `dashboard/attributes/{create,edit}.tsx` — main form (code, sort, is_filterable, is_multiple, name translations) **plus** a nested values editor using `data-table` + an inline side panel for create/edit-value (so admins don't navigate away). Posts to the nested `attributes.values.*` routes.
+- [x] AttributeValueController + requests wired; **11 Feature tests** cover index render, store/update/delete for attributes and values, nested-route auth, scoped uniqueness per attribute, scoped generated slugs, nested ownership enforcement, and translation cleanup. Focused dashboard resource tests: **22/22** pass, 142 assertions.
 
 ### 7. Resource: Products (the big one)
 
@@ -131,10 +131,10 @@
 - [ ] `SettingsController@edit/update` reads/writes via `Setting::get`/`Setting::put`. Logo file upload writes to `storage/app/public/branding/` and stores the relative path in `logo_path`.
 - [ ] Test covering each key round-trip.
 
-### 11. Media service + reusable file plumbing
+### 11. Media service + reusable file plumbing ✅
 
-- [ ] `app/Services/MediaService.php` with `syncFromRequest(Model $model, array $uploads, array $meta, string $disk = 'public')`. Handles: storing new files under `media/{type}/{id}/{ulid}.{ext}`, deleting removed ones, updating `sort_order`/`is_primary`/`alt_text` (incl. translations), preserving existing rows when only meta changes.
-- [ ] Pulled from controllers; tested via `MediaServiceTest` with `Storage::fake()`.
+- [x] `app/Services/MediaService.php` with `syncFromRequest(Model $model, array $uploads, array $meta, string $disk = 'public')`. Handles: storing new files under `media/{type}/{id}/{ulid}.{ext}`, deleting removed ones, updating `sort_order`/`is_primary`/`alt_text` (incl. translations), preserving existing rows when only meta changes.
+- [x] Tested via `MediaServiceTest` with `Storage::fake()`: create with uploads/metadata/translations, update existing rows, delete removed rows/files, enforce one primary, reject unsaved models. Pulling it into ProductController is deferred to the Product slice.
 
 ### 12. Layout & DX
 
