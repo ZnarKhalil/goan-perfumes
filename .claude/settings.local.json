@@ -3,7 +3,14 @@
     "allow": [
       "Bash(php artisan *)",
       "Bash(vendor/bin/pint --dirty --format agent)",
-      "Bash(composer lint *)"
+      "Bash(composer lint *)",
+      "Bash(vendor/bin/pint app/Http/Controllers/Dashboard app/Http/Requests/Dashboard app/Http/Requests/Concerns --format=agent)",
+      "Bash(npm run *)",
+      "Bash(vendor/bin/pest tests/Feature/Dashboard/CategoryControllerTest.php --filter=\"admin can create\")",
+      "Bash(PEST_NO_OUTPUT_INTERCEPT=1 vendor/bin/pest tests/Feature/Dashboard/CategoryControllerTest.php --filter=\"admin can create\" -v)",
+      "Bash(php -r '$r = file_get_contents\\(\"php://stdin\"\\); echo $r;')",
+      "Bash(vendor/bin/pest --version)",
+      "Bash(vendor/bin/pest --help)"
     ]
   },
   "enableAllProjectMcpServers": true,
