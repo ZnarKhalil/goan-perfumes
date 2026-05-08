@@ -4,6 +4,7 @@ import {
     FolderGit2,
     FolderTree,
     LayoutGrid,
+    Package,
     SlidersHorizontal,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
@@ -22,6 +23,7 @@ import {
 import { dashboard } from '@/routes';
 import attributesRoutes from '@/routes/dashboard/attributes';
 import categoriesRoutes from '@/routes/dashboard/categories';
+import productsRoutes from '@/routes/dashboard/products';
 import type { NavItem } from '@/types';
 
 const mainNavItems: NavItem[] = [
@@ -29,6 +31,11 @@ const mainNavItems: NavItem[] = [
         title: 'Dashboard',
         href: dashboard(),
         icon: LayoutGrid,
+    },
+    {
+        title: 'Produkte',
+        href: productsRoutes.index(),
+        icon: Package,
     },
     {
         title: 'Kategorien',

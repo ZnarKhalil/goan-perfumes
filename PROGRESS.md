@@ -22,3 +22,6 @@ Added `App\Services\MediaService` for reusable polymorphic media syncing. It sto
 
 ## Phase 3 — Product form prerequisite — 2026-05-08
 Added `resources/js/components/dashboard/variant-row-editor.tsx`, a controlled React component for product variant rows. It supports adding/removing variants, editing size/price/compare-at price, active/default toggles, one-default enforcement in the UI, and Laravel dotted validation errors such as `variants.0.price`. This unblocks the Product create/edit form.
+
+## Phase 3 — Products slice — 2026-05-08
+Product CRUD is implemented under `/dashboard/products`. The index shows primary image, German name, brand, categories, price range from variants, active status, and featured status. Create/edit uses one multipart Inertia form for translations, slug/brand/status, category multi-select, grouped attribute values with single-select enforcement, variants, and multi-image media via `MediaService`. The controller saves the full product graph in a transaction and cleans up media files/translations on delete. Sidebar now includes Produkte. Verification so far: `php artisan test --compact tests/Feature/Dashboard/CategoryControllerTest.php tests/Feature/Dashboard/AttributeControllerTest.php tests/Feature/Dashboard/ProductControllerTest.php` passes with 28 tests / 205 assertions; `npm run build` passes.

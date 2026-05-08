@@ -105,12 +105,12 @@
 - [x] `dashboard/attributes/{create,edit}.tsx` — main form (code, sort, is_filterable, is_multiple, name translations) **plus** a nested values editor using `data-table` + an inline side panel for create/edit-value (so admins don't navigate away). Posts to the nested `attributes.values.*` routes.
 - [x] AttributeValueController + requests wired; **11 Feature tests** cover index render, store/update/delete for attributes and values, nested-route auth, scoped uniqueness per attribute, scoped generated slugs, nested ownership enforcement, and translation cleanup. Focused dashboard resource tests: **22/22** pass, 142 assertions.
 
-### 7. Resource: Products (the big one)
+### 7. Resource: Products (the big one) ✅
 
-- [ ] `dashboard/products/index.tsx` — table with primary image thumbnail, name DE, brand, category list, price range (`withMin/withMax variants.price`), is_active, is_featured, edit/delete.
-- [ ] `dashboard/products/{create,edit}.tsx` — form with: slug, brand, is_active, is_featured, name/short/description/meta translations (TranslationTabs), categories multi-select, attribute_values grouped multi-select per attribute (respecting `is_multiple`), variants editor (variant-row-editor), media (multi MediaUploader).
-- [ ] Controller persists in a transaction: product → translations → categories sync → attribute_values sync → variants upsert (delete missing) → media sync.
-- [ ] Tests cover: create with full graph, update reordering variants/media, attribute-value AND/OR validation surfaces, media file persistence via `Storage::fake('public')`.
+- [x] `dashboard/products/index.tsx` — table with primary image thumbnail, name DE, brand, category list, price range (`withMin/withMax variants.price`), is_active, is_featured, edit/delete.
+- [x] `dashboard/products/{create,edit}.tsx` — form with: slug, brand, is_active, is_featured, name/short/description/meta translations (TranslationTabs), categories multi-select, attribute_values grouped multi-select per attribute (respecting `is_multiple`), variants editor (variant-row-editor), media (multi MediaUploader).
+- [x] Controller persists in a transaction: product → translations → categories sync → attribute_values sync → variants upsert (delete missing) → media sync.
+- [x] Tests cover: create with full graph, update reordering variants/media, attribute-value validation surfaces, media file persistence via `Storage::fake('public')`.
 
 ### 8. Resource: Promotions
 
