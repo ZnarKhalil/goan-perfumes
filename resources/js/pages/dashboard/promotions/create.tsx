@@ -1,0 +1,48 @@
+import { Head } from '@inertiajs/react';
+import PromotionForm, {
+    PROMOTION_TRANSLATION_FIELDS,
+} from '@/components/dashboard/promotions/promotion-form';
+import { emptyTranslations } from '@/components/dashboard/translation-tabs';
+import Heading from '@/components/heading';
+import { adminTitle, dashboardLabels } from '@/lib/de';
+import promotionsRoutes from '@/routes/dashboard/promotions';
+
+export default function PromotionsCreate() {
+    return (
+        <>
+            <Head title={adminTitle('Neue Aktion')} />
+            <div className="flex h-full flex-1 flex-col gap-4 p-4">
+                <Heading
+                    title="Neue Aktion"
+                    description="Lege ein Angebot für den Homepage-Hero an."
+                />
+                <PromotionForm
+                    mode="create"
+                    initial={{
+                        slug: '',
+                        background_image_url: null,
+                        background_color: '',
+                        link_url: '',
+                        promo_code: '',
+                        discount_percent: '',
+                        starts_at: '',
+                        ends_at: '',
+                        sort_order: 0,
+                        is_active: true,
+                        translations: emptyTranslations(
+                            PROMOTION_TRANSLATION_FIELDS,
+                        ),
+                    }}
+                />
+            </div>
+        </>
+    );
+}
+
+PromotionsCreate.layout = {
+    breadcrumbs: [
+        { title: dashboardLabels.dashboard, href: '/dashboard' },
+        { title: dashboardLabels.promotions, href: promotionsRoutes.index() },
+        { title: 'Neu', href: promotionsRoutes.create() },
+    ],
+};

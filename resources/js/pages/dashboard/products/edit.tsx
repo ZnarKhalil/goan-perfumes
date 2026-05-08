@@ -9,6 +9,7 @@ import type {
 import type { TranslationsShape } from '@/components/dashboard/translation-tabs';
 import type { VariantRow } from '@/components/dashboard/variant-row-editor';
 import Heading from '@/components/heading';
+import { adminTitle, dashboardLabels } from '@/lib/de';
 import productsRoutes from '@/routes/dashboard/products';
 
 type Props = {
@@ -39,7 +40,7 @@ export default function ProductsEdit({
 
     return (
         <>
-            <Head title={`Produkt bearbeiten – ${title}`} />
+            <Head title={adminTitle(`Produkt bearbeiten – ${title}`)} />
             <div className="flex h-full flex-1 flex-col gap-4 p-4">
                 <Heading
                     title={title}
@@ -70,8 +71,8 @@ export default function ProductsEdit({
 
 ProductsEdit.layout = {
     breadcrumbs: [
-        { title: 'Dashboard', href: '/dashboard' },
-        { title: 'Produkte', href: productsRoutes.index() },
+        { title: dashboardLabels.dashboard, href: '/dashboard' },
+        { title: dashboardLabels.products, href: productsRoutes.index() },
         { title: 'Bearbeiten', href: '#' },
     ],
 };

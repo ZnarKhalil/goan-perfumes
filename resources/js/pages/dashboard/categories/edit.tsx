@@ -3,6 +3,7 @@ import CategoryForm from '@/components/dashboard/categories/category-form';
 import type { CategoryParentOption } from '@/components/dashboard/categories/category-form';
 import type { TranslationsShape } from '@/components/dashboard/translation-tabs';
 import Heading from '@/components/heading';
+import { adminTitle, dashboardLabels } from '@/lib/de';
 import categoriesRoutes from '@/routes/dashboard/categories';
 
 type Props = {
@@ -22,7 +23,9 @@ type Props = {
 export default function CategoriesEdit({ category, parents }: Props) {
     return (
         <>
-            <Head title={`Kategorie bearbeiten – ${category.name}`} />
+            <Head
+                title={adminTitle(`Kategorie bearbeiten – ${category.name}`)}
+            />
             <div className="flex h-full flex-1 flex-col gap-4 p-4">
                 <Heading
                     title={category.name}
@@ -48,8 +51,8 @@ export default function CategoriesEdit({ category, parents }: Props) {
 
 CategoriesEdit.layout = {
     breadcrumbs: [
-        { title: 'Dashboard', href: '/dashboard' },
-        { title: 'Kategorien', href: categoriesRoutes.index() },
+        { title: dashboardLabels.dashboard, href: '/dashboard' },
+        { title: dashboardLabels.categories, href: categoriesRoutes.index() },
         { title: 'Bearbeiten', href: '#' },
     ],
 };

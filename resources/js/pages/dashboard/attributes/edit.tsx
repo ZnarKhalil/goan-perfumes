@@ -4,6 +4,7 @@ import AttributeValueEditor from '@/components/dashboard/attributes/attribute-va
 import type { AttributeValueRow } from '@/components/dashboard/attributes/attribute-value-editor';
 import type { TranslationsShape } from '@/components/dashboard/translation-tabs';
 import Heading from '@/components/heading';
+import { adminTitle, dashboardLabels } from '@/lib/de';
 import attributesRoutes from '@/routes/dashboard/attributes';
 
 type Props = {
@@ -22,7 +23,9 @@ type Props = {
 export default function AttributesEdit({ attribute }: Props) {
     return (
         <>
-            <Head title={`Attribut bearbeiten – ${attribute.name}`} />
+            <Head
+                title={adminTitle(`Attribut bearbeiten – ${attribute.name}`)}
+            />
             <div className="flex h-full flex-1 flex-col gap-4 p-4">
                 <Heading
                     title={attribute.name}
@@ -50,8 +53,8 @@ export default function AttributesEdit({ attribute }: Props) {
 
 AttributesEdit.layout = {
     breadcrumbs: [
-        { title: 'Dashboard', href: '/dashboard' },
-        { title: 'Attribute', href: attributesRoutes.index() },
+        { title: dashboardLabels.dashboard, href: '/dashboard' },
+        { title: dashboardLabels.attributes, href: attributesRoutes.index() },
         { title: 'Bearbeiten', href: '#' },
     ],
 };

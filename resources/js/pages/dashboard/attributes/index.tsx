@@ -4,6 +4,7 @@ import DataTable from '@/components/dashboard/data-table';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { adminTitle, dashboardLabels } from '@/lib/de';
 import attributesRoutes from '@/routes/dashboard/attributes';
 
 type AttributeRow = {
@@ -37,7 +38,7 @@ export default function AttributesIndex({ attributes }: Props) {
 
     return (
         <>
-            <Head title="Attribute" />
+            <Head title={adminTitle(dashboardLabels.attributes)} />
             <div className="flex h-full flex-1 flex-col gap-4 p-4">
                 <div className="flex items-start justify-between gap-4">
                     <Heading
@@ -127,7 +128,7 @@ export default function AttributesIndex({ attributes }: Props) {
 
 AttributesIndex.layout = {
     breadcrumbs: [
-        { title: 'Dashboard', href: '/dashboard' },
-        { title: 'Attribute', href: attributesRoutes.index() },
+        { title: dashboardLabels.dashboard, href: '/dashboard' },
+        { title: dashboardLabels.attributes, href: attributesRoutes.index() },
     ],
 };

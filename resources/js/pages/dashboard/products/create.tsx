@@ -7,6 +7,7 @@ import type {
 } from '@/components/dashboard/products/product-form';
 import { emptyTranslations } from '@/components/dashboard/translation-tabs';
 import Heading from '@/components/heading';
+import { adminTitle, dashboardLabels } from '@/lib/de';
 import productsRoutes from '@/routes/dashboard/products';
 
 const FIELDS = [
@@ -28,7 +29,7 @@ export default function ProductsCreate({
 }: Props) {
     return (
         <>
-            <Head title="Neues Produkt" />
+            <Head title={adminTitle('Neues Produkt')} />
             <div className="flex h-full flex-1 flex-col gap-4 p-4">
                 <Heading
                     title="Neues Produkt"
@@ -58,8 +59,8 @@ export default function ProductsCreate({
 
 ProductsCreate.layout = {
     breadcrumbs: [
-        { title: 'Dashboard', href: '/dashboard' },
-        { title: 'Produkte', href: productsRoutes.index() },
+        { title: dashboardLabels.dashboard, href: '/dashboard' },
+        { title: dashboardLabels.products, href: productsRoutes.index() },
         { title: 'Neu', href: productsRoutes.create() },
     ],
 };

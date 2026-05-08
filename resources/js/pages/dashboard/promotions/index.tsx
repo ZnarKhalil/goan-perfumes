@@ -1,82 +1,84 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
-import ProductController from '@/actions/App/Http/Controllers/Dashboard/ProductController';
+import PromotionController from '@/actions/App/Http/Controllers/Dashboard/PromotionController';
 import DataTable from '@/components/dashboard/data-table';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { adminTitle, dashboardLabels } from '@/lib/de';
-import productsRoutes from '@/routes/dashboard/products';
+import promotionsRoutes from '@/routes/dashboard/promotions';
 
-type ProductRow = {
+type PromotionRow = {
     id: number;
     slug: string;
-    name: string;
-    brand: string | null;
-    categories: string[];
-    min_price: string | null;
-    max_price: string | null;
-    variants_count: number;
+    title: string;
+    promo_code: string | null;
+    discount_percent: number | null;
+    starts_at: string | null;
+    ends_at: string | null;
+    sort_order: number;
     is_active: boolean;
-    is_featured: boolean;
-    image_url: string | null;
+    status: 'active' | 'upcoming' | 'expired' | 'inactive';
+    background_image_url: string | null;
 };
 
 type Props = {
-    products: ProductRow[];
+    promotions: PromotionRow[];
 };
 
-const euro = new Intl.NumberFormat('de-DE', {
-    style: 'currency',
-    currency: 'EUR',
-});
+const statusLabels = {
+    active: 'Aktiv',
+    upcoming: 'Geplant',
+    expired: 'Abgelaufen',
+    inactive: 'Inaktiv',
+};
 
-export default function ProductsIndex({ products }: Props) {
-    const remove = (row: ProductRow) => {
+export default function PromotionsIndex({ promotions }: Props) {
+    const remove = (row: PromotionRow) => {
         if (
             !confirm(
-                `Produkt "${row.name}" wirklich löschen? Diese Aktion lässt sich nicht rückgängig machen.`,
+                `Aktion "${row.title}" wirklich löschen? Diese Aktion lässt sich nicht rückgängig machen.`,
             )
         ) {
             return;
         }
 
-        router.delete(ProductController.destroy.url({ product: row.id }), {
+        router.delete(PromotionController.destroy.url({ promotion: row.id }), {
             preserveScroll: true,
         });
     };
 
     return (
         <>
-            <Head title={adminTitle(dashboardLabels.products)} />
+            <Head title={adminTitle(dashboardLabels.promotions)} />
             <div className="flex h-full flex-1 flex-col gap-4 p-4">
                 <div className="flex items-start justify-between gap-4">
                     <Heading
-                        title="Produkte"
-                        description="Verwalte Katalogprodukte, Varianten, Filterwerte und Bilder."
+                        title="Aktionen"
+                        description="Verwalte Angebote für den Homepage-Hero."
                     />
                     <Button asChild>
-                        <Link href={productsRoutes.create()}>
-                            <Plus className="mr-1 h-4 w-4" /> Neues Produkt
+                        <Link href={promotionsRoutes.create()}>
+                            <Plus className="mr-1 h-4 w-4" /> Neue Aktion
                         </Link>
                     </Button>
                 </div>
 
-                <DataTable<ProductRow>
-                    rows={products}
+                <DataTable<PromotionRow>
+                    rows={promotions}
                     rowKey={(row) => row.id}
-                    emptyMessage="Noch keine Produkte angelegt."
+                    emptyMessage="Noch keine Aktionen angelegt."
                     columns={[
                         {
                             key: 'image',
                             label: 'Bild',
                             className: 'w-20',
                             render: (row) =>
-                                row.image_url ? (
+                                row.background_image_url ? (
                                     <img
-                                        src={row.image_url}
+                                        src={row.background_image_url}
                                         alt=""
-                                        className="h-12 w-12 rounded object-cover"
+                                        className="h-12 w-16 rounded object-cover"
                                     />
                                 ) : (
                                     <span className="text-xs text-muted-foreground">
@@ -85,12 +87,12 @@ export default function ProductsIndex({ products }: Props) {
                                 ),
                         },
                         {
-                            key: 'name',
-                            label: 'Produkt',
+                            key: 'title',
+                            label: 'Aktion',
                             render: (row) => (
                                 <div>
                                     <div className="font-medium">
-                                        {row.name}
+                                        {row.title}
                                     </div>
                                     <div className="text-xs text-muted-foreground">
                                         {row.slug}
@@ -99,40 +101,44 @@ export default function ProductsIndex({ products }: Props) {
                             ),
                         },
                         {
-                            key: 'brand',
-                            label: 'Marke',
-                            render: (row) => row.brand ?? '—',
-                        },
-                        {
-                            key: 'categories',
-                            label: 'Kategorien',
+                            key: 'discount',
+                            label: 'Rabatt',
                             render: (row) =>
-                                row.categories.length > 0
-                                    ? row.categories.join(', ')
+                                row.discount_percent
+                                    ? `${row.discount_percent}%`
                                     : '—',
                         },
                         {
-                            key: 'price',
-                            label: 'Preis',
-                            render: (row) => formatPriceRange(row),
+                            key: 'window',
+                            label: 'Laufzeit',
+                            render: (row) => (
+                                <div className="text-xs">
+                                    <div>{row.starts_at ?? 'Sofort'}</div>
+                                    <div className="text-muted-foreground">
+                                        bis {row.ends_at ?? 'offen'}
+                                    </div>
+                                </div>
+                            ),
+                        },
+                        {
+                            key: 'sort_order',
+                            label: 'Reihenfolge',
+                            className: 'w-28',
                         },
                         {
                             key: 'status',
                             label: 'Status',
-                            className: 'w-36',
+                            className: 'w-28',
                             render: (row) => (
-                                <div className="flex flex-wrap gap-1">
-                                    {row.is_active ? (
-                                        <Badge variant="outline">Aktiv</Badge>
-                                    ) : (
-                                        <Badge variant="secondary">
-                                            Inaktiv
-                                        </Badge>
-                                    )}
-                                    {row.is_featured && (
-                                        <Badge>Highlight</Badge>
-                                    )}
-                                </div>
+                                <Badge
+                                    variant={
+                                        row.status === 'active'
+                                            ? 'outline'
+                                            : 'secondary'
+                                    }
+                                >
+                                    {statusLabels[row.status]}
+                                </Badge>
                             ),
                         },
                     ]}
@@ -140,8 +146,8 @@ export default function ProductsIndex({ products }: Props) {
                         <>
                             <Button asChild variant="ghost" size="sm">
                                 <Link
-                                    href={productsRoutes.edit({
-                                        product: row.id,
+                                    href={promotionsRoutes.edit({
+                                        promotion: row.id,
                                     })}
                                 >
                                     <Pencil className="h-4 w-4" />
@@ -162,20 +168,9 @@ export default function ProductsIndex({ products }: Props) {
     );
 }
 
-function formatPriceRange(row: ProductRow): string {
-    if (!row.min_price || !row.max_price) {
-        return '—';
-    }
-
-    const min = euro.format(Number(row.min_price));
-    const max = euro.format(Number(row.max_price));
-
-    return min === max ? min : `${min} – ${max}`;
-}
-
-ProductsIndex.layout = {
+PromotionsIndex.layout = {
     breadcrumbs: [
         { title: dashboardLabels.dashboard, href: '/dashboard' },
-        { title: dashboardLabels.products, href: productsRoutes.index() },
+        { title: dashboardLabels.promotions, href: promotionsRoutes.index() },
     ],
 };

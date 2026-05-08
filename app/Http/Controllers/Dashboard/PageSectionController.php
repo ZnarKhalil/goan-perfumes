@@ -1,0 +1,275 @@
+<?php
+
+namespace App\Http\Controllers\Dashboard;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Dashboard\UpdatePageSectionRequest;
+use App\Models\PageSection;
+use App\Models\Product;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
+use Inertia\Response;
+
+class PageSectionController extends Controller
+{
+    private const LOCALES = ['de', 'ar', 'en'];
+
+    private const TRANSLATABLE_FIELDS = [
+        'title',
+        'body',
+        'cta_text',
+        'bullet_points',
+    ];
+
+    private const LABELS = [
+        'hero' => 'Hero',
+        'about' => 'Über uns',
+        'why_us' => 'Warum GOAN',
+        'featured_products' => 'Ausgewählte Produkte',
+    ];
+
+    public function index(): Response
+    {
+        $sections = PageSection::query()
+            ->with('translations')
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get()
+            ->map(fn (PageSection $section) => [
+                'id' => $section->id,
+                'key' => $section->key,
+                'label' => $this->labelFor($section),
+                'type' => $section->type,
+                'sort_order' => $section->sort_order,
+                'is_active' => $section->is_active,
+                'title' => $section->translate('de', 'title') ?? $this->labelFor($section),
+                'summary' => $this->summaryFor($section),
+            ])
+            ->values();
+
+        return Inertia::render('dashboard/page-sections/index', [
+            'sections' => $sections,
+        ]);
+    }
+
+    public function edit(PageSection $pageSection): Response
+    {
+        $pageSection->load('translations');
+
+        return Inertia::render('dashboard/page-sections/edit', [
+            'section' => [
+                'id' => $pageSection->id,
+                'key' => $pageSection->key,
+                'label' => $this->labelFor($pageSection),
+                'type' => $pageSection->type,
+                'payload' => $pageSection->payload ?? [],
+                'image_url' => $this->imageUrlFor($pageSection),
+                'sort_order' => $pageSection->sort_order,
+                'is_active' => $pageSection->is_active,
+                'translations' => $this->translationsAsTabs($pageSection),
+            ],
+            'products' => $this->productOptions(),
+        ]);
+    }
+
+    public function update(UpdatePageSectionRequest $request, PageSection $pageSection): RedirectResponse
+    {
+        $data = $request->validated();
+
+        DB::transaction(function () use ($pageSection, $data, $request): void {
+            $payload = $this->payloadFor($pageSection, $data);
+
+            if ($pageSection->key === 'hero' && $request->boolean('remove_hero_image')) {
+                $this->deleteHeroImage($payload);
+                $payload['image_path'] = null;
+            }
+
+            if ($pageSection->key === 'hero' && $request->hasFile('hero_image')) {
+                $this->deleteHeroImage($payload);
+                $payload['image_path'] = $request
+                    ->file('hero_image')
+                    ->store('page-sections/hero', 'public');
+            }
+
+            $pageSection->update([
+                'payload' => $payload,
+                'sort_order' => $data['sort_order'],
+                'is_active' => (bool) $data['is_active'],
+            ]);
+
+            $this->syncTranslations($pageSection, $data['translations'] ?? []);
+        });
+
+        return to_route('dashboard.page-sections.index')
+            ->with('toast', ['type' => 'success', 'message' => 'Seiten-Inhalt gespeichert.']);
+    }
+
+    private function labelFor(PageSection $section): string
+    {
+        return self::LABELS[$section->key] ?? $section->key;
+    }
+
+    private function summaryFor(PageSection $section): string
+    {
+        if ($section->key === 'featured_products') {
+            $count = count($section->payload['product_ids'] ?? []);
+
+            return "{$count} Produkte ausgewählt";
+        }
+
+        if ($section->key === 'hero') {
+            return ($section->payload['image_path'] ?? null)
+                ? 'Bild hinterlegt'
+                : 'Kein Bild hinterlegt';
+        }
+
+        if ($section->key === 'why_us') {
+            $count = count($this->decodeBulletPoints($section->translate('de', 'bullet_points')));
+
+            return $count > 0 ? "{$count} Punkte hinterlegt" : 'Noch keine Punkte';
+        }
+
+        return $section->translate('de', 'body') ? 'Text hinterlegt' : 'Noch kein Text';
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function payloadFor(PageSection $section, array $data): array
+    {
+        $payload = $section->payload ?? [];
+
+        if ($section->key === 'featured_products') {
+            return [
+                'product_ids' => array_values($data['payload']['product_ids'] ?? []),
+            ];
+        }
+
+        return $payload;
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    private function deleteHeroImage(array $payload): void
+    {
+        if (! empty($payload['image_path'])) {
+            Storage::disk('public')->delete($payload['image_path']);
+        }
+    }
+
+    private function imageUrlFor(PageSection $section): ?string
+    {
+        $imagePath = $section->payload['image_path'] ?? null;
+
+        return $imagePath ? Storage::url($imagePath) : null;
+    }
+
+    /**
+     * @return array<int, array{id: int, name: string, brand: ?string}>
+     */
+    private function productOptions(): array
+    {
+        return Product::query()
+            ->with('translations')
+            ->where('is_active', true)
+            ->orderByDesc('id')
+            ->get()
+            ->map(fn (Product $product) => [
+                'id' => $product->id,
+                'name' => $product->translate('de', 'name') ?? $product->slug,
+                'brand' => $product->brand,
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @param  array<string, array<string, mixed>>  $translations
+     */
+    private function syncTranslations(PageSection $section, array $translations): void
+    {
+        foreach (self::LOCALES as $locale) {
+            $payload = $translations[$locale] ?? [];
+
+            foreach (self::TRANSLATABLE_FIELDS as $field) {
+                $value = $payload[$field] ?? null;
+
+                if ($field === 'bullet_points') {
+                    $value = $this->encodeBulletPoints($value);
+                }
+
+                if ($value === null || $value === '') {
+                    $section->translations()
+                        ->where('locale', $locale)
+                        ->where('field', $field)
+                        ->delete();
+
+                    continue;
+                }
+
+                $section->setTranslation($locale, $field, $value);
+            }
+        }
+    }
+
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    private function translationsAsTabs(PageSection $section): array
+    {
+        $shape = [];
+
+        foreach (self::LOCALES as $locale) {
+            $shape[$locale] = [];
+
+            foreach (self::TRANSLATABLE_FIELDS as $field) {
+                $value = $section->translate($locale, $field);
+
+                $shape[$locale][$field] = $field === 'bullet_points'
+                    ? $this->decodeBulletPoints($value)
+                    : ($value ?? '');
+            }
+        }
+
+        return $shape;
+    }
+
+    private function encodeBulletPoints(mixed $value): ?string
+    {
+        if (! is_array($value)) {
+            return null;
+        }
+
+        $items = collect($value)
+            ->filter(fn (mixed $item) => is_string($item) && trim($item) !== '')
+            ->map(fn (string $item) => trim($item))
+            ->values()
+            ->all();
+
+        if ($items === []) {
+            return null;
+        }
+
+        return json_encode($items, JSON_UNESCAPED_UNICODE);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function decodeBulletPoints(?string $value): array
+    {
+        if ($value === null || $value === '') {
+            return [];
+        }
+
+        $decoded = json_decode($value, true);
+
+        return is_array($decoded)
+            ? array_values(array_filter($decoded, is_string(...)))
+            : [];
+    }
+}
