@@ -10,7 +10,7 @@ class PageSectionSeeder extends Seeder
     public function run(): void
     {
         foreach ($this->sections() as $section) {
-            PageSection::query()->updateOrCreate(
+            $model = PageSection::query()->updateOrCreate(
                 ['key' => $section['key']],
                 [
                     'type' => $section['type'],
@@ -19,11 +19,15 @@ class PageSectionSeeder extends Seeder
                     'is_active' => $section['is_active'],
                 ],
             );
+
+            foreach ($section['translations'] as $field => $value) {
+                $model->setTranslation('de', $field, $value);
+            }
         }
     }
 
     /**
-     * @return array<int, array{key: string, type: string, payload: array<string, mixed>, sort_order: int, is_active: bool}>
+     * @return array<int, array{key: string, type: string, payload: array<string, mixed>, sort_order: int, is_active: bool, translations: array<string, string>}>
      */
     private function sections(): array
     {
@@ -31,9 +35,16 @@ class PageSectionSeeder extends Seeder
             [
                 'key' => 'hero',
                 'type' => 'image',
-                'payload' => ['image_path' => null],
+                'payload' => [
+                    'image_path' => 'https://images.unsplash.com/photo-1541643600914-78b084683601?auto=format&fit=crop&w=2200&q=85',
+                ],
                 'sort_order' => 0,
                 'is_active' => true,
+                'translations' => [
+                    'title' => 'Goan Perfume',
+                    'body' => 'Feine Duftauswahl mit Luxus-, Nischen- und arabischen Parfums. Online entdecken, direkt beraten lassen.',
+                    'cta_text' => 'Kollektion entdecken',
+                ],
             ],
             [
                 'key' => 'about',
@@ -41,6 +52,10 @@ class PageSectionSeeder extends Seeder
                 'payload' => [],
                 'sort_order' => 10,
                 'is_active' => true,
+                'translations' => [
+                    'title' => 'Duftberatung mit kuratierter Auswahl.',
+                    'body' => 'Goan Perfume verbindet bekannte Designerprofile, seltenere Nischenrichtungen und intensive arabische Dufttraditionen. Jede Auswahl ist fuer direkte Beratung, Preisvergleich und schnelle Anfrage vorbereitet.',
+                ],
             ],
             [
                 'key' => 'why_us',
@@ -48,6 +63,15 @@ class PageSectionSeeder extends Seeder
                 'payload' => [],
                 'sort_order' => 20,
                 'is_active' => true,
+                'translations' => [
+                    'title' => 'Warum Kunden bei Goan Perfume anfragen.',
+                    'bullet_points' => json_encode([
+                        'Klare Kategorien fuer schnelle Orientierung nach Anlass, Duftfamilie und Stil.',
+                        'Mehrere Groessen pro Produkt mit transparenten Preisen fuer einfache Auswahl.',
+                        'Direkte Beratung per WhatsApp, Telefon oder E-Mail statt anonymem Checkout.',
+                        'Regelmaessig kuratierte Aktionen fuer neue Duftentdeckungen.',
+                    ], JSON_THROW_ON_ERROR),
+                ],
             ],
             [
                 'key' => 'featured_products',
@@ -55,6 +79,7 @@ class PageSectionSeeder extends Seeder
                 'payload' => ['product_ids' => []],
                 'sort_order' => 30,
                 'is_active' => true,
+                'translations' => [],
             ],
         ];
     }

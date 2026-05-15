@@ -17,6 +17,9 @@ class DatabaseSeeder extends Seeder
             AttributeSeeder::class,
             AttributeValueSeeder::class,
             PageSectionSeeder::class,
+            SettingSeeder::class,
+            PromotionSeeder::class,
+            ProductCatalogSeeder::class,
         ]);
     }
 }
