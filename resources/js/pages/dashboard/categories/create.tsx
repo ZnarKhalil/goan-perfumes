@@ -3,6 +3,7 @@ import CategoryForm from '@/components/dashboard/categories/category-form';
 import type { CategoryParentOption } from '@/components/dashboard/categories/category-form';
 import { emptyTranslations } from '@/components/dashboard/translation-tabs';
 import Heading from '@/components/heading';
+import { adminTitle, dashboardLabels } from '@/lib/de';
 import categoriesRoutes from '@/routes/dashboard/categories';
 
 const FIELDS = [
@@ -23,7 +24,7 @@ type Props = {
 export default function CategoriesCreate({ parents }: Props) {
     return (
         <>
-            <Head title="Neue Kategorie" />
+            <Head title={adminTitle('Neue Kategorie')} />
             <div className="flex h-full flex-1 flex-col gap-4 p-4">
                 <Heading
                     title="Neue Kategorie"
@@ -48,8 +49,8 @@ export default function CategoriesCreate({ parents }: Props) {
 
 CategoriesCreate.layout = {
     breadcrumbs: [
-        { title: 'Dashboard', href: '/dashboard' },
-        { title: 'Kategorien', href: categoriesRoutes.index() },
+        { title: dashboardLabels.dashboard, href: '/dashboard' },
+        { title: dashboardLabels.categories, href: categoriesRoutes.index() },
         { title: 'Neu', href: categoriesRoutes.create() },
     ],
 };

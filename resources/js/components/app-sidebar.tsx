@@ -4,6 +4,10 @@ import {
     FolderGit2,
     FolderTree,
     LayoutGrid,
+    LayoutTemplate,
+    Package,
+    Megaphone,
+    Settings,
     SlidersHorizontal,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
@@ -19,26 +23,52 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { dashboardLabels } from '@/lib/de';
 import { dashboard } from '@/routes';
 import attributesRoutes from '@/routes/dashboard/attributes';
 import categoriesRoutes from '@/routes/dashboard/categories';
+import pageSectionsRoutes from '@/routes/dashboard/page-sections';
+import productsRoutes from '@/routes/dashboard/products';
+import promotionsRoutes from '@/routes/dashboard/promotions';
+import siteSettingsRoutes from '@/routes/dashboard/settings/site';
 import type { NavItem } from '@/types';
 
 const mainNavItems: NavItem[] = [
     {
-        title: 'Dashboard',
+        title: dashboardLabels.dashboard,
         href: dashboard(),
         icon: LayoutGrid,
     },
     {
-        title: 'Kategorien',
+        title: dashboardLabels.products,
+        href: productsRoutes.index(),
+        icon: Package,
+    },
+    {
+        title: dashboardLabels.categories,
         href: categoriesRoutes.index(),
         icon: FolderTree,
     },
     {
-        title: 'Attribute',
+        title: dashboardLabels.attributes,
         href: attributesRoutes.index(),
         icon: SlidersHorizontal,
+    },
+    {
+        title: dashboardLabels.promotions,
+        href: promotionsRoutes.index(),
+        icon: Megaphone,
+    },
+    {
+        title: dashboardLabels.pageSections,
+        href: pageSectionsRoutes.index(),
+        icon: LayoutTemplate,
+    },
+    {
+        title: dashboardLabels.settings,
+        href: siteSettingsRoutes.edit(),
+        icon: Settings,
+        separatorBefore: true,
     },
 ];
 

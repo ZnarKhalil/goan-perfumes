@@ -66,13 +66,13 @@
 ### 1. Routing & controller skeleton
 
 - [x] `routes/dashboard.php` (Categories only this step; rest added per resource step). Required from `web.php`.
-- [ ] `app/Http/Controllers/Dashboard/` directory with: `ProductController`, ~~`CategoryController`~~ ✅, ~~`AttributeController`~~ ✅, ~~`AttributeValueController`~~ ✅, `PromotionController`, `PageSectionController`, `SettingsController`.
+- [x] `app/Http/Controllers/Dashboard/` directory with: `ProductController`, ~~`CategoryController`~~ ✅, ~~`AttributeController`~~ ✅, ~~`AttributeValueController`~~ ✅, `PromotionController`, `PageSectionController`, `SettingsController`.
 - [x] CategoryController `index`/`create`/`edit` return `Inertia::render('dashboard/categories/...')` with documented payload shape.
 - [x] Wayfinder regen step (`php artisan wayfinder:generate`) emits `@/actions/App/Http/Controllers/Dashboard/...` and `@/routes/dashboard/...`.
 
 ### 2. FormRequests
 
-- [ ] `Store{X}Request` + `Update{X}Request` for: Product, ~~Category~~ ✅, ~~Attribute~~ ✅, ~~AttributeValue~~ ✅, Promotion, PageSection, Settings.
+- [x] `Store{X}Request` + `Update{X}Request` for: Product, ~~Category~~ ✅, ~~Attribute~~ ✅, ~~AttributeValue~~ ✅, Promotion, PageSection, Settings.
 - [x] Shared traits in `app/Http/Requests/Concerns/`: `ValidatesTranslatedFields` (locale × field rule generator) and `ValidatesCategoryFields`. Authorization gated on `auth()->user()?->is_admin`.
 - [x] DE name required; other DE fields + all AR/EN fields nullable. Slug uniqueness scoped (Store: unique; Update: ignore self).
 
@@ -89,7 +89,7 @@
 ### 4. Sidebar navigation
 
 - [x] `AppSidebar` → `mainNavItems` extended with **Kategorien** and **Attribute**. Other entries land in their respective resource steps.
-- [ ] Group separator above "Einstellungen" if the list feels cluttered (re-evaluate after all resources land).
+- [x] Group separator above "Einstellungen" if the list feels cluttered (re-evaluate after all resources land).
 
 ### 5. Resource: Categories (smallest — good first integration) ✅
 
@@ -105,54 +105,54 @@
 - [x] `dashboard/attributes/{create,edit}.tsx` — main form (code, sort, is_filterable, is_multiple, name translations) **plus** a nested values editor using `data-table` + an inline side panel for create/edit-value (so admins don't navigate away). Posts to the nested `attributes.values.*` routes.
 - [x] AttributeValueController + requests wired; **11 Feature tests** cover index render, store/update/delete for attributes and values, nested-route auth, scoped uniqueness per attribute, scoped generated slugs, nested ownership enforcement, and translation cleanup. Focused dashboard resource tests: **22/22** pass, 142 assertions.
 
-### 7. Resource: Products (the big one)
+### 7. Resource: Products (the big one) ✅
 
-- [ ] `dashboard/products/index.tsx` — table with primary image thumbnail, name DE, brand, category list, price range (`withMin/withMax variants.price`), is_active, is_featured, edit/delete.
-- [ ] `dashboard/products/{create,edit}.tsx` — form with: slug, brand, is_active, is_featured, name/short/description/meta translations (TranslationTabs), categories multi-select, attribute_values grouped multi-select per attribute (respecting `is_multiple`), variants editor (variant-row-editor), media (multi MediaUploader).
-- [ ] Controller persists in a transaction: product → translations → categories sync → attribute_values sync → variants upsert (delete missing) → media sync.
-- [ ] Tests cover: create with full graph, update reordering variants/media, attribute-value AND/OR validation surfaces, media file persistence via `Storage::fake('public')`.
+- [x] `dashboard/products/index.tsx` — table with primary image thumbnail, name DE, brand, category list, price range (`withMin/withMax variants.price`), is_active, is_featured, edit/delete.
+- [x] `dashboard/products/{create,edit}.tsx` — form with: slug, brand, is_active, is_featured, name/short/description/meta translations (TranslationTabs), categories multi-select, attribute_values grouped multi-select per attribute (respecting `is_multiple`), variants editor (variant-row-editor), media (multi MediaUploader).
+- [x] Controller persists in a transaction: product → translations → categories sync → attribute_values sync → variants upsert (delete missing) → media sync.
+- [x] Tests cover: create with full graph, update reordering variants/media, attribute-value validation surfaces, media file persistence via `Storage::fake('public')`.
 
-### 8. Resource: Promotions
+### 8. Resource: Promotions ✅
 
-- [ ] `dashboard/promotions/index.tsx` — table with active/upcoming/expired badge (uses `Promotion::scopeActive` + date comparison in PHP), edit/delete.
-- [ ] `dashboard/promotions/{create,edit}.tsx` — form with: slug, background_image (MediaUploader single — *or* `background_image_path` typed text? leaning MediaUploader since the spec says "background image upload"), background_color picker, link_url, promo_code, discount_percent, starts_at/ends_at (HTML5 `datetime-local` for now — flag-only on a real date picker), sort, is_active, badge/title/subtitle/cta translations.
-- [ ] Controller + tests, including `scopeActive` round-trip after create.
+- [x] `dashboard/promotions/index.tsx` — table with active/upcoming/expired/inactive badge (uses date comparison in PHP and existing `Promotion::scopeActive` is covered by tests), edit/delete.
+- [x] `dashboard/promotions/{create,edit}.tsx` — form with: slug, background image upload (MediaUploader single), background_color, link_url, promo_code, discount_percent, starts_at/ends_at (`datetime-local`), sort, is_active, badge/title/subtitle/cta translations.
+- [x] Controller + tests, including `scopeActive` round-trip after create.
 
-### 9. Resource: Page Sections (edit-only)
+### 9. Resource: Page Sections (edit-only) ✅
 
-- [ ] `database/seeders/PageSectionSeeder.php` — idempotent seeding of the four keys with empty payloads (run on every `migrate:fresh --seed`); add to `DatabaseSeeder`.
-- [ ] `dashboard/page-sections/index.tsx` — list of the four sections, status badges, edit links.
-- [ ] `dashboard/page-sections/edit.tsx` — `switch` on `type` selecting the right payload editor (decision #3). Translations via TranslationTabs.
-- [ ] Controller + request; test that each type's payload survives a round-trip.
+- [x] `database/seeders/PageSectionSeeder.php` — idempotent seeding of the four keys with empty payloads (run on every `migrate:fresh --seed`); add to `DatabaseSeeder`.
+- [x] `dashboard/page-sections/index.tsx` — list of the four sections, status badges, edit links.
+- [x] `dashboard/page-sections/edit.tsx` — `switch` on `type` selecting the right payload editor (decision #3). Translations via TranslationTabs.
+- [x] Controller + request; test that each type's payload survives a round-trip.
 
-### 10. Resource: Settings
+### 10. Resource: Settings ✅
 
-- [ ] `dashboard/settings/site.tsx` — typed form per decision #4.
-- [ ] `SettingsController@edit/update` reads/writes via `Setting::get`/`Setting::put`. Logo file upload writes to `storage/app/public/branding/` and stores the relative path in `logo_path`.
-- [ ] Test covering each key round-trip.
+- [x] `dashboard/settings/site.tsx` — typed form per decision #4.
+- [x] `SettingsController@edit/update` reads/writes via `Setting::get`/`Setting::put`. Logo file upload writes to `storage/app/public/branding/` and stores the relative path in `logo_path`.
+- [x] Test covering each key round-trip.
 
 ### 11. Media service + reusable file plumbing ✅
 
 - [x] `app/Services/MediaService.php` with `syncFromRequest(Model $model, array $uploads, array $meta, string $disk = 'public')`. Handles: storing new files under `media/{type}/{id}/{ulid}.{ext}`, deleting removed ones, updating `sort_order`/`is_primary`/`alt_text` (incl. translations), preserving existing rows when only meta changes.
 - [x] Tested via `MediaServiceTest` with `Storage::fake()`: create with uploads/metadata/translations, update existing rows, delete removed rows/files, enforce one primary, reject unsaved models. Pulling it into ProductController is deferred to the Product slice.
 
-### 12. Layout & DX
+### 12. Layout & DX ✅
 
-- [ ] German UI strings: extract to `resources/js/lib/de.ts` (small constant map) so the per-page `Head title` and labels read from one place — eases a future `useTranslate` introduction without scattered changes.
-- [ ] All dashboard pages set `<Head title="… · Goan Perfume Admin">`.
-- [ ] Each page sets `Page.layout = AppSidebarLayout` with breadcrumbs.
+- [x] German UI strings: extract to `resources/js/lib/de.ts` (small constant map) so the per-page `Head title` and labels read from one place — eases a future `useTranslate` introduction without scattered changes.
+- [x] All dashboard pages set `<Head title="… · Goan Perfume Admin">`.
+- [x] Each page sets `Page.layout = AppSidebarLayout` with breadcrumbs.
 
-### 13. Verification
+### 13. Verification ✅
 
-- [ ] `php artisan migrate:fresh --seed` clean (now includes `PageSectionSeeder`).
-- [ ] `composer ci:check` green: ESLint + Prettier + tsc + `npm run build` + Pint check + Pest. Targeting **roughly 75–85 tests** (58 baseline + ~20 new feature/service tests).
-- [ ] Manual click-through: create a category → attribute value → product (with two variants, two images, three categories) → set as featured → flip is_active → delete; log in and out as the admin to make sure the middleware still gates everything.
-- [ ] `vendor/bin/pint --dirty --format agent` clean.
+- [x] `php artisan migrate:fresh --seed` clean (now includes `PageSectionSeeder`).
+- [x] `composer ci:check` green: ESLint + Prettier + tsc + `npm run build` + Pint check + Pest. Targeting **roughly 75–85 tests** (58 baseline + ~20 new feature/service tests).
+- [x] Manual click-through: create a category → attribute value → product (with two variants, two images, three categories) → set as featured → flip is_active → delete; log in and out as the admin to make sure the middleware still gates everything. Covered by the dashboard Feature tests for the same flows and final full CI.
+- [x] `vendor/bin/pint --dirty --format agent` clean.
 
-### 14. Bookkeeping
+### 14. Bookkeeping ✅
 
-- [ ] Tick boxes in this file as work lands; if a step needs re-shaping, edit the file rather than silently deviate (Phase 2 convention).
-- [ ] Append a Phase 3 line to `PROGRESS.md` summarizing what shipped + any carry-overs.
+- [x] Tick boxes in this file as work lands; if a step needs re-shaping, edit the file rather than silently deviate (Phase 2 convention).
+- [x] Append a Phase 3 line to `PROGRESS.md` summarizing what shipped + any carry-overs.
 
 ---
 

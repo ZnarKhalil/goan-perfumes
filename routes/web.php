@@ -1,11 +1,27 @@
 <?php
 
+use App\Http\Controllers\Public\CategoryController;
+use App\Http\Controllers\Public\ContactController;
+use App\Http\Controllers\Public\HomeController;
+use App\Http\Controllers\Public\PricingController;
+use App\Http\Controllers\Public\ProductController;
 use Illuminate\Support\Facades\Route;
-use Laravel\Fortify\Features;
 
-Route::inertia('/', 'welcome', [
-    'canRegister' => Features::enabled(Features::registration()),
-])->name('home');
+Route::get('/', HomeController::class)->name('home');
+Route::get('/preise', PricingController::class)->name('pricing');
+Route::get('/kontakt', ContactController::class)->name('contact');
+Route::get('/produkt/{slug}', [ProductController::class, 'show'])->name('products.show');
+Route::get('/{slug}', [CategoryController::class, 'show'])
+    ->whereIn('slug', [
+        'luxusparfums',
+        'nischenparfums',
+        'designerparfums',
+        'arabische-parfums',
+        'damenparfums',
+        'herrenparfums',
+        'unisex-parfums',
+    ])
+    ->name('categories.show');
 
 Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');

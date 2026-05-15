@@ -5,6 +5,7 @@ import DataTable from '@/components/dashboard/data-table';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { adminTitle, dashboardLabels } from '@/lib/de';
 import categoriesRoutes from '@/routes/dashboard/categories';
 
 type CategoryRow = {
@@ -38,7 +39,7 @@ export default function CategoriesIndex({ categories }: Props) {
 
     return (
         <>
-            <Head title="Kategorien" />
+            <Head title={adminTitle(dashboardLabels.categories)} />
             <div className="flex h-full flex-1 flex-col gap-4 p-4">
                 <div className="flex items-start justify-between">
                     <Heading
@@ -137,7 +138,7 @@ export default function CategoriesIndex({ categories }: Props) {
 
 CategoriesIndex.layout = {
     breadcrumbs: [
-        { title: 'Dashboard', href: '/dashboard' },
-        { title: 'Kategorien', href: categoriesRoutes.index() },
+        { title: dashboardLabels.dashboard, href: '/dashboard' },
+        { title: dashboardLabels.categories, href: categoriesRoutes.index() },
     ],
 };

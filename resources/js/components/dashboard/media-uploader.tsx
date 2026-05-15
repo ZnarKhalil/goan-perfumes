@@ -34,6 +34,13 @@ export type MediaItem = {
     sort_order: number;
     is_primary: boolean;
     alt_text?: string;
+    alt_text_translations?: MediaAltText;
+};
+
+export type MediaAltText = {
+    de: string;
+    ar: string;
+    en: string;
 };
 
 type SingleProps = {
@@ -223,6 +230,7 @@ function MultiUploader({
                 is_primary:
                     next.length === 0 && !items.some((i) => i.is_primary),
                 alt_text: '',
+                alt_text_translations: emptyAltText(),
             });
         });
         onItemsChange(reindex(next));
@@ -255,11 +263,24 @@ function MultiUploader({
         onItemsChange(reindex(items.filter((i) => i.id !== id)));
     };
 
-    const setAlt = (id: string, value: string) => {
+    const setAlt = (id: string, locale: keyof MediaAltText, value: string) => {
         onItemsChange(
-            items.map((item) =>
-                item.id === id ? { ...item, alt_text: value } : item,
-            ),
+            items.map((item) => {
+                if (item.id !== id) {
+                    return item;
+                }
+
+                const translations = {
+                    ...altTextFor(item),
+                    [locale]: value,
+                };
+
+                return {
+                    ...item,
+                    alt_text: translations.de,
+                    alt_text_translations: translations,
+                };
+            }),
         );
     };
 
@@ -334,11 +355,27 @@ function reindex(items: MediaItem[]): MediaItem[] {
     return items.map((item, index) => ({ ...item, sort_order: index }));
 }
 
+function emptyAltText(): MediaAltText {
+    return { de: '', ar: '', en: '' };
+}
+
+function altTextFor(item: MediaItem): MediaAltText {
+    return {
+        ...emptyAltText(),
+        ...(item.alt_text_translations ?? {}),
+        de: item.alt_text_translations?.de ?? item.alt_text ?? '',
+    };
+}
+
 type SortableMediaProps = {
     item: MediaItem;
     onSetPrimary: (id: string) => void;
     onRemove: (id: string) => void;
-    onAltChange: (id: string, value: string) => void;
+    onAltChange: (
+        id: string,
+        locale: keyof MediaAltText,
+        value: string,
+    ) => void;
 };
 
 function SortableMedia({
@@ -361,6 +398,7 @@ function SortableMedia({
         [item.file],
     );
     const previewUrl = objectUrl ?? item.url ?? '';
+    const altText = altTextFor(item);
 
     useEffect(() => {
         if (!objectUrl) {
@@ -423,13 +461,27 @@ function SortableMedia({
                     className="aspect-square w-full object-cover"
                 />
             )}
-            <input
-                type="text"
-                placeholder="Alt-Text"
-                value={item.alt_text ?? ''}
-                onChange={(e) => onAltChange(item.id, e.target.value)}
-                className="block w-full border-t border-input bg-transparent px-2 py-1 text-xs outline-none"
-            />
+            <div className="grid gap-1 border-t border-input p-2">
+                {(
+                    [
+                        ['de', 'Alt-Text DE'],
+                        ['ar', 'Alt-Text AR'],
+                        ['en', 'Alt-Text EN'],
+                    ] as const
+                ).map(([locale, placeholder]) => (
+                    <input
+                        key={locale}
+                        type="text"
+                        dir={locale === 'ar' ? 'rtl' : undefined}
+                        placeholder={placeholder}
+                        value={altText[locale]}
+                        onChange={(e) =>
+                            onAltChange(item.id, locale, e.target.value)
+                        }
+                        className="block w-full rounded border border-input bg-transparent px-2 py-1 text-xs outline-none"
+                    />
+                ))}
+            </div>
         </div>
     );
 }
