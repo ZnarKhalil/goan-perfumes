@@ -135,7 +135,7 @@ test('admin can update a promotion and replace its background image', function (
             'slug' => 'neu',
             'background_image' => UploadedFile::fake()->image('new.jpg', 1600, 900),
             'background_color' => '#ffffff',
-            'link_url' => '/preise',
+            'link_url' => '/kontakt',
             'promo_code' => '',
             'discount_percent' => '',
             'starts_at' => '',
@@ -159,7 +159,7 @@ test('admin can update a promotion and replace its background image', function (
 
     expect($promotion->slug)->toBe('neu');
     expect($promotion->background_color)->toBe('#ffffff');
-    expect($promotion->link_url)->toBe('/preise');
+    expect($promotion->link_url)->toBe('/kontakt');
     expect($promotion->promo_code)->toBeNull();
     expect($promotion->discount_percent)->toBeNull();
     expect($promotion->is_active)->toBeFalse();

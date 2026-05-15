@@ -38,12 +38,6 @@ export default function SiteDrawer({ navigation, trigger }: Props) {
                         </Link>
                     ))}
                     <Link
-                        href="/preise"
-                        className="border-b border-stone-200 py-4 text-lg font-medium transition hover:text-stone-500"
-                    >
-                        Preis
-                    </Link>
-                    <Link
                         href="/kontakt"
                         className="border-b border-stone-200 py-4 text-lg font-medium transition hover:text-stone-500"
                     >

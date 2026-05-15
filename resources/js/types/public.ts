@@ -182,13 +182,6 @@ export type PublicProductPageProps = {
     product: PublicProductDetail;
 };
 
-export type PublicPricingPageProps = {
-    navigation: PublicCategoryNavItem[];
-    contact: PublicContactSettings;
-    logo_url: string | null;
-    categories: PublicCategoryNavItem[];
-};
-
 export type PublicContactPageProps = {
     navigation: PublicCategoryNavItem[];
     contact: PublicContactSettings;

@@ -6,7 +6,6 @@ import type {
     PublicFilterGroup,
     PublicHomePageProps,
     PublicPageSections,
-    PublicPricingPageProps,
     PublicProductCard,
     PublicProductDetail,
     PublicProductPageProps,
@@ -593,13 +592,6 @@ export const publicDummyProductProps: PublicProductPageProps = {
     contact: publicDummyContact,
     logo_url: publicDummyLogoUrl,
     product: publicDummyProductDetail,
-};
-
-export const publicDummyPricingProps: PublicPricingPageProps = {
-    navigation: publicDummyNavigation,
-    contact: publicDummyContact,
-    logo_url: publicDummyLogoUrl,
-    categories: publicDummyNavigation,
 };
 
 export const publicDummyContactProps: PublicContactPageProps = {

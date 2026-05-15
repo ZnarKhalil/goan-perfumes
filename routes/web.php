@@ -3,12 +3,10 @@
 use App\Http\Controllers\Public\CategoryController;
 use App\Http\Controllers\Public\ContactController;
 use App\Http\Controllers\Public\HomeController;
-use App\Http\Controllers\Public\PricingController;
 use App\Http\Controllers\Public\ProductController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
-Route::get('/preise', PricingController::class)->name('pricing');
 Route::get('/kontakt', ContactController::class)->name('contact');
 Route::get('/produkt/{slug}', [ProductController::class, 'show'])->name('products.show');
 Route::get('/{slug}', [CategoryController::class, 'show'])

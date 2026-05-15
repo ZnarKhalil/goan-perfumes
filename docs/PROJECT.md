@@ -36,14 +36,13 @@ A **product showcase website** for **Goan Perfume**, a German-based perfume shop
 | `/damenparfums` | Category listing page (Damenparfums) |
 | `/herrenparfums` | Category listing page (Herrenparfums) |
 | `/unisex-parfums` | Category listing page (Unisex-Parfums) |
-| `/preise` | Pricing page |
 | `/kontakt` | Contact info page (WhatsApp, phone, email, social links — no form) |
 | `/produkt/{slug}` | Product detail page |
 
 ### Navigation & Layout (from references)
 
 - **Top navbar**: hamburger menu (left), centered logo, cart icon (decorative for now — no e-commerce).
-- **Side menu (drawer)**: Luxusparfums, Nischenparfums, Designerparfums, Arabische Parfums, Preis, Kontakt. Title at top: "القائمه" (Arabic for "menu").
+- **Side menu (drawer)**: Luxusparfums, Nischenparfums, Designerparfums, Arabische Parfums, Kontakt. Title at top: "القائمه" (Arabic for "menu").
 - **Floating sidebar (right edge)**: WhatsApp, email, phone, TikTok, Instagram, Facebook quick-contact buttons.
 - **Language switcher**: flag icons (UK / DE / SA or similar) — visible on every page.
 - **Mobile filter behavior**: filters appear inline above the product grid (no off-canvas drawer required for v1).
@@ -398,7 +397,7 @@ The build is split into seven phases. Each phase has a clear deliverable, accept
 **Deliverable**: Public-facing site fully functional in German. AR/EN come in phase 5.
 
 **Acceptance criteria**:
-- Routes implemented per section 2: `/`, `/luxusparfums`, `/nischenparfums`, `/designerparfums`, `/arabische-parfums`, `/damenparfums`, `/herrenparfums`, `/unisex-parfums`, `/preise`, `/kontakt`, `/produkt/{slug}`.
+- Routes implemented per section 2: `/`, `/luxusparfums`, `/nischenparfums`, `/designerparfums`, `/arabische-parfums`, `/damenparfums`, `/herrenparfums`, `/unisex-parfums`, `/kontakt`, `/produkt/{slug}`.
 - Homepage renders: nav, promo hero (rotating carousel of active promotions, fallback to default hero image), Luxus-Highlights featured products, Über uns, Warum wir.
 - Category pages render: header banner, filter UI (inline on desktop, off-canvas drawer button on mobile), paginated product grid (4 cols desktop / 2 cols mobile), price range on cards (`10,00 € – 55,00 €`).
 - Filter logic: AND across attribute groups, OR within a group. Selected filters reflected in the URL query string so they're shareable.

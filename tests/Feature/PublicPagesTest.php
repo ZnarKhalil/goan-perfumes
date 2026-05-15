@@ -161,18 +161,9 @@ test('inactive product returns not found', function () {
     $this->get('/produkt/iris-musk')->assertNotFound();
 });
 
-test('pricing and contact pages render public layout props', function () {
+test('contact page renders public layout props', function () {
     Setting::put('email', 'kontakt@example.test');
     publicCategory('arabische-parfums', 'Arabische Parfums');
-
-    $this->get('/preise')
-        ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page
-            ->component('public/pricing')
-            ->has('categories', 1)
-            ->where('categories.0.slug', 'arabische-parfums')
-            ->where('contact.email_url', 'mailto:kontakt@example.test'),
-        );
 
     $this->get('/kontakt')
         ->assertOk()
