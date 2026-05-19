@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class ProductCatalogSeeder extends Seeder
 {
@@ -22,6 +23,8 @@ class ProductCatalogSeeder extends Seeder
             ->get()
             ->keyBy(fn (AttributeValue $value) => "{$value->attribute->code}.{$value->slug}");
 
+        $overrides = $this->localeOverrides();
+
         foreach ($this->products() as $productData) {
             $product = Product::query()->updateOrCreate(
                 ['slug' => $productData['slug']],
@@ -32,9 +35,43 @@ class ProductCatalogSeeder extends Seeder
                 ],
             );
 
-            $product->setTranslation('de', 'name', $productData['name']);
-            $product->setTranslation('de', 'short_description', $productData['short_description']);
-            $product->setTranslation('de', 'description', $productData['description']);
+            // Every product gets its German content, plus English and Arabic
+            // overrides where provided. Meta is always derived from the name
+            // and short description per locale (admins never edit it).
+            $perLocale = [
+                'de' => [
+                    'name' => $productData['name'],
+                    'short_description' => $productData['short_description'],
+                    'description' => $productData['description'],
+                ],
+                'en' => $overrides[$productData['slug']]['en'] ?? [],
+                'ar' => $overrides[$productData['slug']]['ar'] ?? [],
+            ];
+
+            foreach ($perLocale as $locale => $fields) {
+                foreach ($fields as $field => $value) {
+                    if ($value === null || $value === '') {
+                        continue;
+                    }
+
+                    $product->setTranslation($locale, $field, $value);
+                }
+
+                $name = $fields['name'] ?? null;
+                $excerpt = $fields['short_description'] ?? $fields['description'] ?? null;
+
+                if ($name !== null && $name !== '') {
+                    $product->setTranslation($locale, 'meta_title', $name);
+                }
+
+                if ($excerpt !== null && $excerpt !== '') {
+                    $product->setTranslation(
+                        $locale,
+                        'meta_description',
+                        Str::limit(Str::squish(strip_tags($excerpt)), 160, ''),
+                    );
+                }
+            }
 
             $product->categories()->sync(
                 $categories
@@ -46,6 +83,67 @@ class ProductCatalogSeeder extends Seeder
             $this->seedVariants($product, $productData['variants']);
             $this->seedMedia($product, $productData['image_url']);
         }
+    }
+
+    /**
+     * English and Arabic translations for product name and short description,
+     * keyed by slug. The German `name` and `description` already live inside
+     * products(); only deltas live here to keep the catalog readable.
+     *
+     * @return array<string, array{en: array{name: string, short_description: string}, ar: array{name: string, short_description: string}}>
+     */
+    private function localeOverrides(): array
+    {
+        return [
+            'amber-noir-intense' => [
+                'en' => ['name' => 'Amber Noir Intense', 'short_description' => 'Dark amber, vanilla, and oud with a soft smoky touch.'],
+                'ar' => ['name' => 'أمبر نوار إنتنس', 'short_description' => 'عنبر غامق وفانيليا وعود بلمسة دخانية ناعمة.'],
+            ],
+            'rose-oud-velvet' => [
+                'en' => ['name' => 'Rose Oud Velvet', 'short_description' => 'Velvety rose meets oud, saffron, and amber.'],
+                'ar' => ['name' => 'روز عود فيلفت', 'short_description' => 'وردة مخملية تلتقي بالعود والزعفران والعنبر.'],
+            ],
+            'citrus-marine' => [
+                'en' => ['name' => 'Citrus Marine', 'short_description' => 'Fresh bergamot, marine notes, and neroli.'],
+                'ar' => ['name' => 'سيتروس مارين', 'short_description' => 'برغموت منعش ونوتات بحرية وزهر النارنج.'],
+            ],
+            'iris-musk-powder' => [
+                'en' => ['name' => 'Iris Musk Powder', 'short_description' => 'Powdery iris with musk, tonka bean, and soft woods.'],
+                'ar' => ['name' => 'إيريس مسك باودر', 'short_description' => 'إيريس بودري مع مسك وحبوب التونكا وخشب ناعم.'],
+            ],
+            'cedar-leather-club' => [
+                'en' => ['name' => 'Cedar Leather Club', 'short_description' => 'Leather, cedarwood, and tobacco in masculine balance.'],
+                'ar' => ['name' => 'سيدر ليذر كلوب', 'short_description' => 'جلد وخشب الأرز وتبغ بتوازن رجولي.'],
+            ],
+            'vanilla-tonka-gold' => [
+                'en' => ['name' => 'Vanilla Tonka Gold', 'short_description' => 'Creamy vanilla, tonka bean, caramel, and benzoin.'],
+                'ar' => ['name' => 'فانيلا تونكا غولد', 'short_description' => 'فانيليا كريمية وحبوب التونكا وكراميل وبنزوين.'],
+            ],
+            'bergamot-vetiver' => [
+                'en' => ['name' => 'Bergamot Vetiver', 'short_description' => 'Citrus freshness with vetiver, green tea, and musk.'],
+                'ar' => ['name' => 'برغموت فيتيفر', 'short_description' => 'انتعاش حمضي مع فيتيفر وشاي أخضر ومسك.'],
+            ],
+            'jasmine-fig-silk' => [
+                'en' => ['name' => 'Jasmine Fig Silk', 'short_description' => 'Jasmine, fig, and sandalwood with a silky texture.'],
+                'ar' => ['name' => 'جاسمين فيغ سيلك', 'short_description' => 'ياسمين وتين وخشب الصندل بقوام حريري.'],
+            ],
+            'coffee-cardamom' => [
+                'en' => ['name' => 'Coffee Cardamom', 'short_description' => 'Coffee, cardamom, and dark chocolate with amber.'],
+                'ar' => ['name' => 'كوفي كاردامون', 'short_description' => 'قهوة وهيل وشوكولاتة داكنة مع عنبر.'],
+            ],
+            'cherry-labdanum' => [
+                'en' => ['name' => 'Cherry Labdanum', 'short_description' => 'Cherry, labdanum, and patchouli with dark sweetness.'],
+                'ar' => ['name' => 'تشيري لادنوم', 'short_description' => 'كرز ولادن وباتشولي بحلاوة داكنة.'],
+            ],
+            'mint-neroli-sport' => [
+                'en' => ['name' => 'Mint Neroli Sport', 'short_description' => 'Mint, neroli, and lemon for very clear freshness.'],
+                'ar' => ['name' => 'مينت نيرولي سبورت', 'short_description' => 'نعناع وزهر النارنج وليمون بانتعاش صافٍ.'],
+            ],
+            'saffron-amber-royal' => [
+                'en' => ['name' => 'Saffron Amber Royal', 'short_description' => 'Saffron, amber, oud, and cinnamon with regal warmth.'],
+                'ar' => ['name' => 'سفرون أمبر رويال', 'short_description' => 'زعفران وعنبر وعود وقرفة بدفء ملكي.'],
+            ],
+        ];
     }
 
     /**

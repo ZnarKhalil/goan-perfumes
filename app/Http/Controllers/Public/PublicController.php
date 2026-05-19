@@ -241,18 +241,24 @@ abstract class PublicController extends Controller
     private const SITE_NAME = 'Goan Perfume';
 
     /**
-     * Build the SEO meta block sent to the client. Titles get the brand
-     * suffix; descriptions are squished plain text capped at 160 chars.
-     * Meta is always generated on the server and never editable by admins.
+     * Build the SEO meta block sent to the client. Titles are bare page names
+     * — the client-side Inertia title callback (resources/js/app.tsx) appends
+     * the brand suffix. Descriptions are squished plain text capped at 160
+     * chars. Meta is always generated on the server and never editable by
+     * admins.
      *
      * @return array{title: string, description: string}
      */
     protected function meta(?string $title, ?string $description): array
     {
         $title = trim((string) $title);
-        $fullTitle = $title === '' || $title === self::SITE_NAME
-            ? self::SITE_NAME
-            : "{$title} – ".self::SITE_NAME;
+
+        // For the home page (or when the title already equals the brand) we
+        // emit an empty title so the Inertia callback falls back to the brand
+        // name alone instead of producing "Goan Perfume - Goan Perfume".
+        if ($title === self::SITE_NAME) {
+            $title = '';
+        }
 
         $description = Str::squish(strip_tags((string) $description));
 
@@ -261,7 +267,7 @@ abstract class PublicController extends Controller
         }
 
         return [
-            'title' => $fullTitle,
+            'title' => $title,
             'description' => Str::limit($description, 160, ''),
         ];
     }

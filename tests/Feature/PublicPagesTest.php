@@ -55,27 +55,31 @@ test('public pages expose server-generated SEO meta in their props', function ()
     $product->setTranslation('de', 'meta_title', 'Iris Musk');
     $product->setTranslation('de', 'meta_description', 'Kühle Iris.');
 
+    // Home emits an empty title so the client-side Inertia title callback
+    // falls back to the brand name alone (no "Goan Perfume - Goan Perfume").
     $this->get('/de')
         ->assertInertia(fn (Assert $page) => $page
-            ->where('meta.title', 'Goan Perfume')
+            ->where('meta.title', '')
             ->where('meta.description', fn (string $value) => $value !== ''),
         );
 
+    // Inner pages emit just the page name; the brand suffix is appended on
+    // the client.
     $this->get('/de/herrenparfums')
         ->assertInertia(fn (Assert $page) => $page
-            ->where('meta.title', 'Herrenparfums – Goan Perfume')
+            ->where('meta.title', 'Herrenparfums')
             ->where('meta.description', 'Markante Düfte für ihn.'),
         );
 
     $this->get('/de/produkt/iris-musk')
         ->assertInertia(fn (Assert $page) => $page
-            ->where('meta.title', 'Iris Musk – Goan Perfume')
+            ->where('meta.title', 'Iris Musk')
             ->where('meta.description', 'Kühle Iris.'),
         );
 
     $this->get('/de/kontakt')
         ->assertInertia(fn (Assert $page) => $page
-            ->where('meta.title', 'Kontakt – Goan Perfume')
+            ->where('meta.title', 'Kontakt')
             ->where('meta.description', fn (string $value) => str_contains($value, 'Duftberatung')),
         );
 });

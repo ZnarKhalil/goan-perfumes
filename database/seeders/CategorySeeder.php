@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Category;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class CategorySeeder extends Seeder
 {
@@ -99,7 +100,7 @@ class CategorySeeder extends Seeder
                     'description' => 'روائح زهرية وبودرية وفاكهية من الهادئ إلى الحسي.',
                 ],
             ],
-            'image_path' => 'https://images.unsplash.com/photo-1588405748880-12d1d2a59d32?auto=format&fit=crop&w=1400&q=80',
+            'image_path' => 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?auto=format&fit=crop&w=1400&q=80',
         ],
         [
             'slug' => 'herrenparfums',
@@ -154,6 +155,12 @@ class CategorySeeder extends Seeder
             foreach ($category['translations'] as $locale => $translation) {
                 $model->setTranslation($locale, 'name', $translation['name']);
                 $model->setTranslation($locale, 'description', $translation['description']);
+                $model->setTranslation($locale, 'meta_title', $translation['name']);
+                $model->setTranslation(
+                    $locale,
+                    'meta_description',
+                    Str::limit(Str::squish($translation['description']), 160, ''),
+                );
             }
         }
     }
