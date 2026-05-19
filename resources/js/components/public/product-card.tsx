@@ -1,14 +1,16 @@
 import { Link } from '@inertiajs/react';
 import Price from '@/components/public/price';
+import type { PublicCopy } from '@/lib/public-copy';
 import { cn } from '@/lib/utils';
 import type { PublicProductCard } from '@/types/public';
 
 type Props = {
     product: PublicProductCard;
+    copy: PublicCopy;
     className?: string;
 };
 
-export default function ProductCard({ product, className }: Props) {
+export default function ProductCard({ product, copy, className }: Props) {
     return (
         <Link
             href={product.href}
@@ -27,12 +29,12 @@ export default function ProductCard({ product, className }: Props) {
                     />
                 ) : (
                     <div className="flex h-full items-center justify-center text-sm text-stone-500">
-                        Kein Bild
+                        {copy.productCard.imageMissing}
                     </div>
                 )}
                 {product.is_featured && (
                     <span className="absolute top-3 left-3 bg-white/90 px-2.5 py-1 text-[11px] font-medium tracking-wide text-stone-900 uppercase">
-                        Highlight
+                        {copy.productCard.highlight}
                     </span>
                 )}
             </div>
@@ -48,6 +50,7 @@ export default function ProductCard({ product, className }: Props) {
                 <Price
                     min={product.min_price}
                     max={product.max_price}
+                    fallback={copy.product.priceOnRequest}
                     className="text-sm text-stone-700"
                 />
             </div>

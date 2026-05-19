@@ -9,6 +9,8 @@ import {
     SheetTrigger,
 } from '@/components/ui/sheet';
 import PublicLayout from '@/layouts/public-layout';
+import { getPublicCopy, paginationLabel } from '@/lib/public-copy';
+import type { PublicCopy } from '@/lib/public-copy';
 import { cn } from '@/lib/utils';
 import type {
     PublicCategoryPageProps,
@@ -17,6 +19,8 @@ import type {
 } from '@/types/public';
 
 export default function Category(page: PublicCategoryPageProps) {
+    const copy = getPublicCopy(page.locale);
+    const isRtl = page.locale?.dir === 'rtl';
     const activeFilters = page.filters.flatMap((group) =>
         group.values
             .filter((value) => value.selected)
@@ -28,6 +32,7 @@ export default function Category(page: PublicCategoryPageProps) {
             navigation={page.navigation}
             contact={page.contact}
             logo_url={page.logo_url}
+            locale={page.locale}
         >
             <Head title={page.category.name} />
             <section className="relative min-h-[52svh] overflow-hidden">
@@ -42,7 +47,7 @@ export default function Category(page: PublicCategoryPageProps) {
                 <div className="relative flex min-h-[52svh] items-end px-4 py-10 md:px-8 md:py-14">
                     <div className="max-w-4xl text-white">
                         <p className="mb-4 text-xs tracking-[0.28em] text-white/70 uppercase">
-                            Kategorie
+                            {copy.category.eyebrow}
                         </p>
                         <h1 className="font-serif text-5xl leading-none md:text-7xl">
                             {page.category.name}
@@ -55,38 +60,53 @@ export default function Category(page: PublicCategoryPageProps) {
             </section>
 
             <section className="px-4 py-8 md:px-8 md:py-12">
-                <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[18rem_1fr]">
-                    <aside className="hidden lg:sticky lg:top-24 lg:block lg:self-start">
+                <div
+                    className={cn(
+                        'mx-auto grid max-w-7xl gap-8',
+                        isRtl
+                            ? 'lg:grid-cols-[1fr_18rem]'
+                            : 'lg:grid-cols-[18rem_1fr]',
+                    )}
+                >
+                    <aside
+                        className={cn(
+                            'hidden lg:sticky lg:top-24 lg:block lg:self-start',
+                            isRtl && 'lg:order-2',
+                        )}
+                    >
                         <FilterPanel
                             activeFilters={activeFilters}
                             categoryHref={page.category.href}
+                            copy={copy}
                             filters={page.filters}
                             selectedFilters={page.selected_filters}
                         />
                     </aside>
 
-                    <div className="grid gap-8">
+                    <div className={cn('grid gap-8', isRtl && 'lg:order-1')}>
                         <div className="flex flex-col justify-between gap-3 border-b border-stone-200 pb-5 md:flex-row md:items-end">
                             <div>
                                 <p className="text-sm text-stone-500">
-                                    Ergebnisse {page.pagination.from}-
-                                    {page.pagination.to} von{' '}
-                                    {page.pagination.total}
+                                    {copy.category.results(
+                                        page.pagination.from,
+                                        page.pagination.to,
+                                        page.pagination.total,
+                                    )}
                                 </p>
                                 <h2 className="mt-2 font-serif text-3xl text-stone-950">
-                                    Gefilterte Duftauswahl
+                                    {copy.category.filteredSelection}
                                 </h2>
                             </div>
                             <div className="flex flex-col gap-3 md:items-end">
                                 <p className="max-w-sm text-sm leading-6 text-stone-600">
-                                    Mehrere Werte in einer Gruppe erweitern die
-                                    Auswahl. Verschiedene Gruppen verfeinern
-                                    sie.
+                                    {copy.category.filterHelp}
                                 </p>
                                 <MobileFilterSheet
                                     activeFilters={activeFilters}
                                     categoryHref={page.category.href}
+                                    copy={copy}
                                     filters={page.filters}
+                                    isRtl={isRtl}
                                     selectedFilters={page.selected_filters}
                                 />
                             </div>
@@ -94,10 +114,11 @@ export default function Category(page: PublicCategoryPageProps) {
 
                         <ProductGrid
                             products={page.products}
-                            emptyMessage="Für diese Filter wurden keine Produkte gefunden."
+                            copy={copy}
+                            emptyMessage={copy.category.empty}
                         />
 
-                        <Pagination links={page.pagination.links} />
+                        <Pagination copy={copy} links={page.pagination.links} />
                     </div>
                 </div>
             </section>
@@ -108,12 +129,16 @@ export default function Category(page: PublicCategoryPageProps) {
 function MobileFilterSheet({
     activeFilters,
     categoryHref,
+    copy,
     filters,
+    isRtl,
     selectedFilters,
 }: {
     activeFilters: ActiveFilter[];
     categoryHref: string;
+    copy: PublicCopy;
     filters: PublicFilterGroup[];
+    isRtl: boolean;
     selectedFilters: PublicCategoryPageProps['selected_filters'];
 }) {
     return (
@@ -124,7 +149,7 @@ function MobileFilterSheet({
                     className="inline-flex w-fit items-center gap-2 border border-stone-950 px-4 py-2.5 text-sm font-medium text-stone-950 transition hover:bg-stone-950 hover:text-white lg:hidden"
                 >
                     <SlidersHorizontal className="size-4" />
-                    Filter
+                    {copy.category.filter}
                     {activeFilters.length > 0 && (
                         <span className="rounded-full bg-stone-950 px-2 py-0.5 text-xs text-white">
                             {activeFilters.length}
@@ -133,18 +158,24 @@ function MobileFilterSheet({
                 </button>
             </SheetTrigger>
             <SheetContent
-                side="left"
+                side={isRtl ? 'right' : 'left'}
                 className="w-[88vw] overflow-y-auto bg-[#fbf8f2] p-0 text-stone-950 sm:max-w-md lg:hidden"
             >
-                <SheetHeader className="border-b border-stone-200 px-5 py-5 text-left">
+                <SheetHeader
+                    className={cn(
+                        'border-b border-stone-200 px-5 py-5',
+                        isRtl ? 'text-right' : 'text-left',
+                    )}
+                >
                     <SheetTitle className="font-serif text-3xl">
-                        Filter
+                        {copy.category.filter}
                     </SheetTitle>
                 </SheetHeader>
                 <div className="px-5 pb-8">
                     <FilterPanel
                         activeFilters={activeFilters}
                         categoryHref={categoryHref}
+                        copy={copy}
                         filters={filters}
                         selectedFilters={selectedFilters}
                     />
@@ -162,11 +193,13 @@ type ActiveFilter = {
 function FilterPanel({
     activeFilters,
     categoryHref,
+    copy,
     filters,
     selectedFilters,
 }: {
     activeFilters: ActiveFilter[];
     categoryHref: string;
+    copy: PublicCopy;
     filters: PublicFilterGroup[];
     selectedFilters: PublicCategoryPageProps['selected_filters'];
 }) {
@@ -175,14 +208,14 @@ function FilterPanel({
             <div className="border-y border-stone-200 py-5">
                 <div className="flex items-center justify-between gap-4">
                     <h2 className="text-sm font-medium tracking-wide text-stone-950 uppercase">
-                        Filter
+                        {copy.category.filter}
                     </h2>
                     {activeFilters.length > 0 && (
                         <Link
                             href={categoryHref}
                             className="text-xs text-stone-500 underline underline-offset-4 hover:text-stone-950"
                         >
-                            Zurücksetzen
+                            {copy.category.reset}
                         </Link>
                     )}
                 </div>
@@ -213,6 +246,7 @@ function FilterPanel({
                     <FilterGroup
                         key={group.code}
                         categoryHref={categoryHref}
+                        copy={copy}
                         group={group}
                         selectedFilters={selectedFilters}
                     />
@@ -224,10 +258,12 @@ function FilterPanel({
 
 function FilterGroup({
     categoryHref,
+    copy,
     group,
     selectedFilters,
 }: {
     categoryHref: string;
+    copy: PublicCopy;
     group: PublicFilterGroup;
     selectedFilters: PublicCategoryPageProps['selected_filters'];
 }) {
@@ -238,7 +274,9 @@ function FilterGroup({
                     {group.name}
                 </h3>
                 <p className="mt-1 text-xs text-stone-500">
-                    {group.is_multiple ? 'Mehrfachauswahl' : 'Einzelauswahl'}
+                    {group.is_multiple
+                        ? copy.category.filterModeMultiple
+                        : copy.category.filterModeSingle}
                 </p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -330,12 +368,17 @@ function buildFilterHref(
 }
 
 function Pagination({
+    copy,
     links,
 }: {
+    copy: PublicCopy;
     links: PublicCategoryPageProps['pagination']['links'];
 }) {
     return (
-        <nav className="flex flex-wrap items-center gap-2 pt-3">
+        <nav
+            aria-label={copy.pagination.label}
+            className="flex flex-wrap items-center gap-2 pt-3"
+        >
             {links.map((link) => (
                 <Link
                     key={link.label}
@@ -348,7 +391,7 @@ function Pagination({
                         !link.href && 'pointer-events-none opacity-40',
                     )}
                 >
-                    {link.label}
+                    {paginationLabel(link.label, copy)}
                 </Link>
             ))}
         </nav>

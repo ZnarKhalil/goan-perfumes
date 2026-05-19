@@ -49,51 +49,51 @@
 
 ### 1. Locale contract and helpers
 
-- [ ] Add a central supported-locale definition for public routes:
+- [x] Add a central supported-locale definition for public routes:
     - `de` label Deutsch, flag/icon metadata, `dir = ltr`, formatter locale `de-DE`
     - `en` label English, flag/icon metadata, `dir = ltr`, formatter locale `en-DE` or approved equivalent
     - `ar` label العربية, flag/icon metadata, `dir = rtl`, formatter locale `ar`
-- [ ] Add a small locale value object/helper or config-backed helper for:
+- [x] Add a small locale value object/helper or config-backed helper for:
     - validating route locale
     - returning default locale `de`
     - returning direction for a locale
     - returning formatter locale for prices
     - normalizing unsupported cookie/session values back to `de`
-- [ ] Add tests for supported locale validation and fallback behavior.
+- [x] Add tests for supported locale validation and fallback behavior.
 
 ### 2. Locale middleware and shared Inertia props
 
-- [ ] Add middleware for public localized routes that:
+- [x] Add middleware for public localized routes that:
     - reads `{locale}` from the route
     - validates it against supported locales
     - calls `app()->setLocale($locale)`
     - stores the locale in a cookie or session for legacy redirects
-- [ ] Share locale props with public Inertia pages:
+- [x] Share locale props with public Inertia pages:
     - current locale
     - direction
     - supported locale list
     - locale switcher URLs for the current page
     - formatter locale
-- [ ] Update `resources/js/types/public.ts` with public locale prop types.
-- [ ] Ensure dashboard/auth/settings Inertia pages are not forced into public locale behavior.
+- [x] Update `resources/js/types/public.ts` with public locale prop types.
+- [x] Ensure dashboard/auth/settings Inertia pages are not forced into public locale behavior.
 
 ### 3. Public route localization
 
-- [ ] Move canonical public routes under `/{locale}` with a route constraint for `de|en|ar`.
-- [ ] Keep route names stable or introduce clear locale-aware names, then update all route generation.
-- [ ] Add legacy redirects for:
+- [x] Move canonical public routes under `/{locale}` with a route constraint for `de|en|ar`.
+- [x] Keep route names stable or introduce clear locale-aware names, then update all route generation.
+- [x] Add legacy redirects for:
     - `/`
     - `/kontakt`
     - `/produkt/{slug}`
     - each configured category slug
-- [ ] Redirect legacy routes to the cookie/session locale, falling back to German.
-- [ ] Confirm dashboard, auth, and settings routes remain unprefixed and unaffected.
-- [ ] Regenerate Wayfinder routes after route changes.
+- [x] Redirect legacy routes to the cookie/session locale, falling back to German.
+- [x] Confirm dashboard, auth, and settings routes remain unprefixed and unaffected.
+- [x] Regenerate Wayfinder routes after route changes.
 
 ### 4. Public controller locale reads
 
-- [ ] Replace hard-coded `PublicController::LOCALE = 'de'` reads with the active request locale.
-- [ ] Update mappings for:
+- [x] Replace hard-coded `PublicController::LOCALE = 'de'` reads with the active request locale.
+- [x] Update mappings for:
     - navigation categories
     - product cards
     - product detail payloads
@@ -101,29 +101,29 @@
     - attribute filter groups and values
     - page sections
     - promotions
-- [ ] Use German fallback for all translatable content when the active locale is missing.
-- [ ] Keep slug/code fallback only after active locale and German fallback are both missing.
-- [ ] Generate product, category, and contact URLs with the active locale prefix.
-- [ ] Preserve category filter query strings when generating localized filter links.
+- [x] Use German fallback for all translatable content when the active locale is missing.
+- [x] Keep slug/code fallback only after active locale and German fallback are both missing.
+- [x] Generate product, category, and contact URLs with the active locale prefix.
+- [x] Preserve category filter query strings when generating localized filter links.
 
 ### 5. Locale switcher UI
 
-- [ ] Add a public locale switcher component visible on every public page.
-- [ ] Use flag icons or compact locale icons with accessible labels.
-- [ ] Place the switcher in `SiteHeader` for desktop and in `SiteDrawer` for mobile.
-- [ ] Switcher links must preserve the current page equivalent:
+- [x] Add a public locale switcher component visible on every public page.
+- [x] Use flag icons or compact locale icons with accessible labels.
+- [x] Place the switcher in `SiteHeader` for desktop and in `SiteDrawer` for mobile.
+- [x] Switcher links must preserve the current page equivalent:
     - home to home
     - category to same category
     - product detail to same product
     - contact to same page
     - preserve current category filter query strings
-- [ ] Switching locales writes the locale cookie/session.
-- [ ] The active locale should be visually clear without relying on color alone.
+- [x] Switching locales writes the locale cookie/session.
+- [x] The active locale should be visually clear without relying on color alone.
 
 ### 6. Public UI copy localization
 
-- [ ] Create a typed public copy dictionary for DE/EN/AR.
-- [ ] Replace hard-coded German public text in:
+- [x] Create a typed public copy dictionary for DE/EN/AR.
+- [x] Replace hard-coded German public text in:
     - `public-layout.tsx`
     - `site-header.tsx`
     - `site-drawer.tsx`
@@ -133,9 +133,9 @@
     - `category.tsx`
     - `product.tsx`
     - `contact.tsx`
-- [ ] Localize empty states, ARIA labels, button labels, result-count copy, pagination labels, contact CTAs, footer text, and page titles.
-- [ ] Keep admin UI text German unless a public page component is shared with admin.
-- [ ] Remove assumptions that German labels like `Preis`, `Kontakt`, `Zurücksetzen`, or `Preis auf Anfrage` are globally valid.
+- [x] Localize empty states, ARIA labels, button labels, result-count copy, pagination labels, contact CTAs, footer text, and page titles.
+- [x] Keep admin UI text German unless a public page component is shared with admin.
+- [x] Remove assumptions that German labels like `Preis`, `Kontakt`, `Zurücksetzen`, or `Preis auf Anfrage` are globally valid.
 
 ### 7. RTL layout pass for Arabic
 

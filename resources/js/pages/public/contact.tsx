@@ -1,35 +1,37 @@
 import { Head } from '@inertiajs/react';
 import { Facebook, Instagram, Mail, Phone, Send, Video } from 'lucide-react';
 import PublicLayout from '@/layouts/public-layout';
+import { getPublicCopy } from '@/lib/public-copy';
 import type {
     PublicContactPageProps,
     PublicContactSettings,
 } from '@/types/public';
 
 export default function Contact(page: PublicContactPageProps) {
-    const links = contactLinks(page.contact);
+    const copy = getPublicCopy(page.locale);
+    const links = contactLinks(page.contact, copy);
 
     return (
         <PublicLayout
             navigation={page.navigation}
             contact={page.contact}
             logo_url={page.logo_url}
+            locale={page.locale}
         >
-            <Head title="Kontakt" />
+            <Head title={copy.contact.pageTitle} />
 
             <section className="px-4 py-14 md:px-8 md:py-20">
                 <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
                     <div>
                         <p className="text-xs tracking-[0.28em] text-stone-500 uppercase">
-                            Kontakt
+                            {copy.contact.eyebrow}
                         </p>
                         <h1 className="mt-4 max-w-3xl font-serif text-5xl leading-none text-stone-950 md:text-7xl">
-                            Direkter Kontakt für Duftberatung.
+                            {copy.contact.title}
                         </h1>
                     </div>
                     <p className="max-w-2xl text-lg leading-8 text-stone-700">
-                        Schreiben Sie uns für Produktfragen, verfügbare Größen,
-                        aktuelle Angebote oder eine persönliche Empfehlung.
+                        {copy.contact.intro}
                     </p>
                 </div>
             </section>
@@ -58,14 +60,14 @@ export default function Contact(page: PublicContactPageProps) {
                                         <Icon className="size-5 text-stone-400 transition group-hover:text-stone-950" />
                                     </div>
                                     <p className="mt-auto text-sm text-stone-500">
-                                        Öffnen
+                                        {copy.contact.open}
                                     </p>
                                 </a>
                             );
                         })
                     ) : (
                         <div className="bg-[#fbf8f2] p-6 text-sm text-stone-500 md:col-span-2 lg:col-span-3">
-                            Noch keine Kontaktdaten hinterlegt.
+                            {copy.contact.empty}
                         </div>
                     )}
                 </div>
@@ -74,12 +76,10 @@ export default function Contact(page: PublicContactPageProps) {
             <section className="border-t border-stone-200 bg-[#f1eadf] px-4 py-14 md:px-8">
                 <div className="mx-auto grid max-w-7xl gap-8 md:grid-cols-[18rem_1fr]">
                     <h2 className="font-serif text-4xl leading-tight text-stone-950">
-                        Direkter Austausch
+                        {copy.contact.directExchangeTitle}
                     </h2>
                     <p className="max-w-2xl text-base leading-8 text-stone-700">
-                        Am schnellsten beantworten wir Fragen zu Duftprofil,
-                        Größen und Verfügbarkeit über WhatsApp, Telefon, E-Mail
-                        oder Social Media.
+                        {copy.contact.directExchangeBody}
                     </p>
                 </div>
             </section>
@@ -87,22 +87,25 @@ export default function Contact(page: PublicContactPageProps) {
     );
 }
 
-function contactLinks(contact: PublicContactSettings) {
+function contactLinks(
+    contact: PublicContactSettings,
+    copy: ReturnType<typeof getPublicCopy>,
+) {
     const links = [
         {
-            label: 'WhatsApp',
+            label: copy.contact.methods.whatsapp,
             value: contact.whatsapp_number,
             href: contact.whatsapp_url,
             icon: Send,
         },
         {
-            label: 'E-Mail',
+            label: copy.contact.methods.email,
             value: contact.email,
             href: contact.email_url,
             icon: Mail,
         },
         {
-            label: 'Telefon',
+            label: copy.contact.methods.phone,
             value: contact.phone,
             href: contact.phone_url,
             icon: Phone,

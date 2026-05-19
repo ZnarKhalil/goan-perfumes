@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 import type { ReactNode } from 'react';
+import LocaleSwitcher from '@/components/public/locale-switcher';
 import {
     Sheet,
     SheetContent,
@@ -7,24 +8,43 @@ import {
     SheetTitle,
     SheetTrigger,
 } from '@/components/ui/sheet';
+import type { PublicCopy } from '@/lib/public-copy';
+import { cn } from '@/lib/utils';
 import type { PublicCategoryNavItem } from '@/types/public';
+import type { PublicLocaleProps } from '@/types/public';
 
 type Props = {
     navigation: PublicCategoryNavItem[];
+    locale?: PublicLocaleProps;
+    contactHref: string;
+    copy: PublicCopy;
     trigger: ReactNode;
 };
 
-export default function SiteDrawer({ navigation, trigger }: Props) {
+export default function SiteDrawer({
+    navigation,
+    locale,
+    contactHref,
+    copy,
+    trigger,
+}: Props) {
+    const isRtl = locale?.dir === 'rtl';
+
     return (
         <Sheet>
             <SheetTrigger asChild>{trigger}</SheetTrigger>
             <SheetContent
-                side="left"
+                side={isRtl ? 'right' : 'left'}
                 className="w-[86vw] max-w-sm border-stone-200 bg-[#f8f3eb] px-0 text-stone-950"
             >
-                <SheetHeader className="border-b border-stone-200 px-6 py-5 text-left">
+                <SheetHeader
+                    className={cn(
+                        'border-b border-stone-200 px-6 py-5',
+                        isRtl ? 'text-right' : 'text-left',
+                    )}
+                >
                     <SheetTitle className="font-serif text-2xl">
-                        القائمه
+                        {copy.aria.mobileMenuTitle}
                     </SheetTitle>
                 </SheetHeader>
                 <nav className="grid px-6 py-6">
@@ -38,12 +58,15 @@ export default function SiteDrawer({ navigation, trigger }: Props) {
                         </Link>
                     ))}
                     <Link
-                        href="/kontakt"
+                        href={contactHref}
                         className="border-b border-stone-200 py-4 text-lg font-medium transition hover:text-stone-500"
                     >
-                        Kontakt
+                        {copy.contact.eyebrow}
                     </Link>
                 </nav>
+                <div className="border-t border-stone-200 px-6 py-5">
+                    <LocaleSwitcher locale={locale} compact />
+                </div>
             </SheetContent>
         </Sheet>
     );

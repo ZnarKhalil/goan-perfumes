@@ -8,13 +8,13 @@ use Illuminate\Database\Seeder;
 class AttributeSeeder extends Seeder
 {
     /**
-     * @var list<array{code: string, name: string, is_multiple: bool}>
+     * @var list<array{code: string, translations: array{de: string, en: string, ar: string}, is_multiple: bool}>
      */
     private const ATTRIBUTES = [
-        ['code' => 'art', 'name' => 'Art', 'is_multiple' => false],
-        ['code' => 'familie', 'name' => 'Familie', 'is_multiple' => true],
-        ['code' => 'stimmung', 'name' => 'Stimmung', 'is_multiple' => true],
-        ['code' => 'noten', 'name' => 'Noten', 'is_multiple' => true],
+        ['code' => 'art', 'translations' => ['de' => 'Art', 'en' => 'Type', 'ar' => 'النوع'], 'is_multiple' => false],
+        ['code' => 'familie', 'translations' => ['de' => 'Familie', 'en' => 'Family', 'ar' => 'العائلة'], 'is_multiple' => true],
+        ['code' => 'stimmung', 'translations' => ['de' => 'Stimmung', 'en' => 'Mood', 'ar' => 'الإحساس'], 'is_multiple' => true],
+        ['code' => 'noten', 'translations' => ['de' => 'Noten', 'en' => 'Notes', 'ar' => 'النوتات'], 'is_multiple' => true],
     ];
 
     public function run(): void
@@ -29,7 +29,9 @@ class AttributeSeeder extends Seeder
                 ],
             );
 
-            $model->setTranslation('de', 'name', $attribute['name']);
+            foreach ($attribute['translations'] as $locale => $name) {
+                $model->setTranslation($locale, 'name', $name);
+            }
         }
     }
 }

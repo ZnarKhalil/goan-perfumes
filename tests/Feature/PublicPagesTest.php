@@ -8,6 +8,9 @@ use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\Promotion;
 use App\Models\Setting;
+use Database\Seeders\AttributeSeeder;
+use Database\Seeders\AttributeValueSeeder;
+use Database\Seeders\CategorySeeder;
 use Database\Seeders\DatabaseSeeder;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -29,7 +32,7 @@ test('home renders public props from stored content', function () {
     ])->setTranslation('de', 'title', 'Goan Perfume');
     Promotion::factory()->create(['slug' => 'aktion'])->setTranslation('de', 'title', 'Aktion');
 
-    $this->get('/')
+    $this->get('/de')
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('public/home')
@@ -55,7 +58,7 @@ test('home falls back to hero section when there are no active promotions', func
     Promotion::factory()->disabled()->create(['slug' => 'inaktiv'])
         ->setTranslation('de', 'title', 'Inaktiv');
 
-    $this->get('/')
+    $this->get('/de')
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('public/home')
@@ -74,11 +77,12 @@ test('category page renders filters products and pagination', function () {
     $value->setTranslation('de', 'name', 'Blumig');
     $product->attributeValues()->attach($value);
 
-    $this->get('/damenparfums?familie=blumig')
+    $this->get('/de/damenparfums?familie=blumig')
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('public/category')
             ->where('category.slug', 'damenparfums')
+            ->where('locale.switcher_urls.ar', fn (string $href) => str_contains($href, '/ar/damenparfums?familie=blumig'))
             ->where('filters.0.values.0.selected', true)
             ->where('selected_filters.familie.0', 'blumig')
             ->has('products', 1)
@@ -104,7 +108,7 @@ test('category filters use OR within a group and AND across groups', function ()
     $missingMood = publicProduct('soft-rose', 'Soft Rose', $category);
     $missingMood->attributeValues()->attach($blumig);
 
-    $this->get('/damenparfums?familie=blumig,fruchtig&stimmung=frisch')
+    $this->get('/de/damenparfums?familie=blumig,fruchtig&stimmung=frisch')
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('public/category')
@@ -118,10 +122,85 @@ test('category filters use OR within a group and AND across groups', function ()
         );
 });
 
+test('public payloads use active locale with German fallback', function () {
+    $category = publicCategory('damenparfums', 'Damenparfums');
+    $category->setTranslation('en', 'name', 'Women Perfumes');
+    $product = publicProduct('rose-oud', 'Rose Oud', $category);
+    $product->setTranslation('en', 'name', 'Rose Oud EN');
+    $product->setTranslation('en', 'short_description', 'Short EN');
+    $product->media()->create([
+        'path' => 'media/products/rose.jpg',
+        'alt_text' => 'Rose Oud DE alt',
+        'sort_order' => 0,
+        'is_primary' => true,
+    ])->setTranslation('en', 'alt_text', 'Rose Oud EN alt');
+    $attribute = Attribute::factory()->multiple()->create(['code' => 'familie']);
+    $attribute->setTranslation('de', 'name', 'Familie');
+    $attribute->setTranslation('en', 'name', 'Family');
+    $value = AttributeValue::factory()->for($attribute)->create(['slug' => 'blumig']);
+    $value->setTranslation('de', 'name', 'Blumig');
+    $product->attributeValues()->attach($value);
+
+    $this->get('/en/damenparfums?familie=blumig')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('public/category')
+            ->where('locale.current', 'en')
+            ->where('category.name', 'Women Perfumes')
+            ->where('category.description', 'Damenparfums Beschreibung')
+            ->where('filters.0.name', 'Family')
+            ->where('filters.0.values.0.name', 'Blumig')
+            ->where('filters.0.values.0.href', fn (string $href) => str_contains($href, '/en/damenparfums'))
+            ->where('products.0.name', 'Rose Oud EN')
+            ->where('products.0.image_alt', 'Rose Oud EN alt')
+            ->where('products.0.href', fn (string $href) => str_contains($href, '/en/produkt/rose-oud')),
+        );
+
+    $this->get('/en/produkt/rose-oud')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('public/product')
+            ->where('product.name', 'Rose Oud EN')
+            ->where('product.short_description', 'Short EN')
+            ->where('product.media.0.alt', 'Rose Oud EN alt')
+            ->where('product.attribute_groups.0.name', 'Family')
+            ->where('product.attribute_groups.0.values.0.name', 'Blumig'),
+        );
+});
+
+test('seeded public navigation and filters use english and arabic translations', function () {
+    $this->seed([
+        CategorySeeder::class,
+        AttributeSeeder::class,
+        AttributeValueSeeder::class,
+    ]);
+
+    $this->get('/en/damenparfums')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('public/category')
+            ->where('navigation.0.name', 'Luxury Perfumes')
+            ->where('category.name', "Women's Perfumes")
+            ->where('filters.0.name', 'Type')
+            ->where('filters.0.values.0.name', 'Niche'),
+        );
+
+    $this->get('/ar/damenparfums')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('public/category')
+            ->where('locale.dir', 'rtl')
+            ->where('navigation.0.name', 'عطور فاخرة')
+            ->where('category.name', 'عطور نسائية')
+            ->where('filters.0.name', 'النوع')
+            ->where('filters.0.values.0.name', 'نيش'),
+        );
+});
+
 test('inactive category returns not found', function () {
     publicCategory('herrenparfums', 'Herrenparfums')->update(['is_active' => false]);
 
-    $this->get('/herrenparfums')->assertNotFound();
+    $this->get('/de/herrenparfums')->assertNotFound();
 });
 
 test('product detail page renders media variants attributes and contact settings', function () {
@@ -141,7 +220,7 @@ test('product detail page renders media variants attributes and contact settings
     $value->setTranslation('de', 'name', 'Iris');
     $product->attributeValues()->attach($value);
 
-    $this->get('/produkt/iris-musk')
+    $this->get('/de/produkt/iris-musk')
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('public/product')
@@ -158,14 +237,14 @@ test('inactive product returns not found', function () {
     $category = publicCategory('nischenparfums', 'Nischenparfums');
     publicProduct('iris-musk', 'Iris Musk', $category)->update(['is_active' => false]);
 
-    $this->get('/produkt/iris-musk')->assertNotFound();
+    $this->get('/de/produkt/iris-musk')->assertNotFound();
 });
 
 test('contact page renders public layout props', function () {
     Setting::put('email', 'kontakt@example.test');
     publicCategory('arabische-parfums', 'Arabische Parfums');
 
-    $this->get('/kontakt')
+    $this->get('/de/kontakt')
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('public/contact')
@@ -175,7 +254,7 @@ test('contact page renders public layout props', function () {
 });
 
 test('empty contact settings are returned as null urls', function () {
-    $this->get('/kontakt')
+    $this->get('/de/kontakt')
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('public/contact')
@@ -191,7 +270,7 @@ test('empty contact settings are returned as null urls', function () {
 test('database seeder provides complete public demo content', function () {
     $this->seed(DatabaseSeeder::class);
 
-    $this->get('/')
+    $this->get('/de')
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('public/home')
@@ -202,7 +281,7 @@ test('database seeder provides complete public demo content', function () {
             ->where('page_sections.hero.image_url', fn (string $url) => str_starts_with($url, 'https://images.unsplash.com/')),
         );
 
-    $this->get('/luxusparfums')
+    $this->get('/de/luxusparfums')
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('public/category')

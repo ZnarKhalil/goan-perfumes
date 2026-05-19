@@ -3,13 +3,18 @@ import { ArrowRight } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import ProductGrid from '@/components/public/product-grid';
 import PublicLayout from '@/layouts/public-layout';
+import { getPublicCopy } from '@/lib/public-copy';
 import type { PublicHomePageProps, PublicPromotion } from '@/types/public';
 
 export default function Home(page: PublicHomePageProps) {
+    const copy = getPublicCopy(page.locale);
     const [activePromotionIndex, setActivePromotionIndex] = useState(0);
     const hero = page.promotions[activePromotionIndex] ?? null;
     const fallback = page.page_sections.hero;
     const heroImage = hero?.background_image_url ?? fallback.image_url;
+    const luxuryHref =
+        page.navigation.find((category) => category.slug === 'luxusparfums')
+            ?.href ?? `/${page.locale?.current ?? 'de'}`;
 
     useEffect(() => {
         if (page.promotions.length < 2) {
@@ -30,6 +35,7 @@ export default function Home(page: PublicHomePageProps) {
             navigation={page.navigation}
             contact={page.contact}
             logo_url={page.logo_url}
+            locale={page.locale}
         >
             <Head title="Goan Perfume" />
             <section className="relative min-h-[calc(100svh-4rem)] overflow-hidden md:min-h-[calc(100svh-5rem)]">
@@ -54,15 +60,15 @@ export default function Home(page: PublicHomePageProps) {
                         </p>
                         <div className="mt-8 flex flex-wrap items-center gap-3">
                             <Link
-                                href={hero?.link_url ?? '/luxusparfums'}
+                                href={hero?.link_url ?? luxuryHref}
                                 className="inline-flex items-center gap-2 bg-white px-5 py-3 text-sm font-medium text-stone-950 transition hover:bg-stone-200"
                             >
                                 {hero?.cta_text ??
                                     fallback.cta_text ??
-                                    'Kollektion entdecken'}
+                                    copy.home.heroCta}
                                 <ArrowRight className="size-4" />
                             </Link>
-                            {renderPromoCode(hero)}
+                            {renderPromoCode(hero, copy)}
                         </div>
                         {page.promotions.length > 1 && (
                             <div className="mt-10 flex gap-2">
@@ -70,7 +76,9 @@ export default function Home(page: PublicHomePageProps) {
                                     <button
                                         key={promotion.id}
                                         type="button"
-                                        aria-label={`Promotion ${index + 1}`}
+                                        aria-label={copy.aria.promotion(
+                                            index + 1,
+                                        )}
                                         onClick={() =>
                                             setActivePromotionIndex(index)
                                         }
@@ -92,23 +100,23 @@ export default function Home(page: PublicHomePageProps) {
                     <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
                         <div>
                             <p className="text-xs tracking-[0.22em] text-stone-500 uppercase">
-                                Luxus-Highlights
+                                {copy.home.featuredEyebrow}
                             </p>
                             <h2 className="mt-3 max-w-2xl font-serif text-4xl leading-tight md:text-5xl">
-                                Signaturen mit Präsenz, Tiefe und sauberer
-                                Projektion.
+                                {copy.home.featuredTitle}
                             </h2>
                         </div>
                         <Link
-                            href="/luxusparfums"
+                            href={luxuryHref}
                             className="text-sm font-medium text-stone-700 underline underline-offset-4 hover:text-stone-950"
                         >
-                            Alle Luxusparfums
+                            {copy.home.luxuryLink}
                         </Link>
                     </div>
                     <ProductGrid
                         products={page.featured_products}
-                        emptyMessage="Noch keine Highlights ausgewählt."
+                        copy={copy}
+                        emptyMessage={copy.home.featuredEmpty}
                     />
                 </div>
             </section>
@@ -116,7 +124,7 @@ export default function Home(page: PublicHomePageProps) {
             <section className="border-y border-stone-200 bg-[#f1eadf] px-4 py-16 md:px-8 md:py-24">
                 <div className="mx-auto grid max-w-7xl gap-10 md:grid-cols-[0.8fr_1.2fr] md:items-end">
                     <p className="text-xs tracking-[0.22em] text-stone-500 uppercase">
-                        Über uns
+                        {copy.home.aboutEyebrow}
                     </p>
                     <div>
                         <h2 className="font-serif text-4xl leading-tight md:text-6xl">
@@ -133,7 +141,7 @@ export default function Home(page: PublicHomePageProps) {
                 <div className="mx-auto grid max-w-7xl gap-10 md:grid-cols-[0.8fr_1.2fr]">
                     <div>
                         <p className="text-xs tracking-[0.22em] text-stone-500 uppercase">
-                            Warum wir
+                            {copy.home.whyEyebrow}
                         </p>
                         <h2 className="mt-3 font-serif text-4xl leading-tight md:text-5xl">
                             {page.page_sections.why_us.title}
@@ -161,10 +169,10 @@ export default function Home(page: PublicHomePageProps) {
                 <div className="mx-auto flex max-w-7xl flex-col justify-between gap-6 md:flex-row md:items-center">
                     <div>
                         <p className="text-xs tracking-[0.22em] text-white/50 uppercase">
-                            Beratung
+                            {copy.home.adviceEyebrow}
                         </p>
                         <h2 className="mt-3 max-w-2xl font-serif text-3xl leading-tight md:text-5xl">
-                            Duftauswahl direkt mit Goan Perfume abstimmen.
+                            {copy.home.adviceTitle}
                         </h2>
                     </div>
                     {page.contact.whatsapp_url && (
@@ -172,7 +180,7 @@ export default function Home(page: PublicHomePageProps) {
                             href={page.contact.whatsapp_url}
                             className="inline-flex w-fit items-center gap-2 border border-white/30 px-5 py-3 text-sm font-medium text-white transition hover:bg-white hover:text-stone-950"
                         >
-                            WhatsApp öffnen
+                            {copy.home.whatsappCta}
                             <ArrowRight className="size-4" />
                         </a>
                     )}
@@ -182,14 +190,17 @@ export default function Home(page: PublicHomePageProps) {
     );
 }
 
-function renderPromoCode(promotion: PublicPromotion | null) {
+function renderPromoCode(
+    promotion: PublicPromotion | null,
+    copy: ReturnType<typeof getPublicCopy>,
+) {
     if (!promotion?.promo_code) {
         return null;
     }
 
     return (
         <span className="border border-white/35 px-4 py-3 text-sm text-white/85">
-            Code: {promotion.promo_code}
+            {copy.home.promoCode(promotion.promo_code)}
         </span>
     );
 }

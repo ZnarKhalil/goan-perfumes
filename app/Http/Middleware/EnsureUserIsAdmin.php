@@ -17,7 +17,7 @@ class EnsureUserIsAdmin
     {
         if (! $request->user()?->is_admin) {
             return redirect()
-                ->route('home')
+                ->to('/')
                 ->with('error', 'Zugriff verweigert. Diese Seite ist nur für Administratoren.');
         }
 

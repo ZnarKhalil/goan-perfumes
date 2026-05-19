@@ -1,29 +1,46 @@
 import { Link } from '@inertiajs/react';
 import { Menu, ShoppingBag } from 'lucide-react';
+import LocaleSwitcher from '@/components/public/locale-switcher';
 import SiteDrawer from '@/components/public/site-drawer';
+import type { PublicCopy } from '@/lib/public-copy';
 import type {
     PublicCategoryNavItem,
     PublicContactSettings,
+    PublicLocaleProps,
 } from '@/types/public';
 
 type Props = {
     navigation: PublicCategoryNavItem[];
     contact: PublicContactSettings;
     logoUrl: string | null;
+    locale?: PublicLocaleProps;
+    copy: PublicCopy;
 };
 
-export default function SiteHeader({ navigation, contact, logoUrl }: Props) {
+export default function SiteHeader({
+    navigation,
+    contact,
+    logoUrl,
+    locale,
+    copy,
+}: Props) {
+    const homeHref = locale ? `/${locale.current}` : '/';
+    const contactHref = locale ? `/${locale.current}/kontakt` : '/kontakt';
+
     return (
         <header className="sticky top-0 z-40 border-b border-stone-200/80 bg-[#fbf8f2]/90 backdrop-blur">
             <div className="grid h-16 grid-cols-[1fr_auto_1fr] items-center px-4 md:h-20 md:px-8">
                 <div className="flex items-center">
                     <SiteDrawer
                         navigation={navigation}
+                        locale={locale}
+                        contactHref={contactHref}
+                        copy={copy}
                         trigger={
                             <button
                                 type="button"
                                 className="inline-flex size-10 items-center justify-center text-stone-950 transition hover:text-stone-500"
-                                aria-label="Menü öffnen"
+                                aria-label={copy.aria.mobileMenu}
                             >
                                 <Menu className="size-5" />
                             </button>
@@ -32,9 +49,9 @@ export default function SiteHeader({ navigation, contact, logoUrl }: Props) {
                 </div>
 
                 <Link
-                    href="/"
+                    href={homeHref}
                     className="flex items-center justify-center text-center"
-                    aria-label="Goan Perfume Startseite"
+                    aria-label={copy.aria.goHome}
                 >
                     {logoUrl ? (
                         <img
@@ -50,6 +67,9 @@ export default function SiteHeader({ navigation, contact, logoUrl }: Props) {
                 </Link>
 
                 <div className="flex items-center justify-end gap-2">
+                    <div className="hidden md:block">
+                        <LocaleSwitcher locale={locale} />
+                    </div>
                     {contact.whatsapp_url && (
                         <Link
                             href={contact.whatsapp_url}
@@ -61,7 +81,7 @@ export default function SiteHeader({ navigation, contact, logoUrl }: Props) {
                     <button
                         type="button"
                         className="inline-flex size-10 items-center justify-center text-stone-950 opacity-60"
-                        aria-label="Warenkorb nicht verfügbar"
+                        aria-label={copy.aria.cartUnavailable}
                         disabled
                     >
                         <ShoppingBag className="size-5" />

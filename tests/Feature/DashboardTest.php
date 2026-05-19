@@ -12,7 +12,7 @@ test('non-admin users are redirected away from the dashboard', function () {
     $this->actingAs($user);
 
     $response = $this->get(route('dashboard'));
-    $response->assertRedirect(route('home'));
+    $response->assertRedirect('/');
 });
 
 test('admin users can visit the dashboard', function () {

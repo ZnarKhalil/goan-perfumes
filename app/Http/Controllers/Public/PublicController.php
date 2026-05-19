@@ -11,14 +11,13 @@ use App\Models\PageSection;
 use App\Models\Product;
 use App\Models\Promotion;
 use App\Models\Setting;
+use App\Support\PublicLocale;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 abstract class PublicController extends Controller
 {
-    protected const LOCALE = 'de';
-
     protected const CATEGORY_SLUGS = [
         'luxusparfums',
         'nischenparfums',
@@ -57,8 +56,11 @@ abstract class PublicController extends Controller
         return [
             'id' => $category->id,
             'slug' => $category->slug,
-            'name' => $category->translate(self::LOCALE, 'name') ?? $category->slug,
-            'href' => route('categories.show', ['slug' => $category->slug]),
+            'name' => $this->translation($category, 'name') ?? $category->slug,
+            'href' => route('categories.show', [
+                'locale' => $this->locale(),
+                'slug' => $category->slug,
+            ]),
             'image_url' => $this->storageUrl($category->image_path),
         ];
     }
@@ -86,16 +88,19 @@ abstract class PublicController extends Controller
     {
         /** @var Media|null $primaryMedia */
         $primaryMedia = $product->primaryMedia;
-        $name = $product->translate(self::LOCALE, 'name') ?? $product->slug;
+        $name = $this->translation($product, 'name') ?? $product->slug;
 
         return [
             'id' => $product->id,
             'slug' => $product->slug,
-            'href' => route('products.show', ['slug' => $product->slug]),
+            'href' => route('products.show', [
+                'locale' => $this->locale(),
+                'slug' => $product->slug,
+            ]),
             'name' => $name,
             'brand' => $product->brand,
             'image_url' => $this->storageUrl($primaryMedia?->path),
-            'image_alt' => $primaryMedia?->translate(self::LOCALE, 'alt_text') ?? $primaryMedia?->alt_text ?? $name,
+            'image_alt' => $primaryMedia ? ($this->translation($primaryMedia, 'alt_text') ?? $primaryMedia->alt_text ?? $name) : $name,
             'min_price' => $this->decimal($product->variants_min_price),
             'max_price' => $this->decimal($product->variants_max_price),
             'categories' => $product->categories
@@ -141,10 +146,10 @@ abstract class PublicController extends Controller
             ->get()
             ->map(fn (Promotion $promotion) => [
                 'id' => $promotion->id,
-                'title' => $promotion->translate(self::LOCALE, 'title') ?? $promotion->slug,
-                'subtitle' => $promotion->translate(self::LOCALE, 'subtitle') ?? '',
-                'badge' => $promotion->translate(self::LOCALE, 'badge'),
-                'cta_text' => $promotion->translate(self::LOCALE, 'cta_text'),
+                'title' => $this->translation($promotion, 'title') ?? $promotion->slug,
+                'subtitle' => $this->translation($promotion, 'subtitle') ?? '',
+                'badge' => $this->translation($promotion, 'badge'),
+                'cta_text' => $this->translation($promotion, 'cta_text'),
                 'link_url' => $promotion->link_url,
                 'promo_code' => $promotion->promo_code,
                 'discount_percent' => $promotion->discount_percent,
@@ -173,13 +178,13 @@ abstract class PublicController extends Controller
             ->map(fn (Attribute $attribute) => [
                 'id' => $attribute->id,
                 'code' => $attribute->code,
-                'name' => $attribute->translate(self::LOCALE, 'name') ?? $attribute->code,
+                'name' => $this->translation($attribute, 'name') ?? $attribute->code,
                 'is_multiple' => $attribute->is_multiple,
                 'values' => $attribute->values
                     ->map(fn (AttributeValue $value) => [
                         'id' => $value->id,
                         'slug' => $value->slug,
-                        'name' => $value->translate(self::LOCALE, 'name') ?? $value->slug,
+                        'name' => $this->translation($value, 'name') ?? $value->slug,
                         'selected' => in_array($value->slug, $selectedFilters[$attribute->code] ?? [], true),
                         'href' => $this->filterHref($categorySlug, $selectedFilters, $attribute, $value),
                     ])
@@ -250,12 +255,26 @@ abstract class PublicController extends Controller
         return $this->storageUrl($this->setting('logo_path'));
     }
 
+    protected function locale(): string
+    {
+        return PublicLocale::normalize(request()->attributes->get('public_locale'));
+    }
+
+    protected function translation(object $model, string $field): ?string
+    {
+        if (! method_exists($model, 'translate')) {
+            return null;
+        }
+
+        return $model->translate($this->locale(), $field, PublicLocale::Default);
+    }
+
     private function heroSection(?PageSection $section): array
     {
         return [
-            'title' => $section?->translate(self::LOCALE, 'title') ?? 'Goan Perfume',
-            'body' => $section?->translate(self::LOCALE, 'body') ?? '',
-            'cta_text' => $section?->translate(self::LOCALE, 'cta_text'),
+            'title' => $section ? ($this->translation($section, 'title') ?? 'Goan Perfume') : 'Goan Perfume',
+            'body' => $section ? ($this->translation($section, 'body') ?? '') : '',
+            'cta_text' => $section ? $this->translation($section, 'cta_text') : null,
             'image_url' => $this->storageUrl($section?->payload['image_path'] ?? null),
         ];
     }
@@ -263,16 +282,16 @@ abstract class PublicController extends Controller
     private function textSection(?PageSection $section, string $fallbackTitle): array
     {
         return [
-            'title' => $section?->translate(self::LOCALE, 'title') ?? $fallbackTitle,
-            'body' => $section?->translate(self::LOCALE, 'body') ?? '',
+            'title' => $section ? ($this->translation($section, 'title') ?? $fallbackTitle) : $fallbackTitle,
+            'body' => $section ? ($this->translation($section, 'body') ?? '') : '',
         ];
     }
 
     private function bulletSection(?PageSection $section, string $fallbackTitle): array
     {
         return [
-            'title' => $section?->translate(self::LOCALE, 'title') ?? $fallbackTitle,
-            'items' => $this->decodeBulletPoints($section?->translate(self::LOCALE, 'bullet_points')),
+            'title' => $section ? ($this->translation($section, 'title') ?? $fallbackTitle) : $fallbackTitle,
+            'items' => $this->decodeBulletPoints($section ? $this->translation($section, 'bullet_points') : null),
         ];
     }
 
@@ -328,6 +347,10 @@ abstract class PublicController extends Controller
             ->map(fn (array $values) => implode(',', $values))
             ->all();
 
-        return route('categories.show', ['slug' => $categorySlug] + $query);
+        return route('categories.show', [
+            'locale' => $this->locale(),
+            'slug' => $categorySlug,
+            ...$query,
+        ]);
     }
 }

@@ -8,7 +8,7 @@ use Inertia\Response;
 
 class HomeController extends PublicController
 {
-    public function __invoke(): Response
+    public function __invoke(string $locale): Response
     {
         $featuredProducts = $this->productCardQuery()
             ->where('is_featured', true)

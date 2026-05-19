@@ -2,11 +2,14 @@ import { Head, Link } from '@inertiajs/react';
 import { ArrowLeft, Mail, Phone, Send } from 'lucide-react';
 import { useState } from 'react';
 import PublicLayout from '@/layouts/public-layout';
+import { getPublicCopy } from '@/lib/public-copy';
+import type { PublicCopy } from '@/lib/public-copy';
 import { formatEuro } from '@/lib/public-format';
 import { cn } from '@/lib/utils';
 import type { PublicProductPageProps, PublicVariant } from '@/types/public';
 
 export default function Product(page: PublicProductPageProps) {
+    const copy = getPublicCopy(page.locale);
     const product = page.product;
     const primaryMedia =
         product.media.find((media) => media.is_primary) ?? product.media[0];
@@ -32,6 +35,7 @@ export default function Product(page: PublicProductPageProps) {
             navigation={page.navigation}
             contact={page.contact}
             logo_url={page.logo_url}
+            locale={page.locale}
         >
             <Head title={product.name}>
                 <meta
@@ -54,7 +58,7 @@ export default function Product(page: PublicProductPageProps) {
                             </div>
                         ) : (
                             <div className="flex aspect-[4/5] items-center justify-center bg-stone-100 text-sm text-stone-500">
-                                Kein Bild
+                                {copy.product.imageMissing}
                             </div>
                         )}
 
@@ -84,7 +88,9 @@ export default function Product(page: PublicProductPageProps) {
                                 className="inline-flex items-center gap-2 text-sm text-stone-500 transition hover:text-stone-950"
                             >
                                 <ArrowLeft className="size-4" />
-                                Zurück zu {product.primary_category.name}
+                                {copy.product.backToCategory(
+                                    product.primary_category.name,
+                                )}
                             </Link>
                         )}
 
@@ -103,6 +109,7 @@ export default function Product(page: PublicProductPageProps) {
                         </div>
 
                         <VariantSelector
+                            copy={copy}
                             selectedVariant={selectedVariant}
                             variants={product.variants}
                             onSelect={setSelectedVariantId}
@@ -110,7 +117,7 @@ export default function Product(page: PublicProductPageProps) {
 
                         <div className="border-y border-stone-200 py-7">
                             <h2 className="text-sm font-medium tracking-wide text-stone-950 uppercase">
-                                Duftprofil
+                                {copy.product.scentProfile}
                             </h2>
                             <div className="mt-5 grid gap-5">
                                 {product.attribute_groups.map((group) => (
@@ -138,14 +145,14 @@ export default function Product(page: PublicProductPageProps) {
 
                         <div className="grid gap-5 py-7">
                             <h2 className="text-sm font-medium tracking-wide text-stone-950 uppercase">
-                                Beschreibung
+                                {copy.product.description}
                             </h2>
                             <p className="text-base leading-8 text-stone-700">
                                 {product.description}
                             </p>
                         </div>
 
-                        <ContactActions contact={page.contact} />
+                        <ContactActions contact={page.contact} copy={copy} />
                     </div>
                 </div>
             </section>
@@ -154,10 +161,12 @@ export default function Product(page: PublicProductPageProps) {
 }
 
 function VariantSelector({
+    copy,
     selectedVariant,
     variants,
     onSelect,
 }: {
+    copy: PublicCopy;
     selectedVariant: PublicVariant | null;
     variants: PublicVariant[];
     onSelect: (variantId: number) => void;
@@ -167,16 +176,19 @@ function VariantSelector({
             <div className="flex items-end justify-between gap-4">
                 <div>
                     <h2 className="text-sm font-medium tracking-wide text-stone-950 uppercase">
-                        Größe wählen
+                        {copy.product.sizeTitle}
                     </h2>
                     <p className="mt-2 text-sm text-stone-500">
-                        Anfrage basiert auf der ausgewählten Größe.
+                        {copy.product.sizeHelp}
                     </p>
                 </div>
                 <p className="text-2xl font-medium text-stone-950 tabular-nums">
                     {selectedVariant
-                        ? formatEuro(selectedVariant.price)
-                        : 'Preis auf Anfrage'}
+                        ? formatEuro(
+                              selectedVariant.price,
+                              copy.product.priceOnRequest,
+                          )
+                        : copy.product.priceOnRequest}
                 </p>
             </div>
 
@@ -197,7 +209,10 @@ function VariantSelector({
                             {variant.size}
                         </span>
                         <span className="mt-2 block text-sm tabular-nums opacity-75">
-                            {formatEuro(variant.price)}
+                            {formatEuro(
+                                variant.price,
+                                copy.product.priceOnRequest,
+                            )}
                         </span>
                     </button>
                 ))}
@@ -208,24 +223,26 @@ function VariantSelector({
 
 function ContactActions({
     contact,
+    copy,
 }: {
     contact: PublicProductPageProps['contact'];
+    copy: PublicCopy;
 }) {
     const links = [
         {
-            label: 'WhatsApp',
+            label: copy.contact.methods.whatsapp,
             value: contact.whatsapp_number,
             href: contact.whatsapp_url,
             icon: Send,
         },
         {
-            label: 'Telefon',
+            label: copy.contact.methods.phone,
             value: contact.phone,
             href: contact.phone_url,
             icon: Phone,
         },
         {
-            label: 'E-Mail',
+            label: copy.contact.methods.email,
             value: contact.email,
             href: contact.email_url,
             icon: Mail,
@@ -239,10 +256,10 @@ function ContactActions({
     return (
         <section className="grid gap-3 bg-stone-950 p-5 text-white">
             <p className="text-xs tracking-[0.22em] text-white/50 uppercase">
-                Anfrage
+                {copy.product.inquiry}
             </p>
             <h2 className="font-serif text-3xl leading-tight">
-                Verfügbarkeit direkt anfragen.
+                {copy.product.availabilityTitle}
             </h2>
             <div className="mt-3 grid gap-2">
                 {links.map((link) => {

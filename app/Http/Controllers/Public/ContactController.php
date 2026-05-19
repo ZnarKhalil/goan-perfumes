@@ -7,7 +7,7 @@ use Inertia\Response;
 
 class ContactController extends PublicController
 {
-    public function __invoke(): Response
+    public function __invoke(string $locale): Response
     {
         return Inertia::render('public/contact', $this->layoutProps());
     }

@@ -7,28 +7,34 @@ import {
     Music2,
     Phone,
 } from 'lucide-react';
+import type { PublicCopy } from '@/lib/public-copy';
 import { cn } from '@/lib/utils';
 import type { PublicContactSettings } from '@/types/public';
 
 type Props = {
     contact: PublicContactSettings;
+    copy: PublicCopy;
     className?: string;
 };
 
-export default function FloatingContactSidebar({ contact, className }: Props) {
+export default function FloatingContactSidebar({
+    contact,
+    copy,
+    className,
+}: Props) {
     const links = [
         {
-            label: 'WhatsApp',
+            label: copy.contact.methods.whatsapp,
             href: contact.whatsapp_url,
             icon: MessageCircle,
         },
         {
-            label: 'E-Mail',
+            label: copy.contact.methods.email,
             href: contact.email_url,
             icon: Mail,
         },
         {
-            label: 'Telefon',
+            label: copy.contact.methods.phone,
             href: contact.phone_url,
             icon: Phone,
         },
@@ -59,7 +65,7 @@ export default function FloatingContactSidebar({ contact, className }: Props) {
                 <Link
                     href={contact.whatsapp_url}
                     className="fixed right-4 bottom-4 z-40 flex size-14 items-center justify-center rounded-full bg-stone-950 text-white shadow-lg shadow-stone-950/25 transition hover:bg-stone-800 md:hidden"
-                    aria-label="WhatsApp"
+                    aria-label={links[0]?.label ?? 'WhatsApp'}
                 >
                     <MessageCircle className="size-6" />
                 </Link>
@@ -71,7 +77,7 @@ export default function FloatingContactSidebar({ contact, className }: Props) {
                         'fixed top-1/2 right-0 z-30 hidden -translate-y-1/2 flex-col border border-r-0 border-stone-200 bg-[#fbf8f2]/95 shadow-sm backdrop-blur md:flex',
                         className,
                     )}
-                    aria-label="Kontakt"
+                    aria-label={copy.aria.contactSidebar}
                 >
                     {links.map((item) => {
                         const Icon = item.icon;

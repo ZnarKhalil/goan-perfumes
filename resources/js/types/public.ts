@@ -1,5 +1,26 @@
 import type { ReactNode } from 'react';
 
+export type PublicLocaleCode = 'de' | 'en' | 'ar';
+
+export type PublicTextDirection = 'ltr' | 'rtl';
+
+export type PublicSupportedLocale = {
+    code: PublicLocaleCode;
+    label: string;
+    native_label: string;
+    flag: string;
+    dir: PublicTextDirection;
+    formatter_locale: string;
+};
+
+export type PublicLocaleProps = {
+    current: PublicLocaleCode;
+    dir: PublicTextDirection;
+    formatter_locale: string;
+    supported: PublicSupportedLocale[];
+    switcher_urls: Record<PublicLocaleCode, string>;
+};
+
 export type PublicCategoryNavItem = {
     id: number;
     slug: string;
@@ -149,6 +170,7 @@ export type PublicLayoutProps = {
     navigation: PublicCategoryNavItem[];
     contact: PublicContactSettings;
     logo_url: string | null;
+    locale?: PublicLocaleProps;
     children: ReactNode;
 };
 
@@ -156,6 +178,7 @@ export type PublicHomePageProps = {
     navigation: PublicCategoryNavItem[];
     contact: PublicContactSettings;
     logo_url: string | null;
+    locale?: PublicLocaleProps;
     promotions: PublicPromotion[];
     page_sections: PublicPageSections;
     featured_products: PublicProductCard[];
@@ -165,6 +188,7 @@ export type PublicCategoryPageProps = {
     navigation: PublicCategoryNavItem[];
     contact: PublicContactSettings;
     logo_url: string | null;
+    locale?: PublicLocaleProps;
     category: PublicCategoryNavItem & {
         description: string;
         banner_url: string | null;
@@ -179,6 +203,7 @@ export type PublicProductPageProps = {
     navigation: PublicCategoryNavItem[];
     contact: PublicContactSettings;
     logo_url: string | null;
+    locale?: PublicLocaleProps;
     product: PublicProductDetail;
 };
 
@@ -186,4 +211,5 @@ export type PublicContactPageProps = {
     navigation: PublicCategoryNavItem[];
     contact: PublicContactSettings;
     logo_url: string | null;
+    locale?: PublicLocaleProps;
 };

@@ -1,16 +1,19 @@
 import ProductCard from '@/components/public/product-card';
+import type { PublicCopy } from '@/lib/public-copy';
 import { cn } from '@/lib/utils';
 import type { PublicProductCard } from '@/types/public';
 
 type Props = {
     products: PublicProductCard[];
+    copy: PublicCopy;
     emptyMessage?: string;
     className?: string;
 };
 
 export default function ProductGrid({
     products,
-    emptyMessage = 'Keine Produkte gefunden.',
+    copy,
+    emptyMessage = copy.category.empty,
     className,
 }: Props) {
     if (products.length === 0) {
@@ -29,7 +32,7 @@ export default function ProductGrid({
             )}
         >
             {products.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <ProductCard key={product.id} product={product} copy={copy} />
             ))}
         </div>
     );
