@@ -20,6 +20,6 @@ class StorePromotionRequest extends FormRequest
      */
     public function rules(): array
     {
-        return $this->promotionRules($this->slugUniqueRule());
+        return $this->promotionRules();
     }
 }

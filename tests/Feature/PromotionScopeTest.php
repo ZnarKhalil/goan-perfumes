@@ -3,16 +3,15 @@
 use App\Models\Promotion;
 
 test('active scope returns only currently-active promotions', function () {
-    $alwaysOn = Promotion::factory()->create(['slug' => 'always-on']);
+    $alwaysOn = Promotion::factory()->create();
     $withinWindow = Promotion::factory()->create([
-        'slug' => 'within-window',
         'starts_at' => now()->subDay(),
         'ends_at' => now()->addDay(),
     ]);
 
-    Promotion::factory()->upcoming()->create(['slug' => 'upcoming']);
-    Promotion::factory()->expired()->create(['slug' => 'expired']);
-    Promotion::factory()->disabled()->create(['slug' => 'disabled']);
+    Promotion::factory()->upcoming()->create();
+    Promotion::factory()->expired()->create();
+    Promotion::factory()->disabled()->create();
 
     $activeIds = Promotion::active()->pluck('id')->all();
 

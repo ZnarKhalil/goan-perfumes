@@ -3,7 +3,8 @@ import { ArrowRight } from 'lucide-react';
 import ProductGrid from '@/components/public/product-grid';
 import PublicLayout from '@/layouts/public-layout';
 import { getPublicCopy } from '@/lib/public-copy';
-import type { PublicHomePageProps } from '@/types/public';
+import type { PublicCopy } from '@/lib/public-copy';
+import type { PublicHomePageProps, PublicPromotion } from '@/types/public';
 
 export default function Home(page: PublicHomePageProps) {
     const copy = getPublicCopy(page.locale);
@@ -67,6 +68,11 @@ export default function Home(page: PublicHomePageProps) {
                     </div>
                 </div>
             </section>
+
+            <OffersSection
+                copy={copy}
+                offers={page.promotions}
+            />
 
             <section className="px-4 py-16 md:px-8 md:py-24">
                 <div className="mx-auto grid max-w-7xl gap-10">
@@ -160,5 +166,87 @@ export default function Home(page: PublicHomePageProps) {
                 </div>
             </section>
         </PublicLayout>
+    );
+}
+
+function OffersSection({
+    copy,
+    offers,
+}: {
+    copy: PublicCopy;
+    offers: PublicPromotion[];
+}) {
+    if (offers.length === 0) {
+        return null;
+    }
+
+    const visibleOffers = offers.slice(0, 3);
+
+    return (
+        <section className="overflow-hidden bg-[#271f1b] px-4 py-6 text-white md:px-8 md:py-8">
+            <div className="mx-auto grid max-w-7xl gap-4">
+                <div className="flex flex-col justify-between gap-2 md:flex-row md:items-end">
+                    <div>
+                        <p className="text-xs tracking-[0.22em] text-[#d9b56c] uppercase">
+                            {copy.home.offersEyebrow}
+                        </p>
+                        <h2 className="mt-1 max-w-2xl font-serif text-2xl leading-tight md:text-3xl">
+                            {copy.home.offersTitle}
+                        </h2>
+                    </div>
+                </div>
+
+                <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+                    {visibleOffers.map((offer) => (
+                        <OfferPanel key={offer.id} offer={offer} />
+                    ))}
+                </div>
+            </div>
+        </section>
+    );
+}
+
+function OfferPanel({
+    offer,
+}: {
+    offer: PublicPromotion;
+}) {
+    return (
+        <div className="group [perspective:1600px]">
+            <article
+                className={[
+                    'relative isolate grid h-full overflow-hidden border border-white/12 bg-[radial-gradient(circle_at_20%_10%,rgba(217,181,108,0.14),transparent_34%),linear-gradient(135deg,rgba(255,255,255,0.1),rgba(255,255,255,0.035))] p-4 shadow-lg shadow-black/15 transform-3d transform-gpu [transform:rotateX(0deg)_rotateY(0deg)_translateY(0)] transition-[transform,box-shadow] duration-500 ease-out group-hover:[transform:rotateX(0.7deg)_rotateY(-0.7deg)_translateY(-3px)] group-hover:shadow-black/25',
+                ].join(' ')}
+            >
+                <div className="absolute inset-x-5 top-5 -z-10 h-px bg-linear-to-r from-transparent via-[#d9b56c]/45 to-transparent" />
+                <div className="absolute top-4 right-4 h-12 w-12 rounded-full border border-[#d9b56c]/35 bg-[#d9b56c]/10 blur-[1px] transition-[translate,scale] duration-500 group-hover:-translate-y-1 group-hover:scale-105" />
+                <div className="absolute bottom-0 left-0 -z-10 h-16 w-full bg-linear-to-t from-black/20 to-transparent" />
+
+                <div className="grid gap-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                        {offer.badge && (
+                            <span className="border border-[#d9b56c]/45 px-2.5 py-0.5 text-[0.65rem] tracking-[0.18em] text-[#f0dca0] uppercase">
+                                {offer.badge}
+                            </span>
+                        )}
+                    </div>
+
+                    <div>
+                        <h3 className="font-serif text-xl leading-tight md:text-2xl">
+                            {offer.title}
+                        </h3>
+                        <p className="mt-1.5 text-sm leading-5 text-white/72">
+                            {offer.subtitle}
+                        </p>
+                    </div>
+
+                    {offer.cta_text && (
+                        <p className="text-xs font-medium tracking-[0.08em] text-[#f0dca0] uppercase">
+                            {offer.cta_text}
+                        </p>
+                    )}
+                </div>
+            </article>
+        </div>
     );
 }

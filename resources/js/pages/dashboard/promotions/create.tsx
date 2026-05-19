@@ -14,17 +14,11 @@ export default function PromotionsCreate() {
             <div className="flex h-full flex-1 flex-col gap-4 p-4">
                 <Heading
                     title="Neue Aktion"
-                    description="Lege ein Angebot für den Homepage-Hero an."
+                    description="Lege ein Textangebot für die Startseite an."
                 />
                 <PromotionForm
                     mode="create"
                     initial={{
-                        slug: '',
-                        background_image_url: null,
-                        background_color: '',
-                        link_url: '',
-                        promo_code: '',
-                        discount_percent: '',
                         starts_at: '',
                         ends_at: '',
                         sort_order: 0,

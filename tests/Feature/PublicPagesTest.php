@@ -30,7 +30,7 @@ test('home renders public props from stored content', function () {
         'sort_order' => 0,
         'is_active' => true,
     ])->setTranslation('de', 'title', 'Goan Perfume');
-    Promotion::factory()->create(['slug' => 'aktion'])->setTranslation('de', 'title', 'Aktion');
+    Promotion::factory()->create()->setTranslation('de', 'title', 'Aktion');
 
     $this->get('/de')
         ->assertOk()
@@ -58,7 +58,7 @@ test('home falls back to hero section when there are no active promotions', func
         'sort_order' => 0,
         'is_active' => true,
     ])->setTranslation('de', 'title', 'Fallback Hero');
-    Promotion::factory()->disabled()->create(['slug' => 'inaktiv'])
+    Promotion::factory()->disabled()->create()
         ->setTranslation('de', 'title', 'Inaktiv');
 
     $this->get('/de')

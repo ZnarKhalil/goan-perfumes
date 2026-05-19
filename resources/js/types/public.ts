@@ -120,11 +120,6 @@ export type PublicPromotion = {
     subtitle: string;
     badge: string | null;
     cta_text: string | null;
-    link_url: string | null;
-    promo_code: string | null;
-    discount_percent: number | null;
-    background_image_url: string | null;
-    background_color: string | null;
 };
 
 export type PublicHeroSection = {

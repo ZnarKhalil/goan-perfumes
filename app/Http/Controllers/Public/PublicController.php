@@ -146,15 +146,10 @@ abstract class PublicController extends Controller
             ->get()
             ->map(fn (Promotion $promotion) => [
                 'id' => $promotion->id,
-                'title' => $this->translation($promotion, 'title') ?? $promotion->slug,
+                'title' => $this->translation($promotion, 'title') ?? '',
                 'subtitle' => $this->translation($promotion, 'subtitle') ?? '',
                 'badge' => $this->translation($promotion, 'badge'),
                 'cta_text' => $this->translation($promotion, 'cta_text'),
-                'link_url' => $promotion->link_url,
-                'promo_code' => $promotion->promo_code,
-                'discount_percent' => $promotion->discount_percent,
-                'background_image_url' => $this->storageUrl($promotion->background_image_path),
-                'background_color' => $promotion->background_color,
             ])
             ->values()
             ->all();

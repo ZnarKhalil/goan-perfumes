@@ -3,7 +3,6 @@
 namespace App\Http\Requests\Dashboard;
 
 use App\Http\Requests\Dashboard\Concerns\ValidatesPromotionFields;
-use App\Models\Promotion;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -21,10 +20,6 @@ class UpdatePromotionRequest extends FormRequest
      */
     public function rules(): array
     {
-        $promotion = $this->route('promotion');
-
-        return $this->promotionRules(
-            $this->slugUniqueRule($promotion instanceof Promotion ? $promotion : null),
-        );
+        return $this->promotionRules();
     }
 }

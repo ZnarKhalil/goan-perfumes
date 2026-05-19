@@ -9,7 +9,6 @@ use App\Models\Promotion;
 use Carbon\CarbonInterface;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -33,18 +32,12 @@ class PromotionController extends Controller
             ->get()
             ->map(fn (Promotion $promotion) => [
                 'id' => $promotion->id,
-                'slug' => $promotion->slug,
-                'title' => $promotion->translate('de', 'title') ?? $promotion->slug,
-                'promo_code' => $promotion->promo_code,
-                'discount_percent' => $promotion->discount_percent,
+                'title' => $promotion->translate('de', 'title') ?? 'Aktion',
                 'starts_at' => $this->dateTimeValue($promotion->starts_at),
                 'ends_at' => $this->dateTimeValue($promotion->ends_at),
                 'sort_order' => $promotion->sort_order,
                 'is_active' => $promotion->is_active,
                 'status' => $this->statusFor($promotion),
-                'background_image_url' => $promotion->background_image_path
-                    ? Storage::url($promotion->background_image_path)
-                    : null,
             ])
             ->values();
 
@@ -62,22 +55,10 @@ class PromotionController extends Controller
     {
         $data = $request->validated();
 
-        DB::transaction(function () use ($data, $request): void {
+        DB::transaction(function () use ($data): void {
             $promotion = new Promotion($this->promotionAttributes($data));
-
-            if (empty($data['slug'])) {
-                $promotion->setSlugSource($data['translations']['de']['title']);
-            }
-
             $promotion->save();
             $this->syncTranslations($promotion, $data['translations'] ?? []);
-
-            if ($request->hasFile('background_image')) {
-                $promotion->background_image_path = $request
-                    ->file('background_image')
-                    ->store('promotions/backgrounds', 'public');
-                $promotion->save();
-            }
         });
 
         return to_route('dashboard.promotions.index')
@@ -91,20 +72,12 @@ class PromotionController extends Controller
         return Inertia::render('dashboard/promotions/edit', [
             'promotion' => [
                 'id' => $promotion->id,
-                'slug' => $promotion->slug,
-                'background_image_url' => $promotion->background_image_path
-                    ? Storage::url($promotion->background_image_path)
-                    : null,
-                'background_color' => $promotion->background_color ?? '',
-                'link_url' => $promotion->link_url ?? '',
-                'promo_code' => $promotion->promo_code ?? '',
-                'discount_percent' => $promotion->discount_percent,
                 'starts_at' => $this->dateTimeLocalValue($promotion->starts_at),
                 'ends_at' => $this->dateTimeLocalValue($promotion->ends_at),
                 'sort_order' => $promotion->sort_order,
                 'is_active' => $promotion->is_active,
                 'translations' => $this->translationsAsTabs($promotion),
-                'title' => $promotion->translate('de', 'title') ?? $promotion->slug,
+                'title' => $promotion->translate('de', 'title') ?? 'Aktion',
             ],
         ]);
     }
@@ -113,34 +86,10 @@ class PromotionController extends Controller
     {
         $data = $request->validated();
 
-        DB::transaction(function () use ($promotion, $data, $request): void {
+        DB::transaction(function () use ($promotion, $data): void {
             $promotion->fill($this->promotionAttributes($data));
-
-            if (! empty($data['slug'])) {
-                $promotion->slug = $data['slug'];
-            } elseif (empty($promotion->slug)) {
-                $promotion->setSlugSource($data['translations']['de']['title']);
-            }
-
             $promotion->save();
             $this->syncTranslations($promotion, $data['translations'] ?? []);
-
-            if ($request->boolean('remove_background_image') && $promotion->background_image_path) {
-                Storage::disk('public')->delete($promotion->background_image_path);
-                $promotion->background_image_path = null;
-                $promotion->save();
-            }
-
-            if ($request->hasFile('background_image')) {
-                if ($promotion->background_image_path) {
-                    Storage::disk('public')->delete($promotion->background_image_path);
-                }
-
-                $promotion->background_image_path = $request
-                    ->file('background_image')
-                    ->store('promotions/backgrounds', 'public');
-                $promotion->save();
-            }
         });
 
         return to_route('dashboard.promotions.index')
@@ -150,10 +99,6 @@ class PromotionController extends Controller
     public function destroy(Promotion $promotion): RedirectResponse
     {
         DB::transaction(function () use ($promotion): void {
-            if ($promotion->background_image_path) {
-                Storage::disk('public')->delete($promotion->background_image_path);
-            }
-
             $promotion->translations()->delete();
             $promotion->delete();
         });
@@ -169,11 +114,6 @@ class PromotionController extends Controller
     private function promotionAttributes(array $data): array
     {
         return [
-            'slug' => $data['slug'] ?? '',
-            'background_color' => $data['background_color'] ?? null,
-            'link_url' => $data['link_url'] ?? null,
-            'promo_code' => $data['promo_code'] ?? null,
-            'discount_percent' => $data['discount_percent'] ?? null,
             'starts_at' => $data['starts_at'] ?? null,
             'ends_at' => $data['ends_at'] ?? null,
             'sort_order' => $data['sort_order'] ?? 0,

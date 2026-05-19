@@ -107,20 +107,11 @@ export const publicDummyPageSections: PublicPageSections = {
 export const publicDummyPromotions: PublicPromotion[] = [
     {
         id: 1,
-        title: '10% auf ausgewählte Nischendüfte',
+        title: 'Ausgewählte Nischendüfte',
         subtitle:
             'Nur diese Woche: warme, elegante Signaturen für besondere Abende.',
         badge: 'LIMITIERTES ANGEBOT',
         cta_text: 'Angebot ansehen',
-        link_url: '/nischenparfums',
-        promo_code: 'NISCHE10',
-        discount_percent: 10,
-        background_image_url: image(
-            'photo-1619994403073-2cec844b8e63',
-            1800,
-            1200,
-        ),
-        background_color: '#15110f',
     },
     {
         id: 2,
@@ -128,15 +119,6 @@ export const publicDummyPromotions: PublicPromotion[] = [
         subtitle: 'Oud, Amber und Gewürze mit Tiefe und Präsenz.',
         badge: 'NEU EINGETROFFEN',
         cta_text: 'Arabische Parfums',
-        link_url: '/arabische-parfums',
-        promo_code: null,
-        discount_percent: null,
-        background_image_url: image(
-            'photo-1600612253971-422e7f7faeb6',
-            1800,
-            1200,
-        ),
-        background_color: '#1b1712',
     },
 ];
 

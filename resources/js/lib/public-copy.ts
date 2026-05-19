@@ -54,7 +54,8 @@ export type PublicCopy = {
         featuredTitle: string;
         heroCta: string;
         luxuryLink: string;
-        promoCode: (code: string) => string;
+        offersEyebrow: string;
+        offersTitle: string;
         whyEyebrow: string;
         whatsappCta: string;
     };
@@ -136,7 +137,8 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
                 'Signaturen mit Präsenz, Tiefe und sauberer Projektion.',
             heroCta: 'Kollektion entdecken',
             luxuryLink: 'Alle Luxusparfums',
-            promoCode: (code) => `Code: ${code}`,
+            offersEyebrow: 'Aktionen',
+            offersTitle: 'Aktuelle Angebote mit besonderem Duftmoment.',
             whyEyebrow: 'Warum wir',
             whatsappCta: 'WhatsApp öffnen',
         },
@@ -217,7 +219,8 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
                 'Signatures with presence, depth, and clean projection.',
             heroCta: 'Explore the collection',
             luxuryLink: 'All luxury perfumes',
-            promoCode: (code) => `Code: ${code}`,
+            offersEyebrow: 'Offers',
+            offersTitle: 'Current offers with a special fragrance moment.',
             whyEyebrow: 'Why us',
             whatsappCta: 'Open WhatsApp',
         },
@@ -296,7 +299,8 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             featuredTitle: 'تواقيع عطرية بحضور وعمق وانتشار نقي.',
             heroCta: 'استكشف المجموعة',
             luxuryLink: 'كل العطور الفاخرة',
-            promoCode: (code) => `الكود: ${code}`,
+            offersEyebrow: 'العروض',
+            offersTitle: 'عروض حالية مع لحظة عطرية خاصة.',
             whyEyebrow: 'لماذا نحن',
             whatsappCta: 'فتح واتساب',
         },
