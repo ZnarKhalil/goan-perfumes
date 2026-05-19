@@ -17,27 +17,29 @@ export default function Contact(page: PublicContactPageProps) {
             contact={page.contact}
             logo_url={page.logo_url}
             locale={page.locale}
+            theme="dark"
         >
             <Head title={copy.contact.pageTitle} />
 
-            <section className="px-4 py-14 md:px-8 md:py-20">
+            <section className="px-4 pt-28 pb-14 md:px-8 md:pt-36 md:pb-20">
                 <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
                     <div>
-                        <p className="text-xs tracking-[0.28em] text-stone-500 uppercase">
+                        <p className="flex items-center gap-3 text-[0.7rem] font-semibold tracking-[0.38em] text-[#e7c889] uppercase">
+                            <span className="vitrine-pulse inline-block size-2 rounded-full bg-[#e7c889]" />
                             {copy.contact.eyebrow}
                         </p>
-                        <h1 className="mt-4 max-w-3xl font-serif text-5xl leading-none text-stone-950 md:text-7xl">
+                        <h1 className="mt-5 max-w-3xl font-display text-5xl leading-[1.02] font-light text-stone-50 md:text-7xl">
                             {copy.contact.title}
                         </h1>
                     </div>
-                    <p className="max-w-2xl text-lg leading-8 text-stone-700">
+                    <p className="max-w-2xl text-lg leading-8 text-stone-300">
                         {copy.contact.intro}
                     </p>
                 </div>
             </section>
 
             <section className="px-4 pb-16 md:px-8 md:pb-24">
-                <div className="mx-auto grid max-w-7xl gap-px overflow-hidden border border-stone-200 bg-stone-200 md:grid-cols-2 lg:grid-cols-3">
+                <div className="mx-auto grid max-w-7xl gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {links.length > 0 ? (
                         links.map((link) => {
                             const Icon = link.icon;
@@ -46,39 +48,39 @@ export default function Contact(page: PublicContactPageProps) {
                                 <a
                                     key={link.label}
                                     href={link.href}
-                                    className="group grid min-h-48 bg-[#fbf8f2] p-6 transition hover:bg-white"
+                                    className="group grid min-h-48 rounded-[1.4rem] border border-white/10 bg-white/[0.035] p-6 backdrop-blur-xl transition-colors duration-500 hover:border-[#e7c889]/40 hover:bg-white/[0.06]"
                                 >
                                     <div className="flex items-start justify-between gap-4">
                                         <div>
-                                            <p className="text-xs tracking-[0.2em] text-stone-500 uppercase">
+                                            <p className="text-[0.7rem] tracking-[0.22em] text-[#e7c889] uppercase">
                                                 {link.label}
                                             </p>
-                                            <p className="mt-4 font-serif text-3xl leading-tight break-words text-stone-950">
+                                            <p className="mt-4 font-display text-3xl leading-tight break-words text-stone-50">
                                                 {link.value}
                                             </p>
                                         </div>
-                                        <Icon className="size-5 text-stone-400 transition group-hover:text-stone-950" />
+                                        <Icon className="size-5 text-stone-500 transition group-hover:text-[#e7c889]" />
                                     </div>
-                                    <p className="mt-auto text-sm text-stone-500">
+                                    <p className="mt-auto text-sm text-stone-400">
                                         {copy.contact.open}
                                     </p>
                                 </a>
                             );
                         })
                     ) : (
-                        <div className="bg-[#fbf8f2] p-6 text-sm text-stone-500 md:col-span-2 lg:col-span-3">
+                        <div className="rounded-[1.4rem] border border-white/10 bg-white/[0.035] p-6 text-sm text-stone-400 md:col-span-2 lg:col-span-3">
                             {copy.contact.empty}
                         </div>
                     )}
                 </div>
             </section>
 
-            <section className="border-t border-stone-200 bg-[#f1eadf] px-4 py-14 md:px-8">
-                <div className="mx-auto grid max-w-7xl gap-8 md:grid-cols-[18rem_1fr]">
-                    <h2 className="font-serif text-4xl leading-tight text-stone-950">
+            <section className="px-4 pb-24 md:px-8 md:pb-32">
+                <div className="mx-auto grid max-w-7xl gap-8 rounded-[2rem] border border-white/10 bg-white/[0.03] px-6 py-14 backdrop-blur-xl md:grid-cols-[18rem_1fr] md:px-12">
+                    <h2 className="font-display text-4xl leading-tight font-light text-stone-50">
                         {copy.contact.directExchangeTitle}
                     </h2>
-                    <p className="max-w-2xl text-base leading-8 text-stone-700">
+                    <p className="max-w-2xl text-base leading-8 text-stone-300">
                         {copy.contact.directExchangeBody}
                     </p>
                 </div>

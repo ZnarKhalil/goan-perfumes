@@ -122,7 +122,10 @@ export type PublicPromotion = {
     cta_text: string | null;
 };
 
+export type PublicSurfaceTheme = 'light' | 'dark';
+
 export type PublicHeroSection = {
+    eyebrow: string | null;
     title: string;
     body: string;
     cta_text: string | null;
@@ -167,6 +170,7 @@ export type PublicLayoutProps = {
     contact: PublicContactSettings;
     logo_url: string | null;
     locale?: PublicLocaleProps;
+    theme?: PublicSurfaceTheme;
     children: ReactNode;
 };
 

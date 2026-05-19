@@ -267,6 +267,7 @@ abstract class PublicController extends Controller
     private function heroSection(?PageSection $section): array
     {
         return [
+            'eyebrow' => $section ? ($this->translation($section, 'eyebrow') ?? ($section->payload['eyebrow'] ?? null)) : null,
             'title' => $section ? ($this->translation($section, 'title') ?? 'Goan Perfume') : 'Goan Perfume',
             'body' => $section ? ($this->translation($section, 'body') ?? '') : '',
             'cta_text' => $section ? $this->translation($section, 'cta_text') : null,

@@ -13,12 +13,19 @@ import type { PublicLocaleProps } from '@/types/public';
 type Props = {
     locale?: PublicLocaleProps;
     compact?: boolean;
+    tone?: 'light' | 'dark';
 };
 
-export default function LocaleSwitcher({ locale, compact = false }: Props) {
+export default function LocaleSwitcher({
+    locale,
+    compact = false,
+    tone = 'light',
+}: Props) {
     if (!locale) {
         return null;
     }
+
+    const isDark = tone === 'dark';
 
     const copy = getPublicCopy(locale);
     const currentLocale =
@@ -32,7 +39,10 @@ export default function LocaleSwitcher({ locale, compact = false }: Props) {
                     type="button"
                     aria-label={copy.aria.localeSwitcher}
                     className={cn(
-                        'inline-flex h-9 items-center justify-between gap-2 rounded-full border border-stone-200 bg-white/60 px-3 text-sm font-medium text-stone-800 transition hover:border-stone-300 hover:bg-white hover:text-stone-950',
+                        'inline-flex h-9 items-center justify-between gap-2 rounded-full border px-3 text-sm font-medium transition',
+                        isDark
+                            ? 'border-white/15 bg-white/8 text-stone-100 backdrop-blur hover:border-[#e7c889]/50 hover:text-white'
+                            : 'border-stone-200 bg-white/60 text-stone-800 hover:border-stone-300 hover:bg-white hover:text-stone-950',
                         compact ? 'w-full' : 'min-w-32',
                     )}
                 >
@@ -42,7 +52,12 @@ export default function LocaleSwitcher({ locale, compact = false }: Props) {
             </DropdownMenuTrigger>
             <DropdownMenuContent
                 align={compact ? 'start' : 'end'}
-                className="min-w-40 border-stone-200 bg-[#fbf8f2] p-1 text-stone-950"
+                className={cn(
+                    'min-w-40 p-1',
+                    isDark
+                        ? 'border-white/10 bg-[#0b0907] text-stone-100'
+                        : 'border-stone-200 bg-[#fbf8f2] text-stone-950',
+                )}
             >
                 {locale.supported.map((item) => {
                     const active = item.code === locale.current;
@@ -57,10 +72,14 @@ export default function LocaleSwitcher({ locale, compact = false }: Props) {
                                 )}
                                 aria-current={active ? 'page' : undefined}
                                 className={cn(
-                                    'flex cursor-pointer items-center justify-between gap-3 rounded px-3 py-2 text-sm font-medium transition focus:bg-stone-100',
-                                    active
-                                        ? 'text-stone-950'
-                                        : 'text-stone-600 hover:text-stone-950',
+                                    'flex cursor-pointer items-center justify-between gap-3 rounded px-3 py-2 text-sm font-medium transition',
+                                    isDark
+                                        ? active
+                                            ? 'text-[#e7c889] focus:bg-white/10'
+                                            : 'text-stone-300 hover:text-stone-50 focus:bg-white/10'
+                                        : active
+                                          ? 'text-stone-950 focus:bg-stone-100'
+                                          : 'text-stone-600 hover:text-stone-950 focus:bg-stone-100',
                                 )}
                             >
                                 <span>{item.native_label}</span>

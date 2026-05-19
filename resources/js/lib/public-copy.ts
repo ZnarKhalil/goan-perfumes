@@ -49,6 +49,8 @@ export type PublicCopy = {
         aboutEyebrow: string;
         adviceEyebrow: string;
         adviceTitle: string;
+        collectionsEyebrow: string;
+        collectionsTitle: string;
         featuredEmpty: string;
         featuredEyebrow: string;
         featuredTitle: string;
@@ -131,6 +133,8 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             aboutEyebrow: 'Über uns',
             adviceEyebrow: 'Beratung',
             adviceTitle: 'Duftauswahl direkt mit Goan Perfume abstimmen.',
+            collectionsEyebrow: 'Kollektionen',
+            collectionsTitle: 'Durch unsere Duftwelten navigieren.',
             featuredEmpty: 'Noch keine Highlights ausgewählt.',
             featuredEyebrow: 'Luxus-Highlights',
             featuredTitle:
@@ -213,6 +217,8 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             adviceEyebrow: 'Advice',
             adviceTitle:
                 'Coordinate your fragrance choice directly with Goan Perfume.',
+            collectionsEyebrow: 'Collections',
+            collectionsTitle: 'Navigate through our scent worlds.',
             featuredEmpty: 'No highlights selected yet.',
             featuredEyebrow: 'Luxury highlights',
             featuredTitle:
@@ -294,6 +300,8 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             aboutEyebrow: 'من نحن',
             adviceEyebrow: 'استشارة',
             adviceTitle: 'نسق اختيار عطرك مباشرة مع Goan Perfume.',
+            collectionsEyebrow: 'المجموعات',
+            collectionsTitle: 'تنقل بين عوالمنا العطرية.',
             featuredEmpty: 'لم يتم اختيار منتجات مميزة بعد.',
             featuredEyebrow: 'مختارات فاخرة',
             featuredTitle: 'تواقيع عطرية بحضور وعمق وانتشار نقي.',

@@ -19,13 +19,13 @@ export default function ProductCard({ product, copy, className }: Props) {
                 className,
             )}
         >
-            <div className="relative aspect-[4/5] overflow-hidden bg-stone-100">
+            <div className="relative aspect-[4/5] overflow-hidden rounded-[1.2rem] border border-white/10 bg-[radial-gradient(120%_90%_at_50%_0%,#221708,#0c0907)]">
                 {product.image_url ? (
                     <img
                         src={product.image_url}
                         alt={product.image_alt}
                         loading="lazy"
-                        className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+                        className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.05]"
                     />
                 ) : (
                     <div className="flex h-full items-center justify-center text-sm text-stone-500">
@@ -33,25 +33,25 @@ export default function ProductCard({ product, copy, className }: Props) {
                     </div>
                 )}
                 {product.is_featured && (
-                    <span className="absolute top-3 left-3 bg-white/90 px-2.5 py-1 text-[11px] font-medium tracking-wide text-stone-900 uppercase">
+                    <span className="absolute top-3 left-3 rounded-full border border-[#e7c889]/40 bg-black/40 px-2.5 py-1 text-[11px] font-medium tracking-wide text-[#e7c889] uppercase backdrop-blur">
                         {copy.productCard.highlight}
                     </span>
                 )}
             </div>
             <div className="grid gap-1">
                 {product.brand && (
-                    <p className="text-xs tracking-wide text-stone-500 uppercase">
+                    <p className="text-xs tracking-wide text-stone-400 uppercase">
                         {product.brand}
                     </p>
                 )}
-                <h3 className="text-base leading-tight font-medium text-stone-950">
+                <h3 className="font-display text-base leading-tight font-medium text-stone-50">
                     {product.name}
                 </h3>
                 <Price
                     min={product.min_price}
                     max={product.max_price}
                     fallback={copy.product.priceOnRequest}
-                    className="text-sm text-stone-700"
+                    className="text-sm text-[#e7c889]"
                 />
             </div>
         </Link>

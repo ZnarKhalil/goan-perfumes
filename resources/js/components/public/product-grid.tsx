@@ -18,7 +18,7 @@ export default function ProductGrid({
 }: Props) {
     if (products.length === 0) {
         return (
-            <div className="border border-dashed border-stone-300 px-6 py-12 text-center text-sm text-stone-500">
+            <div className="rounded-[1.4rem] border border-dashed border-white/15 px-6 py-16 text-center text-sm text-stone-400">
                 {emptyMessage}
             </div>
         );

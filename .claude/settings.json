@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(sed -n '110,220p' resources/js/types/public.ts)",
+      "Bash(sed -n '1,400p' resources/js/lib/public-copy.ts)",
+      "Bash(npm install *)",
+      "Bash(node -e \"console.log\\(require\\('./node_modules/motion/package.json'\\).version\\)\")",
+      "Bash(curl -s https://goan-perfumes.test/de)",
+      "mcp__laravel-boost__get-absolute-url",
+      "Bash(curl -s http://goan-perfumes.test/de)"
+    ]
+  }
+}

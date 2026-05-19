@@ -84,6 +84,7 @@ export const publicDummyLogoUrl: string | null = null;
 
 export const publicDummyPageSections: PublicPageSections = {
     hero: {
+        eyebrow: 'Goan Perfume',
         title: 'Goan Perfume',
         body: 'Ausgewählte Nischen- und Luxusparfums in Berlin, kuratiert für Menschen, die Duft bewusst tragen.',
         cta_text: 'Kollektion entdecken',

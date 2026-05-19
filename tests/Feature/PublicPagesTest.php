@@ -47,6 +47,40 @@ test('home renders public props from stored content', function () {
         );
 });
 
+test('home exposes the hero eyebrow from the page section payload', function () {
+    PageSection::query()->create([
+        'key' => 'hero',
+        'type' => 'hero',
+        'payload' => ['eyebrow' => 'Maison Goan'],
+        'sort_order' => 0,
+        'is_active' => true,
+    ])->setTranslation('de', 'title', 'Goan Perfume');
+
+    $this->get('/de')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('public/home')
+            ->where('page_sections.hero.eyebrow', 'Maison Goan'),
+        );
+});
+
+test('home hero eyebrow is null when it is not configured', function () {
+    PageSection::query()->create([
+        'key' => 'hero',
+        'type' => 'hero',
+        'payload' => [],
+        'sort_order' => 0,
+        'is_active' => true,
+    ])->setTranslation('de', 'title', 'Goan Perfume');
+
+    $this->get('/de')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('public/home')
+            ->where('page_sections.hero.eyebrow', null),
+        );
+});
+
 test('home falls back to hero section when there are no active promotions', function () {
     PageSection::query()->create([
         'key' => 'hero',
