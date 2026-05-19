@@ -87,7 +87,8 @@ export const publicDummyPageSections: PublicPageSections = {
         title: 'Goan Perfume',
         body: 'Ausgewählte Nischen- und Luxusparfums in Berlin, kuratiert für Menschen, die Duft bewusst tragen.',
         cta_text: 'Kollektion entdecken',
-        image_url: image('photo-1547887538-e3a2f32cb1cc', 1800, 1200),
+        image_url: null,
+        video_url: null,
     },
     about: {
         title: 'Über Goan Perfume',

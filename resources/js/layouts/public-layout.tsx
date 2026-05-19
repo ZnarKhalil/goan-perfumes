@@ -20,7 +20,6 @@ export default function PublicLayout({
         >
             <SiteHeader
                 navigation={navigation}
-                contact={contact}
                 logoUrl={logo_url}
                 locale={locale}
                 copy={copy}

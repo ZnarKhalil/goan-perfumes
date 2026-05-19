@@ -1,17 +1,15 @@
 import { Link } from '@inertiajs/react';
-import { Menu, ShoppingBag } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import LocaleSwitcher from '@/components/public/locale-switcher';
 import SiteDrawer from '@/components/public/site-drawer';
 import type { PublicCopy } from '@/lib/public-copy';
 import type {
     PublicCategoryNavItem,
-    PublicContactSettings,
     PublicLocaleProps,
 } from '@/types/public';
 
 type Props = {
     navigation: PublicCategoryNavItem[];
-    contact: PublicContactSettings;
     logoUrl: string | null;
     locale?: PublicLocaleProps;
     copy: PublicCopy;
@@ -19,7 +17,6 @@ type Props = {
 
 export default function SiteHeader({
     navigation,
-    contact,
     logoUrl,
     locale,
     copy,
@@ -70,22 +67,6 @@ export default function SiteHeader({
                     <div className="hidden md:block">
                         <LocaleSwitcher locale={locale} />
                     </div>
-                    {contact.whatsapp_url && (
-                        <Link
-                            href={contact.whatsapp_url}
-                            className="hidden text-sm font-medium text-stone-700 transition hover:text-stone-950 sm:inline"
-                        >
-                            WhatsApp
-                        </Link>
-                    )}
-                    <button
-                        type="button"
-                        className="inline-flex size-10 items-center justify-center text-stone-950 opacity-60"
-                        aria-label={copy.aria.cartUnavailable}
-                        disabled
-                    >
-                        <ShoppingBag className="size-5" />
-                    </button>
                 </div>
             </div>
         </header>

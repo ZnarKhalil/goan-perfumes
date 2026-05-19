@@ -57,9 +57,11 @@ type Props = {
         label: string;
         payload: {
             image_path?: string | null;
+            video_path?: string | null;
             product_ids?: number[];
         };
         image_url: string | null;
+        video_url: string | null;
         sort_order: number;
         is_active: boolean;
         translations: PageSectionTranslations;
@@ -69,7 +71,9 @@ type Props = {
 
 type FormData = {
     hero_image: File | null;
+    hero_video: File | null;
     remove_hero_image: boolean;
+    remove_hero_video: boolean;
     sort_order: number;
     is_active: boolean;
     payload: {
@@ -82,7 +86,9 @@ type FormData = {
 export default function PageSectionForm({ section, products }: Props) {
     const { data, setData, post, processing, errors } = useForm<FormData>({
         hero_image: null,
+        hero_video: null,
         remove_hero_image: false,
+        remove_hero_video: false,
         sort_order: section.sort_order,
         is_active: section.is_active,
         payload: {
@@ -251,6 +257,29 @@ export default function PageSectionForm({ section, products }: Props) {
                         onRemove={() => setData('remove_hero_image', true)}
                         error={errors.hero_image}
                     />
+                    <MediaUploader
+                        mode="single"
+                        label="Hero-Video"
+                        value={data.hero_video}
+                        existingUrl={
+                            data.remove_hero_video ? null : section.video_url
+                        }
+                        accept="video/mp4,video/webm"
+                        previewType="video"
+                        onChange={(file) => {
+                            setData('hero_video', file);
+
+                            if (file) {
+                                setData('remove_hero_video', false);
+                            }
+                        }}
+                        onRemove={() => setData('remove_hero_video', true)}
+                        error={errors.hero_video}
+                    />
+                    <p className="text-sm text-muted-foreground">
+                        MP4 oder WebM, maximal 20 MB. Das Hero-Bild wird als
+                        Poster und Fallback verwendet.
+                    </p>
                 </section>
             )}
 

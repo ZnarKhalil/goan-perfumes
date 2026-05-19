@@ -66,6 +66,7 @@ class PageSectionController extends Controller
                 'type' => $pageSection->type,
                 'payload' => $pageSection->payload ?? [],
                 'image_url' => $this->imageUrlFor($pageSection),
+                'video_url' => $this->videoUrlFor($pageSection),
                 'sort_order' => $pageSection->sort_order,
                 'is_active' => $pageSection->is_active,
                 'translations' => $this->translationsAsTabs($pageSection),
@@ -86,10 +87,22 @@ class PageSectionController extends Controller
                 $payload['image_path'] = null;
             }
 
+            if ($pageSection->key === 'hero' && $request->boolean('remove_hero_video')) {
+                $this->deleteHeroVideo($payload);
+                $payload['video_path'] = null;
+            }
+
             if ($pageSection->key === 'hero' && $request->hasFile('hero_image')) {
                 $this->deleteHeroImage($payload);
                 $payload['image_path'] = $request
                     ->file('hero_image')
+                    ->store('page-sections/hero', 'public');
+            }
+
+            if ($pageSection->key === 'hero' && $request->hasFile('hero_video')) {
+                $this->deleteHeroVideo($payload);
+                $payload['video_path'] = $request
+                    ->file('hero_video')
                     ->store('page-sections/hero', 'public');
             }
 
@@ -120,9 +133,15 @@ class PageSectionController extends Controller
         }
 
         if ($section->key === 'hero') {
-            return ($section->payload['image_path'] ?? null)
-                ? 'Bild hinterlegt'
-                : 'Kein Bild hinterlegt';
+            $hasImage = (bool) ($section->payload['image_path'] ?? null);
+            $hasVideo = (bool) ($section->payload['video_path'] ?? null);
+
+            return match (true) {
+                $hasImage && $hasVideo => 'Bild und Video hinterlegt',
+                $hasVideo => 'Video hinterlegt',
+                $hasImage => 'Bild hinterlegt',
+                default => 'Kein Medium hinterlegt',
+            };
         }
 
         if ($section->key === 'why_us') {
@@ -161,11 +180,28 @@ class PageSectionController extends Controller
         }
     }
 
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    private function deleteHeroVideo(array $payload): void
+    {
+        if (! empty($payload['video_path'])) {
+            Storage::disk('public')->delete($payload['video_path']);
+        }
+    }
+
     private function imageUrlFor(PageSection $section): ?string
     {
         $imagePath = $section->payload['image_path'] ?? null;
 
         return $imagePath ? Storage::url($imagePath) : null;
+    }
+
+    private function videoUrlFor(PageSection $section): ?string
+    {
+        $videoPath = $section->payload['video_path'] ?? null;
+
+        return $videoPath ? Storage::url($videoPath) : null;
     }
 
     /**

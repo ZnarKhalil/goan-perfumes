@@ -60,20 +60,8 @@ export default function Category(page: PublicCategoryPageProps) {
             </section>
 
             <section className="px-4 py-8 md:px-8 md:py-12">
-                <div
-                    className={cn(
-                        'mx-auto grid max-w-7xl gap-8',
-                        isRtl
-                            ? 'lg:grid-cols-[1fr_18rem]'
-                            : 'lg:grid-cols-[18rem_1fr]',
-                    )}
-                >
-                    <aside
-                        className={cn(
-                            'hidden lg:sticky lg:top-24 lg:block lg:self-start',
-                            isRtl && 'lg:order-2',
-                        )}
-                    >
+                <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[18rem_1fr]">
+                    <aside className="hidden lg:sticky lg:top-24 lg:block lg:self-start">
                         <FilterPanel
                             activeFilters={activeFilters}
                             categoryHref={page.category.href}
@@ -83,7 +71,7 @@ export default function Category(page: PublicCategoryPageProps) {
                         />
                     </aside>
 
-                    <div className={cn('grid gap-8', isRtl && 'lg:order-1')}>
+                    <div className="grid gap-8">
                         <div className="flex flex-col justify-between gap-3 border-b border-stone-200 pb-5 md:flex-row md:items-end">
                             <div>
                                 <p className="text-sm text-stone-500">

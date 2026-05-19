@@ -276,6 +276,7 @@ abstract class PublicController extends Controller
             'body' => $section ? ($this->translation($section, 'body') ?? '') : '',
             'cta_text' => $section ? $this->translation($section, 'cta_text') : null,
             'image_url' => $this->storageUrl($section?->payload['image_path'] ?? null),
+            'video_url' => $this->storageUrl($section?->payload['video_path'] ?? null),
         ];
     }
 

@@ -1,34 +1,18 @@
 import { Head, Link } from '@inertiajs/react';
 import { ArrowRight } from 'lucide-react';
-import { useEffect, useState } from 'react';
 import ProductGrid from '@/components/public/product-grid';
 import PublicLayout from '@/layouts/public-layout';
 import { getPublicCopy } from '@/lib/public-copy';
-import type { PublicHomePageProps, PublicPromotion } from '@/types/public';
+import type { PublicHomePageProps } from '@/types/public';
 
 export default function Home(page: PublicHomePageProps) {
     const copy = getPublicCopy(page.locale);
-    const [activePromotionIndex, setActivePromotionIndex] = useState(0);
-    const hero = page.promotions[activePromotionIndex] ?? null;
-    const fallback = page.page_sections.hero;
-    const heroImage = hero?.background_image_url ?? fallback.image_url;
+    const hero = page.page_sections.hero;
+    const heroVideo = hero.video_url;
+    const heroImage = hero.image_url;
     const luxuryHref =
         page.navigation.find((category) => category.slug === 'luxusparfums')
             ?.href ?? `/${page.locale?.current ?? 'de'}`;
-
-    useEffect(() => {
-        if (page.promotions.length < 2) {
-            return;
-        }
-
-        const timer = window.setInterval(() => {
-            setActivePromotionIndex((current) =>
-                current === page.promotions.length - 1 ? 0 : current + 1,
-            );
-        }, 7000);
-
-        return () => window.clearInterval(timer);
-    }, [page.promotions.length]);
 
     return (
         <PublicLayout
@@ -46,51 +30,40 @@ export default function Home(page: PublicHomePageProps) {
                         className="absolute inset-0 h-full w-full object-cover"
                     />
                 )}
+                {heroVideo && (
+                    <video
+                        key={heroVideo}
+                        className="absolute inset-0 h-full w-full object-cover"
+                        poster={heroImage ?? undefined}
+                        autoPlay
+                        muted
+                        loop
+                        playsInline
+                    >
+                        <source src={heroVideo} />
+                    </video>
+                )}
                 <div className="absolute inset-0 bg-linear-to-r from-black/75 via-black/40 to-black/10" />
                 <div className="relative flex min-h-[calc(100svh-4rem)] items-end px-4 py-12 md:min-h-[calc(100svh-5rem)] md:px-8 md:py-16">
                     <div className="max-w-3xl text-white">
                         <p className="mb-4 text-xs tracking-[0.28em] text-white/70 uppercase">
-                            {hero?.badge ?? 'Goan Perfume'}
+                            Goan Perfume
                         </p>
                         <h1 className="max-w-2xl font-serif text-5xl leading-[0.95] md:text-7xl lg:text-8xl">
-                            {hero?.title ?? fallback.title}
+                            {hero.title}
                         </h1>
                         <p className="mt-6 max-w-xl text-base leading-7 text-white/82 md:text-lg">
-                            {hero?.subtitle ?? fallback.body}
+                            {hero.body}
                         </p>
                         <div className="mt-8 flex flex-wrap items-center gap-3">
                             <Link
-                                href={hero?.link_url ?? luxuryHref}
+                                href={luxuryHref}
                                 className="inline-flex items-center gap-2 bg-white px-5 py-3 text-sm font-medium text-stone-950 transition hover:bg-stone-200"
                             >
-                                {hero?.cta_text ??
-                                    fallback.cta_text ??
-                                    copy.home.heroCta}
+                                {hero.cta_text ?? copy.home.heroCta}
                                 <ArrowRight className="size-4" />
                             </Link>
-                            {renderPromoCode(hero, copy)}
                         </div>
-                        {page.promotions.length > 1 && (
-                            <div className="mt-10 flex gap-2">
-                                {page.promotions.map((promotion, index) => (
-                                    <button
-                                        key={promotion.id}
-                                        type="button"
-                                        aria-label={copy.aria.promotion(
-                                            index + 1,
-                                        )}
-                                        onClick={() =>
-                                            setActivePromotionIndex(index)
-                                        }
-                                        className={
-                                            index === activePromotionIndex
-                                                ? 'h-1.5 w-10 bg-white'
-                                                : 'h-1.5 w-10 bg-white/35 transition hover:bg-white/70'
-                                        }
-                                    />
-                                ))}
-                            </div>
-                        )}
                     </div>
                 </div>
             </section>
@@ -187,20 +160,5 @@ export default function Home(page: PublicHomePageProps) {
                 </div>
             </section>
         </PublicLayout>
-    );
-}
-
-function renderPromoCode(
-    promotion: PublicPromotion | null,
-    copy: ReturnType<typeof getPublicCopy>,
-) {
-    if (!promotion?.promo_code) {
-        return null;
-    }
-
-    return (
-        <span className="border border-white/35 px-4 py-3 text-sm text-white/85">
-            {copy.home.promoCode(promotion.promo_code)}
-        </span>
     );
 }

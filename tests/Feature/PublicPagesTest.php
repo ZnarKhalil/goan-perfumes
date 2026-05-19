@@ -51,7 +51,10 @@ test('home falls back to hero section when there are no active promotions', func
     PageSection::query()->create([
         'key' => 'hero',
         'type' => 'hero',
-        'payload' => ['image_path' => 'page-sections/fallback.jpg'],
+        'payload' => [
+            'image_path' => 'page-sections/fallback.jpg',
+            'video_path' => 'page-sections/fallback.mp4',
+        ],
         'sort_order' => 0,
         'is_active' => true,
     ])->setTranslation('de', 'title', 'Fallback Hero');
@@ -64,7 +67,8 @@ test('home falls back to hero section when there are no active promotions', func
             ->component('public/home')
             ->has('promotions', 0)
             ->where('page_sections.hero.title', 'Fallback Hero')
-            ->where('page_sections.hero.image_url', '/storage/page-sections/fallback.jpg'),
+            ->where('page_sections.hero.image_url', '/storage/page-sections/fallback.jpg')
+            ->where('page_sections.hero.video_url', '/storage/page-sections/fallback.mp4'),
         );
 });
 
@@ -278,7 +282,8 @@ test('database seeder provides complete public demo content', function () {
             ->has('promotions', 2)
             ->has('featured_products', 4)
             ->where('contact.whatsapp_url', 'https://wa.me/491701234567')
-            ->where('page_sections.hero.image_url', fn (string $url) => str_starts_with($url, 'https://images.unsplash.com/')),
+            ->where('page_sections.hero.image_url', null)
+            ->where('page_sections.hero.video_url', null),
         );
 
     $this->get('/de/luxusparfums')

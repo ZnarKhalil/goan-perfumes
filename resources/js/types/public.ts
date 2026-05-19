@@ -132,6 +132,7 @@ export type PublicHeroSection = {
     body: string;
     cta_text: string | null;
     image_url: string | null;
+    video_url: string | null;
 };
 
 export type PublicTextSection = {

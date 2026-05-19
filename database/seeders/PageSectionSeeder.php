@@ -35,9 +35,7 @@ class PageSectionSeeder extends Seeder
             [
                 'key' => 'hero',
                 'type' => 'image',
-                'payload' => [
-                    'image_path' => 'https://images.unsplash.com/photo-1541643600914-78b084683601?auto=format&fit=crop&w=2200&q=85',
-                ],
+                'payload' => [],
                 'sort_order' => 0,
                 'is_active' => true,
                 'translations' => [
