@@ -36,7 +36,6 @@ type Props = {
 };
 
 type FormData = {
-    slug: string;
     sort_order: number;
     is_active: boolean;
     translations: TranslationsShape;
@@ -44,7 +43,6 @@ type FormData = {
 };
 
 const blankForm = (): FormData => ({
-    slug: '',
     sort_order: 0,
     is_active: true,
     translations: emptyTranslations(FIELDS),
@@ -59,7 +57,6 @@ export default function AttributeValueEditor({ attributeId, values }: Props) {
         clearErrors();
         setEditing(value);
         setData({
-            slug: value.slug,
             sort_order: value.sort_order,
             is_active: value.is_active,
             translations: value.translations,
@@ -201,7 +198,7 @@ export default function AttributeValueEditor({ attributeId, values }: Props) {
                         </h4>
                         <p className="text-xs text-muted-foreground">
                             Der Slug wird automatisch aus dem deutschen Namen
-                            erzeugt, wenn er leer bleibt.
+                            erzeugt.
                         </p>
                     </div>
 
@@ -212,17 +209,6 @@ export default function AttributeValueEditor({ attributeId, values }: Props) {
                         requiredFields={['name']}
                         onChange={setTranslation}
                     />
-
-                    <div className="grid gap-2">
-                        <Label htmlFor="value_slug">Slug</Label>
-                        <Input
-                            id="value_slug"
-                            value={data.slug}
-                            onChange={(e) => setData('slug', e.target.value)}
-                            placeholder="blumig"
-                        />
-                        <InputError message={errors.slug} />
-                    </div>
 
                     <div className="grid gap-2">
                         <Label htmlFor="value_sort_order">Reihenfolge</Label>

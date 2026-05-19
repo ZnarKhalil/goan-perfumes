@@ -47,6 +47,39 @@ test('home renders public props from stored content', function () {
         );
 });
 
+test('public pages expose server-generated SEO meta in their props', function () {
+    $category = publicCategory('herrenparfums', 'Herrenparfums');
+    $category->setTranslation('de', 'meta_title', 'Herrenparfums');
+    $category->setTranslation('de', 'meta_description', 'Markante Düfte für ihn.');
+    $product = publicProduct('iris-musk', 'Iris Musk', $category);
+    $product->setTranslation('de', 'meta_title', 'Iris Musk');
+    $product->setTranslation('de', 'meta_description', 'Kühle Iris.');
+
+    $this->get('/de')
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('meta.title', 'Goan Perfume')
+            ->where('meta.description', fn (string $value) => $value !== ''),
+        );
+
+    $this->get('/de/herrenparfums')
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('meta.title', 'Herrenparfums – Goan Perfume')
+            ->where('meta.description', 'Markante Düfte für ihn.'),
+        );
+
+    $this->get('/de/produkt/iris-musk')
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('meta.title', 'Iris Musk – Goan Perfume')
+            ->where('meta.description', 'Kühle Iris.'),
+        );
+
+    $this->get('/de/kontakt')
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('meta.title', 'Kontakt – Goan Perfume')
+            ->where('meta.description', fn (string $value) => str_contains($value, 'Duftberatung')),
+        );
+});
+
 test('home exposes the hero eyebrow from the page section payload', function () {
     PageSection::query()->create([
         'key' => 'hero',

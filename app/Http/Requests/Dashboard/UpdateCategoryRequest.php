@@ -6,7 +6,6 @@ use App\Http\Requests\Concerns\ValidatesCategoryFields;
 use App\Models\Category;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class UpdateCategoryRequest extends FormRequest
 {
@@ -23,12 +22,6 @@ class UpdateCategoryRequest extends FormRequest
     public function rules(): array
     {
         return $this->categoryRules(
-            slugRule: [
-                'nullable',
-                'string',
-                'max:255',
-                Rule::unique('categories', 'slug')->ignore($this->route('category')),
-            ],
             forbiddenParentIds: $this->forbiddenParentIds(),
         );
     }

@@ -21,16 +21,17 @@ class AttributeValueController extends Controller
 
         DB::transaction(function () use ($attribute, $data) {
             $value = new AttributeValue([
-                'slug' => $data['slug'] ?? '',
+                'slug' => '',
                 'sort_order' => $data['sort_order'] ?? 0,
                 'is_active' => (bool) $data['is_active'],
             ]);
 
             $value->attribute()->associate($attribute);
 
-            $value->slug = empty($data['slug'])
-                ? $this->generateScopedSlug($attribute, $data['translations']['de']['name'])
-                : $data['slug'];
+            $value->slug = $this->generateScopedSlug(
+                $attribute,
+                $data['translations']['de']['name'],
+            );
 
             $value->save();
             $this->syncTranslations($value, $data['translations'] ?? []);
@@ -49,15 +50,17 @@ class AttributeValueController extends Controller
 
         $data = $request->validated();
 
-        DB::transaction(function () use ($value, $data) {
+        DB::transaction(function () use ($attribute, $value, $data) {
             $value->fill([
                 'sort_order' => $data['sort_order'] ?? 0,
                 'is_active' => (bool) $data['is_active'],
             ]);
 
-            if (! empty($data['slug'])) {
-                $value->slug = $data['slug'];
-            }
+            $value->slug = $this->generateScopedSlug(
+                $attribute,
+                $data['translations']['de']['name'],
+                $value,
+            );
 
             $value->save();
             $this->syncTranslations($value, $data['translations'] ?? []);
@@ -101,8 +104,11 @@ class AttributeValueController extends Controller
         }
     }
 
-    private function generateScopedSlug(Attribute $attribute, string $source): string
-    {
+    private function generateScopedSlug(
+        Attribute $attribute,
+        string $source,
+        ?AttributeValue $ignore = null,
+    ): string {
         $base = Str::slug($source, '-', 'de');
 
         if ($base === '') {
@@ -112,7 +118,12 @@ class AttributeValueController extends Controller
         $slug = $base;
         $suffix = 2;
 
-        while ($attribute->values()->where('slug', $slug)->exists()) {
+        while (
+            $attribute->values()
+                ->where('slug', $slug)
+                ->when($ignore !== null, fn ($query) => $query->whereKeyNot($ignore->getKey()))
+                ->exists()
+        ) {
             $slug = $base.'-'.$suffix;
             $suffix++;
         }

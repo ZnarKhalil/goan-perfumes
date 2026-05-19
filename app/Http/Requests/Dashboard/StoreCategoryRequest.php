@@ -5,7 +5,6 @@ namespace App\Http\Requests\Dashboard;
 use App\Http\Requests\Concerns\ValidatesCategoryFields;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class StoreCategoryRequest extends FormRequest
 {
@@ -21,8 +20,6 @@ class StoreCategoryRequest extends FormRequest
      */
     public function rules(): array
     {
-        return $this->categoryRules(
-            slugRule: ['nullable', 'string', 'max:255', Rule::unique('categories', 'slug')],
-        );
+        return $this->categoryRules();
     }
 }

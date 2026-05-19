@@ -238,6 +238,51 @@ abstract class PublicController extends Controller
         return $value === null ? null : number_format((float) $value, 2, '.', '');
     }
 
+    private const SITE_NAME = 'Goan Perfume';
+
+    /**
+     * Build the SEO meta block sent to the client. Titles get the brand
+     * suffix; descriptions are squished plain text capped at 160 chars.
+     * Meta is always generated on the server and never editable by admins.
+     *
+     * @return array{title: string, description: string}
+     */
+    protected function meta(?string $title, ?string $description): array
+    {
+        $title = trim((string) $title);
+        $fullTitle = $title === '' || $title === self::SITE_NAME
+            ? self::SITE_NAME
+            : "{$title} – ".self::SITE_NAME;
+
+        $description = Str::squish(strip_tags((string) $description));
+
+        if ($description === '') {
+            $description = 'Ausgewählte Luxus-, Nischen- und arabische Parfums, kuratiert von '.self::SITE_NAME.'.';
+        }
+
+        return [
+            'title' => $fullTitle,
+            'description' => Str::limit($description, 160, ''),
+        ];
+    }
+
+    /**
+     * Derive a page's meta from a model's server-generated SEO translations,
+     * falling back to its name/description translations.
+     *
+     * @return array{title: string, description: string}
+     */
+    protected function modelMeta(object $model, ?string $descriptionField = 'description'): array
+    {
+        $title = $this->translation($model, 'meta_title')
+            ?? $this->translation($model, 'name');
+
+        $description = $this->translation($model, 'meta_description')
+            ?? ($descriptionField !== null ? $this->translation($model, $descriptionField) : null);
+
+        return $this->meta($title, $description);
+    }
+
     protected function setting(string $key): ?string
     {
         $value = Setting::get($key, '');

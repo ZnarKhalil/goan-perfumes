@@ -165,6 +165,11 @@ export type PublicPagination = {
     links: PublicPaginationLink[];
 };
 
+export type PublicMeta = {
+    title: string;
+    description: string;
+};
+
 export type PublicLayoutProps = {
     navigation: PublicCategoryNavItem[];
     contact: PublicContactSettings;
@@ -179,6 +184,7 @@ export type PublicHomePageProps = {
     contact: PublicContactSettings;
     logo_url: string | null;
     locale?: PublicLocaleProps;
+    meta: PublicMeta;
     promotions: PublicPromotion[];
     page_sections: PublicPageSections;
     featured_products: PublicProductCard[];
@@ -189,6 +195,7 @@ export type PublicCategoryPageProps = {
     contact: PublicContactSettings;
     logo_url: string | null;
     locale?: PublicLocaleProps;
+    meta: PublicMeta;
     category: PublicCategoryNavItem & {
         description: string;
         banner_url: string | null;
@@ -204,6 +211,7 @@ export type PublicProductPageProps = {
     contact: PublicContactSettings;
     logo_url: string | null;
     locale?: PublicLocaleProps;
+    meta: PublicMeta;
     product: PublicProductDetail;
 };
 
@@ -212,4 +220,5 @@ export type PublicContactPageProps = {
     contact: PublicContactSettings;
     logo_url: string | null;
     locale?: PublicLocaleProps;
+    meta: PublicMeta;
 };

@@ -19,7 +19,9 @@ export default function Contact(page: PublicContactPageProps) {
             locale={page.locale}
             theme="dark"
         >
-            <Head title={copy.contact.pageTitle} />
+            <Head title={page.meta.title}>
+                <meta name="description" content={page.meta.description} />
+            </Head>
 
             <section className="px-4 pt-28 pb-14 md:px-8 md:pt-36 md:pb-20">
                 <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">

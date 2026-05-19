@@ -3,7 +3,6 @@
 namespace App\Http\Requests\Dashboard;
 
 use App\Http\Requests\Dashboard\Concerns\ValidatesProductFields;
-use App\Models\Product;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -21,10 +20,6 @@ class UpdateProductRequest extends FormRequest
      */
     public function rules(): array
     {
-        $product = $this->route('product');
-
-        return $this->productRules(
-            $this->slugUniqueRule($product instanceof Product ? $product : null),
-        );
+        return $this->productRules();
     }
 }

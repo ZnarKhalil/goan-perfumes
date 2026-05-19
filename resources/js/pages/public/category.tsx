@@ -35,7 +35,9 @@ export default function Category(page: PublicCategoryPageProps) {
             locale={page.locale}
             theme="dark"
         >
-            <Head title={page.category.name} />
+            <Head title={page.meta.title}>
+                <meta name="description" content={page.meta.description} />
+            </Head>
             <section className="relative min-h-[58svh] overflow-hidden">
                 {page.category.banner_url ? (
                     <img

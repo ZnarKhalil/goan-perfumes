@@ -92,21 +92,50 @@ test('store rejects a request without a German name', function () {
     expect(Category::count())->toBe(0);
 });
 
-test('store rejects a duplicate slug', function () {
-    Category::factory()->create(['slug' => 'taken']);
+test('category slug is generated from the German name and deduped', function () {
+    Category::factory()->create(['slug' => 'sommer']);
 
     $this->actingAs($this->admin)
         ->post('/dashboard/categories', [
-            'slug' => 'taken',
+            'slug' => 'manual-slug-should-be-ignored',
             'sort_order' => 0,
             'is_active' => true,
             'translations' => [
-                'de' => ['name' => 'X'],
-                'ar' => ['name' => 'X'],
-                'en' => ['name' => 'X'],
+                'de' => ['name' => 'Sommer'],
+                'ar' => ['name' => ''],
+                'en' => ['name' => ''],
             ],
         ])
-        ->assertSessionHasErrors('slug');
+        ->assertRedirect('/dashboard/categories');
+
+    $category = Category::query()->where('slug', '!=', 'sommer')->sole();
+
+    expect($category->slug)->toBe('sommer-2');
+});
+
+test('category SEO meta is derived from the name and description', function () {
+    $this->actingAs($this->admin)
+        ->post('/dashboard/categories', [
+            'sort_order' => 0,
+            'is_active' => true,
+            'translations' => [
+                'de' => [
+                    'name' => 'Herrenparfums',
+                    'description' => "  Markante  Düfte\nfür  ihn.  ",
+                ],
+                'ar' => ['name' => 'عطور رجالية'],
+                'en' => ['name' => 'Men perfumes', 'description' => 'Bold scents.'],
+            ],
+        ])
+        ->assertRedirect('/dashboard/categories');
+
+    $category = Category::query()->sole();
+
+    expect($category->translate('de', 'meta_title'))->toBe('Herrenparfums');
+    expect($category->translate('de', 'meta_description'))->toBe('Markante Düfte für ihn.');
+    expect($category->translate('en', 'meta_title'))->toBe('Men perfumes');
+    expect($category->translate('en', 'meta_description'))->toBe('Bold scents.');
+    expect($category->translate('ar', 'meta_title'))->toBe('عطور رجالية');
 });
 
 test('admin can update an existing category and replace its banner', function () {

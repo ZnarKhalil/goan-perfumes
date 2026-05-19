@@ -38,11 +38,11 @@ export default function Product(page: PublicProductPageProps) {
             locale={page.locale}
             theme="dark"
         >
-            <Head title={product.name}>
+            <Head title={page.meta.title}>
                 <meta
                     head-key="description"
                     name="description"
-                    content={product.short_description}
+                    content={page.meta.description}
                 />
             </Head>
 

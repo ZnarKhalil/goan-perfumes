@@ -25,7 +25,9 @@ export default function Home(page: PublicHomePageProps) {
             locale={page.locale}
             theme="dark"
         >
-            <Head title="Goan Perfume" />
+            <Head title={page.meta.title}>
+                <meta name="description" content={page.meta.description} />
+            </Head>
 
             <Atmosphere />
 

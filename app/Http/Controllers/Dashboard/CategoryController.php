@@ -9,6 +9,7 @@ use App\Models\Category;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -62,16 +63,14 @@ class CategoryController extends Controller
 
         $category = DB::transaction(function () use ($data, $request, $parentId) {
             $category = new Category([
-                'slug' => $data['slug'] ?? '',
+                'slug' => '',
                 'parent_id' => $parentId,
                 'sort_order' => $data['sort_order'] ?? 0,
                 'is_active' => (bool) $data['is_active'],
                 'image_path' => null,
             ]);
 
-            if (empty($data['slug'])) {
-                $category->setSlugSource($data['translations']['de']['name']);
-            }
+            $category->setSlugSource($data['translations']['de']['name']);
 
             $category->save();
 
@@ -125,11 +124,8 @@ class CategoryController extends Controller
                 'is_active' => (bool) $data['is_active'],
             ]);
 
-            if (! empty($data['slug'])) {
-                $category->slug = $data['slug'];
-            } elseif (empty($category->slug)) {
-                $category->setSlugSource($data['translations']['de']['name']);
-            }
+            $category->slug = '';
+            $category->setSlugSource($data['translations']['de']['name']);
 
             $category->save();
 
@@ -231,7 +227,7 @@ class CategoryController extends Controller
     private function syncTranslations(Category $category, array $translations): void
     {
         foreach (self::LOCALES as $locale) {
-            $payload = $translations[$locale] ?? [];
+            $payload = $this->withDerivedSeoTranslations($translations[$locale] ?? []);
             foreach (self::TRANSLATABLE_FIELDS as $field) {
                 $value = $payload[$field] ?? null;
                 if ($value === null || $value === '') {
@@ -252,6 +248,28 @@ class CategoryController extends Controller
                 $category->setTranslation($locale, $field, $value);
             }
         }
+    }
+
+    /**
+     * Derive SEO meta from the editable content. Meta title follows the
+     * category name; meta description is a trimmed plain-text excerpt of the
+     * description. These are never accepted from the request.
+     *
+     * @param  array<string, ?string>  $payload
+     * @return array<string, ?string>
+     */
+    private function withDerivedSeoTranslations(array $payload): array
+    {
+        $name = $payload['name'] ?? null;
+        $description = $payload['description'] ?? null;
+
+        return [
+            ...$payload,
+            'meta_title' => filled($name) ? $name : null,
+            'meta_description' => filled($description)
+                ? Str::limit(Str::squish(strip_tags((string) $description)), 500, '')
+                : null,
+        ];
     }
 
     /**

@@ -40,6 +40,7 @@ class ProductController extends PublicController
 
         return Inertia::render('public/product', [
             ...$this->layoutProps(),
+            'meta' => $this->modelMeta($product, 'short_description'),
             'product' => $this->productDetail($product),
         ]);
     }

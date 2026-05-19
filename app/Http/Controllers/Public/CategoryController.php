@@ -27,6 +27,7 @@ class CategoryController extends PublicController
 
         return Inertia::render('public/category', [
             ...$this->layoutProps(),
+            'meta' => $this->modelMeta($category),
             'category' => [
                 ...$this->categoryNavItem($category),
                 'description' => $this->translation($category, 'description') ?? '',
