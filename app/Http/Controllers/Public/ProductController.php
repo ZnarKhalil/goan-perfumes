@@ -13,7 +13,7 @@ use Inertia\Response;
 
 class ProductController extends PublicController
 {
-    public function show(string $slug): Response
+    public function show(string $locale, string $slug): Response
     {
         $product = Product::query()
             ->with([
@@ -40,26 +40,27 @@ class ProductController extends PublicController
 
         return Inertia::render('public/product', [
             ...$this->layoutProps(),
+            'meta' => $this->modelMeta($product, 'short_description'),
             'product' => $this->productDetail($product),
         ]);
     }
 
     private function productDetail(Product $product): array
     {
-        $name = $product->translate(self::LOCALE, 'name') ?? $product->slug;
+        $name = $this->translation($product, 'name') ?? $product->slug;
 
         return [
             'id' => $product->id,
             'slug' => $product->slug,
             'name' => $name,
             'brand' => $product->brand,
-            'short_description' => $product->translate(self::LOCALE, 'short_description') ?? '',
-            'description' => $product->translate(self::LOCALE, 'description') ?? '',
+            'short_description' => $this->translation($product, 'short_description') ?? '',
+            'description' => $this->translation($product, 'description') ?? '',
             'media' => $product->media
                 ->map(fn (Media $media) => [
                     'id' => $media->id,
                     'url' => $this->storageUrl($media->path),
-                    'alt' => $media->translate(self::LOCALE, 'alt_text') ?? $media->alt_text ?? $name,
+                    'alt' => $this->translation($media, 'alt_text') ?? $media->alt_text ?? $name,
                     'is_primary' => $media->is_primary,
                 ])
                 ->values()
@@ -97,14 +98,14 @@ class ProductController extends PublicController
 
                 return [
                     'code' => $attribute->code,
-                    'name' => $attribute->translate(self::LOCALE, 'name') ?? $attribute->code,
+                    'name' => $this->translation($attribute, 'name') ?? $attribute->code,
                     'values' => $values
                         ->map(fn (AttributeValue $value) => [
                             'id' => $value->id,
                             'group_code' => $attribute->code,
-                            'group_name' => $attribute->translate(self::LOCALE, 'name') ?? $attribute->code,
+                            'group_name' => $this->translation($attribute, 'name') ?? $attribute->code,
                             'slug' => $value->slug,
-                            'name' => $value->translate(self::LOCALE, 'name') ?? $value->slug,
+                            'name' => $this->translation($value, 'name') ?? $value->slug,
                         ])
                         ->values()
                         ->all(),

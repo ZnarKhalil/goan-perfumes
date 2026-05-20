@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\HasSlug;
 use App\Models\Concerns\HasTranslations;
 use Database\Factories\PromotionFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -11,12 +10,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 #[Fillable([
-    'slug',
-    'background_image_path',
-    'background_color',
-    'link_url',
-    'promo_code',
-    'discount_percent',
     'starts_at',
     'ends_at',
     'sort_order',
@@ -25,7 +18,7 @@ use Illuminate\Database\Eloquent\Model;
 class Promotion extends Model
 {
     /** @use HasFactory<PromotionFactory> */
-    use HasFactory, HasSlug, HasTranslations;
+    use HasFactory, HasTranslations;
 
     /**
      * @return array<string, string>
@@ -33,7 +26,6 @@ class Promotion extends Model
     protected function casts(): array
     {
         return [
-            'discount_percent' => 'integer',
             'sort_order' => 'integer',
             'is_active' => 'boolean',
             'starts_at' => 'datetime',

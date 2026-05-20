@@ -1,7 +1,6 @@
 import { Link, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import MediaUploader from '@/components/dashboard/media-uploader';
-import SlugField from '@/components/dashboard/slug-field';
 import TranslationTabs, {
     emptyTranslations,
 } from '@/components/dashboard/translation-tabs';
@@ -27,13 +26,6 @@ import categoriesRoutes from '@/routes/dashboard/categories';
 const FIELDS: TranslationField[] = [
     { name: 'name', label: 'Name' },
     { name: 'description', label: 'Beschreibung', type: 'textarea', rows: 5 },
-    { name: 'meta_title', label: 'Meta Title' },
-    {
-        name: 'meta_description',
-        label: 'Meta Description',
-        type: 'textarea',
-        rows: 3,
-    },
 ];
 
 export type CategoryParentOption = {
@@ -45,7 +37,6 @@ export type CategoryFormProps = {
     mode: 'create' | 'edit';
     categoryId?: number;
     initial: {
-        slug: string;
         parent_id: number | null;
         sort_order: number;
         is_active: boolean;
@@ -56,7 +47,6 @@ export type CategoryFormProps = {
 };
 
 type FormData = {
-    slug: string;
     parent_id: string;
     sort_order: number;
     is_active: boolean;
@@ -73,7 +63,6 @@ export default function CategoryForm({
     parents,
 }: CategoryFormProps) {
     const { data, setData, post, processing, errors } = useForm<FormData>({
-        slug: initial.slug,
         parent_id: initial.parent_id ? String(initial.parent_id) : 'none',
         sort_order: initial.sort_order,
         is_active: initial.is_active,
@@ -125,12 +114,6 @@ export default function CategoryForm({
             <section className="grid gap-4 rounded-lg border border-sidebar-border/70 p-6 dark:border-sidebar-border">
                 <h3 className="text-sm font-medium">Stammdaten</h3>
                 <div className="grid gap-4 md:grid-cols-2">
-                    <SlugField
-                        value={data.slug}
-                        source={data.translations.de?.name ?? ''}
-                        error={errors.slug}
-                        onChange={(slug) => setData('slug', slug)}
-                    />
                     <div className="grid gap-2">
                         <Label htmlFor="parent_id">
                             Übergeordnete Kategorie

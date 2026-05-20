@@ -3,10 +3,8 @@
 namespace App\Http\Requests\Dashboard;
 
 use App\Http\Requests\Concerns\ValidatesTranslatedFields;
-use App\Models\Attribute;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class StoreAttributeValueRequest extends FormRequest
 {
@@ -23,21 +21,15 @@ class StoreAttributeValueRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
+     * The slug is derived on the server from the German name and is never
+     * accepted from the request.
+     *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
-        $attribute = $this->route('attribute');
-
         return array_merge(
             [
-                'slug' => [
-                    'nullable',
-                    'string',
-                    'max:255',
-                    Rule::unique('attribute_values', 'slug')
-                        ->where('attribute_id', $attribute instanceof Attribute ? $attribute->id : null),
-                ],
                 'sort_order' => ['nullable', 'integer', 'min:0'],
                 'is_active' => ['required', 'boolean'],
             ],

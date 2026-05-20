@@ -51,6 +51,8 @@ type SingleProps = {
     onRemove?: () => void;
     error?: string;
     label?: string;
+    accept?: string;
+    previewType?: 'image' | 'video';
 };
 
 type MultiProps = {
@@ -83,6 +85,8 @@ function SingleUploader({
     onRemove,
     error,
     label = 'Bild',
+    accept = ACCEPT_DEFAULT,
+    previewType = 'image',
 }: SingleProps) {
     const inputId = useId();
     const inputRef = useRef<HTMLInputElement | null>(null);
@@ -138,11 +142,21 @@ function SingleUploader({
             >
                 {preview ? (
                     <div className="flex w-full items-start gap-4">
-                        <img
-                            src={preview}
-                            alt=""
-                            className="h-32 w-32 rounded-md object-cover"
-                        />
+                        {previewType === 'video' ? (
+                            <video
+                                src={preview}
+                                className="h-32 w-48 rounded-md object-cover"
+                                muted
+                                playsInline
+                                controls
+                            />
+                        ) : (
+                            <img
+                                src={preview}
+                                alt=""
+                                className="h-32 w-32 rounded-md object-cover"
+                            />
+                        )}
                         <div className="flex flex-col gap-2">
                             <Button
                                 type="button"
@@ -177,7 +191,7 @@ function SingleUploader({
                     ref={inputRef}
                     type="file"
                     className="sr-only"
-                    accept={ACCEPT_DEFAULT}
+                    accept={accept}
                     onChange={onPick}
                 />
             </div>

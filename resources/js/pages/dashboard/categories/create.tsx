@@ -9,12 +9,6 @@ import categoriesRoutes from '@/routes/dashboard/categories';
 const FIELDS = [
     { name: 'name', label: 'Name' },
     { name: 'description', label: 'Beschreibung', type: 'textarea' as const },
-    { name: 'meta_title', label: 'Meta Title' },
-    {
-        name: 'meta_description',
-        label: 'Meta Description',
-        type: 'textarea' as const,
-    },
 ];
 
 type Props = {
@@ -34,7 +28,6 @@ export default function CategoriesCreate({ parents }: Props) {
                     mode="create"
                     parents={parents}
                     initial={{
-                        slug: '',
                         parent_id: null,
                         sort_order: 0,
                         is_active: true,

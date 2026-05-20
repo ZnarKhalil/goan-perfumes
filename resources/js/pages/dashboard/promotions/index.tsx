@@ -10,16 +10,12 @@ import promotionsRoutes from '@/routes/dashboard/promotions';
 
 type PromotionRow = {
     id: number;
-    slug: string;
     title: string;
-    promo_code: string | null;
-    discount_percent: number | null;
     starts_at: string | null;
     ends_at: string | null;
     sort_order: number;
     is_active: boolean;
     status: 'active' | 'upcoming' | 'expired' | 'inactive';
-    background_image_url: string | null;
 };
 
 type Props = {
@@ -55,7 +51,7 @@ export default function PromotionsIndex({ promotions }: Props) {
                 <div className="flex items-start justify-between gap-4">
                     <Heading
                         title="Aktionen"
-                        description="Verwalte Angebote für den Homepage-Hero."
+                        description="Verwalte Textangebote für die Startseite."
                     />
                     <Button asChild>
                         <Link href={promotionsRoutes.create()}>
@@ -70,43 +66,11 @@ export default function PromotionsIndex({ promotions }: Props) {
                     emptyMessage="Noch keine Aktionen angelegt."
                     columns={[
                         {
-                            key: 'image',
-                            label: 'Bild',
-                            className: 'w-20',
-                            render: (row) =>
-                                row.background_image_url ? (
-                                    <img
-                                        src={row.background_image_url}
-                                        alt=""
-                                        className="h-12 w-16 rounded object-cover"
-                                    />
-                                ) : (
-                                    <span className="text-xs text-muted-foreground">
-                                        —
-                                    </span>
-                                ),
-                        },
-                        {
                             key: 'title',
                             label: 'Aktion',
                             render: (row) => (
-                                <div>
-                                    <div className="font-medium">
-                                        {row.title}
-                                    </div>
-                                    <div className="text-xs text-muted-foreground">
-                                        {row.slug}
-                                    </div>
-                                </div>
+                                <div className="font-medium">{row.title}</div>
                             ),
-                        },
-                        {
-                            key: 'discount',
-                            label: 'Rabatt',
-                            render: (row) =>
-                                row.discount_percent
-                                    ? `${row.discount_percent}%`
-                                    : '—',
                         },
                         {
                             key: 'window',

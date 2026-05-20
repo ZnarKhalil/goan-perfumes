@@ -53,7 +53,6 @@ export default function ProductsEdit({
                     attributes={attributes}
                     highlightSlots={highlightSlots}
                     initial={{
-                        slug: product.slug,
                         brand: product.brand ?? '',
                         is_active: product.is_active,
                         is_featured: product.is_featured,

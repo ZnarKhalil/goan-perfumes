@@ -41,7 +41,6 @@ export default function ProductsCreate({
                     attributes={attributes}
                     highlightSlots={highlightSlots}
                     initial={{
-                        slug: '',
                         brand: '',
                         is_active: true,
                         is_featured: false,

@@ -125,14 +125,13 @@ test('admin can update an attribute and clear optional translations', function (
     expect($attribute->translate('en', 'name'))->toBeNull();
 });
 
-test('admin can create attribute values and uniqueness is scoped per attribute', function () {
+test('value slugs are generated from the German name and deduped per attribute', function () {
     $familie = Attribute::factory()->create(['code' => 'familie']);
     $noten = Attribute::factory()->create(['code' => 'noten']);
     AttributeValue::factory()->for($noten)->create(['slug' => 'rose']);
 
     $this->actingAs($this->admin)
         ->post("/dashboard/attributes/{$familie->id}/values", [
-            'slug' => 'rose',
             'sort_order' => 4,
             'is_active' => true,
             'translations' => [
@@ -151,18 +150,27 @@ test('admin can create attribute values and uniqueness is scoped per attribute',
     expect($value->sort_order)->toBe(4);
     expect($value->translate('de', 'name'))->toBe('Rose');
 
+    // A second value with the same German name is auto-deduped within the
+    // attribute (a manual slug is never accepted).
     $this->actingAs($this->admin)
         ->post("/dashboard/attributes/{$familie->id}/values", [
             'slug' => 'rose',
             'sort_order' => 0,
             'is_active' => true,
             'translations' => [
-                'de' => ['name' => 'Rose 2'],
+                'de' => ['name' => 'Rose'],
                 'ar' => ['name' => ''],
                 'en' => ['name' => ''],
             ],
         ])
-        ->assertSessionHasErrors('slug');
+        ->assertRedirect("/dashboard/attributes/{$familie->id}/edit");
+
+    expect(AttributeValue::query()
+        ->where('attribute_id', $familie->id)
+        ->orderBy('id')
+        ->pluck('slug')
+        ->all(),
+    )->toBe(['rose', 'rose-2']);
 });
 
 test('generated value slugs are scoped to their attribute', function () {

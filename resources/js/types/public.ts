@@ -1,5 +1,26 @@
 import type { ReactNode } from 'react';
 
+export type PublicLocaleCode = 'de' | 'en' | 'ar';
+
+export type PublicTextDirection = 'ltr' | 'rtl';
+
+export type PublicSupportedLocale = {
+    code: PublicLocaleCode;
+    label: string;
+    native_label: string;
+    flag: string;
+    dir: PublicTextDirection;
+    formatter_locale: string;
+};
+
+export type PublicLocaleProps = {
+    current: PublicLocaleCode;
+    dir: PublicTextDirection;
+    formatter_locale: string;
+    supported: PublicSupportedLocale[];
+    switcher_urls: Record<PublicLocaleCode, string>;
+};
+
 export type PublicCategoryNavItem = {
     id: number;
     slug: string;
@@ -99,18 +120,17 @@ export type PublicPromotion = {
     subtitle: string;
     badge: string | null;
     cta_text: string | null;
-    link_url: string | null;
-    promo_code: string | null;
-    discount_percent: number | null;
-    background_image_url: string | null;
-    background_color: string | null;
 };
 
+export type PublicSurfaceTheme = 'light' | 'dark';
+
 export type PublicHeroSection = {
+    eyebrow: string | null;
     title: string;
     body: string;
     cta_text: string | null;
     image_url: string | null;
+    video_url: string | null;
 };
 
 export type PublicTextSection = {
@@ -145,10 +165,17 @@ export type PublicPagination = {
     links: PublicPaginationLink[];
 };
 
+export type PublicMeta = {
+    title: string;
+    description: string;
+};
+
 export type PublicLayoutProps = {
     navigation: PublicCategoryNavItem[];
     contact: PublicContactSettings;
     logo_url: string | null;
+    locale?: PublicLocaleProps;
+    theme?: PublicSurfaceTheme;
     children: ReactNode;
 };
 
@@ -156,6 +183,8 @@ export type PublicHomePageProps = {
     navigation: PublicCategoryNavItem[];
     contact: PublicContactSettings;
     logo_url: string | null;
+    locale?: PublicLocaleProps;
+    meta: PublicMeta;
     promotions: PublicPromotion[];
     page_sections: PublicPageSections;
     featured_products: PublicProductCard[];
@@ -165,6 +194,8 @@ export type PublicCategoryPageProps = {
     navigation: PublicCategoryNavItem[];
     contact: PublicContactSettings;
     logo_url: string | null;
+    locale?: PublicLocaleProps;
+    meta: PublicMeta;
     category: PublicCategoryNavItem & {
         description: string;
         banner_url: string | null;
@@ -179,18 +210,15 @@ export type PublicProductPageProps = {
     navigation: PublicCategoryNavItem[];
     contact: PublicContactSettings;
     logo_url: string | null;
+    locale?: PublicLocaleProps;
+    meta: PublicMeta;
     product: PublicProductDetail;
-};
-
-export type PublicPricingPageProps = {
-    navigation: PublicCategoryNavItem[];
-    contact: PublicContactSettings;
-    logo_url: string | null;
-    categories: PublicCategoryNavItem[];
 };
 
 export type PublicContactPageProps = {
     navigation: PublicCategoryNavItem[];
     contact: PublicContactSettings;
     logo_url: string | null;
+    locale?: PublicLocaleProps;
+    meta: PublicMeta;
 };

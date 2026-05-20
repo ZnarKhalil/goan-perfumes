@@ -10,15 +10,16 @@ trait ValidatesCategoryFields
     use ValidatesTranslatedFields;
 
     /**
-     * @param  array<int, ValidationRule|array<mixed>|string>  $slugRule
+     * Slugs and SEO meta are derived on the server from the German name and
+     * description; they are never accepted from the request.
+     *
      * @param  array<int, int>  $forbiddenParentIds
      * @return array<string, ValidationRule|array<mixed>|string>
      */
-    protected function categoryRules(array $slugRule, array $forbiddenParentIds = []): array
+    protected function categoryRules(array $forbiddenParentIds = []): array
     {
         return array_merge(
             [
-                'slug' => $slugRule,
                 'parent_id' => [
                     'nullable',
                     'integer',
@@ -33,12 +34,10 @@ trait ValidatesCategoryFields
             $this->translationRules(
                 requiredLocale: 'de',
                 requiredOn: ['name'],
-                fields: ['name', 'description', 'meta_title', 'meta_description'],
+                fields: ['name', 'description'],
                 lengths: [
                     'name' => 255,
                     'description' => 5000,
-                    'meta_title' => 255,
-                    'meta_description' => 500,
                 ],
             ),
         );

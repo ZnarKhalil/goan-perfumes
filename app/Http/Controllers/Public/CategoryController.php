@@ -10,7 +10,7 @@ use Inertia\Response;
 
 class CategoryController extends PublicController
 {
-    public function show(Request $request, string $slug): Response
+    public function show(Request $request, string $locale, string $slug): Response
     {
         $category = Category::query()
             ->with('translations')
@@ -27,9 +27,10 @@ class CategoryController extends PublicController
 
         return Inertia::render('public/category', [
             ...$this->layoutProps(),
+            'meta' => $this->modelMeta($category),
             'category' => [
                 ...$this->categoryNavItem($category),
-                'description' => $category->translate(self::LOCALE, 'description') ?? '',
+                'description' => $this->translation($category, 'description') ?? '',
                 'banner_url' => $this->storageUrl($category->image_path),
             ],
             'filters' => $this->filterGroups($selectedFilters, $category->slug),

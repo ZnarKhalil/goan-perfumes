@@ -2,6 +2,8 @@
 
 **Goal**: replace the starter public welcome screen with the German public Goan Perfume site from `docs/PROJECT.md` section 2 and Phase 4. Start with page design and database-shaped dummy data, then wire the routes/controllers after the UI contracts are clear. AR/EN rendering, RTL, `hreflang`, sitemap, image resizing, and deep SEO polish are Phase 5/6 work.
 
+> **Post-phase scope adjustment (2026-05-15):** the standalone `Preis` page/link is no longer needed. `/preise` was removed entirely, and Phase 5 follows the adjusted no-pricing-page scope. The checked items below preserve the original Phase 4 completion history.
+
 ## What already exists from earlier phases
 
 - **Models and queries**: Category, Attribute, AttributeValue, Product, ProductVariant, Media, PageSection, Promotion, and Setting models are complete. `HasTranslations` can read German content via `translate('de', ...)`; `Promotion::active()` filters active promo windows.

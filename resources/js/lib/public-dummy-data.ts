@@ -6,7 +6,6 @@ import type {
     PublicFilterGroup,
     PublicHomePageProps,
     PublicPageSections,
-    PublicPricingPageProps,
     PublicProductCard,
     PublicProductDetail,
     PublicProductPageProps,
@@ -85,10 +84,12 @@ export const publicDummyLogoUrl: string | null = null;
 
 export const publicDummyPageSections: PublicPageSections = {
     hero: {
+        eyebrow: 'Goan Perfume',
         title: 'Goan Perfume',
         body: 'Ausgewählte Nischen- und Luxusparfums in Berlin, kuratiert für Menschen, die Duft bewusst tragen.',
         cta_text: 'Kollektion entdecken',
-        image_url: image('photo-1547887538-e3a2f32cb1cc', 1800, 1200),
+        image_url: null,
+        video_url: null,
     },
     about: {
         title: 'Über Goan Perfume',
@@ -107,20 +108,11 @@ export const publicDummyPageSections: PublicPageSections = {
 export const publicDummyPromotions: PublicPromotion[] = [
     {
         id: 1,
-        title: '10% auf ausgewählte Nischendüfte',
+        title: 'Ausgewählte Nischendüfte',
         subtitle:
             'Nur diese Woche: warme, elegante Signaturen für besondere Abende.',
         badge: 'LIMITIERTES ANGEBOT',
         cta_text: 'Angebot ansehen',
-        link_url: '/nischenparfums',
-        promo_code: 'NISCHE10',
-        discount_percent: 10,
-        background_image_url: image(
-            'photo-1619994403073-2cec844b8e63',
-            1800,
-            1200,
-        ),
-        background_color: '#15110f',
     },
     {
         id: 2,
@@ -128,15 +120,6 @@ export const publicDummyPromotions: PublicPromotion[] = [
         subtitle: 'Oud, Amber und Gewürze mit Tiefe und Präsenz.',
         badge: 'NEU EINGETROFFEN',
         cta_text: 'Arabische Parfums',
-        link_url: '/arabische-parfums',
-        promo_code: null,
-        discount_percent: null,
-        background_image_url: image(
-            'photo-1600612253971-422e7f7faeb6',
-            1800,
-            1200,
-        ),
-        background_color: '#1b1712',
     },
 ];
 
@@ -542,10 +525,17 @@ export const publicDummyProductDetail: PublicProductDetail = {
     primary_category: categoryBySlug('luxusparfums'),
 };
 
+const publicDummyMeta = {
+    title: 'Goan Perfume',
+    description:
+        'Ausgewählte Luxus-, Nischen- und arabische Parfums, kuratiert von Goan Perfume.',
+};
+
 export const publicDummyHomeProps: PublicHomePageProps = {
     navigation: publicDummyNavigation,
     contact: publicDummyContact,
     logo_url: publicDummyLogoUrl,
+    meta: publicDummyMeta,
     promotions: publicDummyPromotions,
     page_sections: publicDummyPageSections,
     featured_products: publicDummyProducts
@@ -557,6 +547,7 @@ export const publicDummyCategoryProps: PublicCategoryPageProps = {
     navigation: publicDummyNavigation,
     contact: publicDummyContact,
     logo_url: publicDummyLogoUrl,
+    meta: publicDummyMeta,
     category: {
         ...categoryBySlug('damenparfums'),
         description:
@@ -592,18 +583,13 @@ export const publicDummyProductProps: PublicProductPageProps = {
     navigation: publicDummyNavigation,
     contact: publicDummyContact,
     logo_url: publicDummyLogoUrl,
+    meta: publicDummyMeta,
     product: publicDummyProductDetail,
-};
-
-export const publicDummyPricingProps: PublicPricingPageProps = {
-    navigation: publicDummyNavigation,
-    contact: publicDummyContact,
-    logo_url: publicDummyLogoUrl,
-    categories: publicDummyNavigation,
 };
 
 export const publicDummyContactProps: PublicContactPageProps = {
     navigation: publicDummyNavigation,
     contact: publicDummyContact,
     logo_url: publicDummyLogoUrl,
+    meta: publicDummyMeta,
 };

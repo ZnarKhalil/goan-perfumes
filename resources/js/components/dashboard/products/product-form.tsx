@@ -73,7 +73,6 @@ export type ProductFormProps = {
     mode: 'create' | 'edit';
     productId?: number;
     initial: {
-        slug: string;
         brand: string;
         is_active: boolean;
         is_featured: boolean;
@@ -89,7 +88,6 @@ export type ProductFormProps = {
 };
 
 type FormData = {
-    slug: string;
     brand: string;
     is_active: boolean;
     is_featured: boolean;
@@ -138,7 +136,6 @@ export default function ProductForm({
     );
     const [removedMediaIds, setRemovedMediaIds] = useState<number[]>([]);
     const form = useForm<FormData>({
-        slug: '',
         brand: initial.brand,
         is_active: initial.is_active,
         is_featured: initial.is_featured,
@@ -174,7 +171,6 @@ export default function ProductForm({
 
         form.transform((data) => ({
             ...data,
-            slug: '',
             media_uploads: newItems
                 .map((item) => item.file)
                 .filter((file): file is File => file instanceof File),

@@ -37,7 +37,9 @@ class UpdatePageSectionRequest extends FormRequest
 
         if ($pageSection?->key === 'hero') {
             $rules['hero_image'] = ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,avif', 'max:5120'];
+            $rules['hero_video'] = ['nullable', 'file', 'mimes:mp4,webm', 'max:20480'];
             $rules['remove_hero_image'] = ['nullable', 'boolean'];
+            $rules['remove_hero_video'] = ['nullable', 'boolean'];
             $rules['translations.de.title'] = ['required', 'string', 'max:255'];
             $rules['translations.de.cta_text'] = ['nullable', 'string', 'max:120'];
         }

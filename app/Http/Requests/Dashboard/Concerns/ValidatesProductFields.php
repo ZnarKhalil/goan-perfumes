@@ -7,7 +7,6 @@ use App\Models\AttributeValue;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
 trait ValidatesProductFields
@@ -17,13 +16,15 @@ trait ValidatesProductFields
     private const MAX_FEATURED_PRODUCTS = 4;
 
     /**
+     * Slugs and SEO meta are derived on the server from the German name and
+     * descriptions; they are never accepted from the request.
+     *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
-    protected function productRules(ValidationRule|array|string $slugRule): array
+    protected function productRules(): array
     {
         return array_merge(
             [
-                'slug' => $slugRule,
                 'brand' => ['nullable', 'string', 'max:255'],
                 'is_active' => ['required', 'boolean'],
                 'is_featured' => ['required', 'boolean'],
@@ -56,13 +57,11 @@ trait ValidatesProductFields
             $this->translationRules(
                 requiredLocale: 'de',
                 requiredOn: ['name'],
-                fields: ['name', 'short_description', 'description', 'meta_title', 'meta_description'],
+                fields: ['name', 'short_description', 'description'],
                 lengths: [
                     'name' => 255,
                     'short_description' => 1000,
                     'description' => 8000,
-                    'meta_title' => 255,
-                    'meta_description' => 500,
                 ],
             ),
         );
@@ -83,17 +82,6 @@ trait ValidatesProductFields
                 $this->validateFeaturedLimit($validator);
             },
         ];
-    }
-
-    protected function slugUniqueRule(?Product $product = null): array
-    {
-        $rule = Rule::unique('products', 'slug');
-
-        if ($product instanceof Product) {
-            $rule->ignore($product->id);
-        }
-
-        return ['nullable', 'string', 'max:255', $rule];
     }
 
     private function validateDefaultVariant(Validator $validator): void

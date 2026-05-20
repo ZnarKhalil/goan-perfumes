@@ -13,6 +13,17 @@
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
 
+    --font-display:
+        'Fraunces', 'Noto Kufi Arabic', ui-serif, Georgia, Cambria,
+        'Times New Roman', serif;
+
+    --font-body:
+        'Manrope', 'Noto Kufi Arabic', ui-sans-serif, system-ui, sans-serif,
+        'Apple Color Emoji', 'Segoe UI Emoji';
+
+    --font-arabic:
+        'Noto Kufi Arabic', 'Manrope', ui-sans-serif, system-ui, sans-serif;
+
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
     --radius-sm: calc(var(--radius) - 4px);
@@ -139,5 +150,170 @@
 
     body {
         @apply bg-background text-foreground;
+    }
+}
+
+/* ----------------------------------------------------------------------- */
+/* Vitrine 3D — public homepage atmosphere                                  */
+/* ----------------------------------------------------------------------- */
+
+@utility font-display {
+    font-family: var(--font-display);
+    font-optical-sizing: auto;
+}
+
+@utility font-body {
+    font-family: var(--font-body);
+}
+
+/* Fine film-grain overlay for depth instead of flat color. */
+@utility grain {
+    position: relative;
+}
+
+@utility grain-layer {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+}
+
+@keyframes vitrine-aurora {
+    0% {
+        transform: translate3d(-6%, -3%, 0) scale(1.05) rotate(0deg);
+    }
+    50% {
+        transform: translate3d(6%, 4%, 0) scale(1.18) rotate(8deg);
+    }
+    100% {
+        transform: translate3d(-6%, -3%, 0) scale(1.05) rotate(0deg);
+    }
+}
+
+@keyframes vitrine-float {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-14px);
+    }
+}
+
+@keyframes vitrine-sheen {
+    0% {
+        transform: translateX(-130%) skewX(-18deg);
+    }
+    100% {
+        transform: translateX(230%) skewX(-18deg);
+    }
+}
+
+@keyframes vitrine-marquee {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+@keyframes vitrine-shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+@keyframes vitrine-pulse {
+    0%,
+    100% {
+        opacity: 0.5;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.35);
+    }
+}
+
+@keyframes vitrine-drift {
+    0% {
+        transform: translate3d(0, 0, 0);
+    }
+    33% {
+        transform: translate3d(22px, -34px, 0);
+    }
+    66% {
+        transform: translate3d(-18px, -14px, 0);
+    }
+    100% {
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+.vitrine-aurora {
+    animation: vitrine-aurora 26s ease-in-out infinite;
+    will-change: transform;
+}
+
+.vitrine-float {
+    animation: vitrine-float 9s ease-in-out infinite;
+    will-change: transform;
+}
+
+.vitrine-marquee {
+    animation: vitrine-marquee 38s linear infinite;
+    will-change: transform;
+}
+
+.vitrine-marquee-fast {
+    animation: vitrine-marquee 24s linear infinite;
+    will-change: transform;
+}
+
+.vitrine-pulse {
+    animation: vitrine-pulse 3.4s ease-in-out infinite;
+}
+
+.vitrine-drift {
+    animation: vitrine-drift 18s ease-in-out infinite;
+    will-change: transform;
+}
+
+.vitrine-shimmer-text {
+    background: linear-gradient(
+        100deg,
+        #f4ead2 0%,
+        #fffaf0 18%,
+        #e7c889 30%,
+        #f4ead2 48%,
+        #fffaf0 70%,
+        #e7c889 100%
+    );
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: vitrine-shimmer 7s linear infinite;
+}
+
+.vitrine-group:hover .vitrine-marquee,
+.vitrine-group:hover .vitrine-marquee-fast {
+    animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .vitrine-aurora,
+    .vitrine-float,
+    .vitrine-marquee,
+    .vitrine-marquee-fast,
+    .vitrine-pulse,
+    .vitrine-drift,
+    .vitrine-shimmer-text {
+        animation: none !important;
+    }
+
+    .vitrine-shimmer-text {
+        color: #e7c889;
     }
 }

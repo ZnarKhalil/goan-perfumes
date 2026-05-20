@@ -36,7 +36,6 @@ export default function CategoriesEdit({ category, parents }: Props) {
                     categoryId={category.id}
                     parents={parents}
                     initial={{
-                        slug: category.slug,
                         parent_id: category.parent_id,
                         sort_order: category.sort_order,
                         is_active: category.is_active,

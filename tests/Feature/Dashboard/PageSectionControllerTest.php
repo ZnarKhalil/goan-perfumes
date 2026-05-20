@@ -94,6 +94,79 @@ test('admin can update hero content and image', function () {
     Storage::disk('public')->assertExists($section->payload['image_path']);
 });
 
+test('admin can update hero video', function () {
+    Storage::fake('public');
+
+    $section = PageSection::query()->create([
+        'key' => 'hero',
+        'type' => 'image',
+        'payload' => [
+            'video_path' => UploadedFile::fake()
+                ->create('old.mp4', 512, 'video/mp4')
+                ->store('page-sections/hero', 'public'),
+        ],
+        'sort_order' => 0,
+        'is_active' => true,
+    ]);
+    $oldPath = $section->payload['video_path'];
+
+    $this->actingAs($this->admin)
+        ->post("/dashboard/page-sections/{$section->id}", [
+            '_method' => 'PUT',
+            'hero_video' => UploadedFile::fake()->create('hero.mp4', 1024, 'video/mp4'),
+            'sort_order' => 0,
+            'is_active' => true,
+            'translations' => [
+                'de' => ['title' => 'GOAN Parfums'],
+                'ar' => ['title' => ''],
+                'en' => ['title' => ''],
+            ],
+        ])
+        ->assertRedirect('/dashboard/page-sections');
+
+    $section->refresh();
+
+    expect($section->payload['video_path'])->not->toBe($oldPath);
+    Storage::disk('public')->assertMissing($oldPath);
+    Storage::disk('public')->assertExists($section->payload['video_path']);
+});
+
+test('admin can remove hero video', function () {
+    Storage::fake('public');
+
+    $section = PageSection::query()->create([
+        'key' => 'hero',
+        'type' => 'image',
+        'payload' => [
+            'video_path' => UploadedFile::fake()
+                ->create('old.mp4', 512, 'video/mp4')
+                ->store('page-sections/hero', 'public'),
+        ],
+        'sort_order' => 0,
+        'is_active' => true,
+    ]);
+    $oldPath = $section->payload['video_path'];
+
+    $this->actingAs($this->admin)
+        ->post("/dashboard/page-sections/{$section->id}", [
+            '_method' => 'PUT',
+            'remove_hero_video' => true,
+            'sort_order' => 0,
+            'is_active' => true,
+            'translations' => [
+                'de' => ['title' => 'GOAN Parfums'],
+                'ar' => ['title' => ''],
+                'en' => ['title' => ''],
+            ],
+        ])
+        ->assertRedirect('/dashboard/page-sections');
+
+    $section->refresh();
+
+    expect($section->payload['video_path'])->toBeNull();
+    Storage::disk('public')->assertMissing($oldPath);
+});
+
 test('admin can update about title and body', function () {
     $section = PageSection::query()->create([
         'key' => 'about',

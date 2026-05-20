@@ -20,6 +20,6 @@ class StoreProductRequest extends FormRequest
      */
     public function rules(): array
     {
-        return $this->productRules($this->slugUniqueRule());
+        return $this->productRules();
     }
 }

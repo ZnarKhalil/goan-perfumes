@@ -40,3 +40,6 @@ Phase 3 admin dashboard scope is complete. Dashboard resources now cover Categor
 
 ## Phase 4 — Public frontend complete — 2026-05-15
 German public pages are implemented with controller-backed Inertia routes for home, category, product detail, pricing, and contact. Public props are mapped explicitly from real categories, products, variants, media, promotions, page sections, and settings; category filters preserve OR-within-group and AND-across-groups behavior; image URLs use stable storage paths. `PHASE_4_TASKS.md` is fully checked off. Verification: `php artisan route:list --path=dashboard`, `php artisan route:list --except-vendor`, `php artisan test --compact tests/Feature/PublicPagesTest.php tests/Feature/FilterQueryTest.php`, `npm run build`, `vendor/bin/pint --dirty --format agent`, and `composer ci:check`.
+
+## Scope adjustment — 2026-05-15 — remove standalone pricing page
+The public `Preis` drawer link and standalone pricing page are no longer needed. Removed the public pricing controller/page/type/dummy props, removed the drawer link, removed the `/preise` route entirely, and updated `docs/PROJECT.md` plus `PHASE_5_TASKS.md`.

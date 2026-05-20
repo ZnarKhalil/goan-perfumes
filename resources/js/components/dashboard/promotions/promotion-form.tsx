@@ -1,7 +1,5 @@
 import { Link, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
-import MediaUploader from '@/components/dashboard/media-uploader';
-import SlugField from '@/components/dashboard/slug-field';
 import TranslationTabs, {
     emptyTranslations,
 } from '@/components/dashboard/translation-tabs';
@@ -28,12 +26,6 @@ export type PromotionFormProps = {
     mode: 'create' | 'edit';
     promotionId?: number;
     initial: {
-        slug: string;
-        background_image_url: string | null;
-        background_color: string;
-        link_url: string;
-        promo_code: string;
-        discount_percent: number | '';
         starts_at: string;
         ends_at: string;
         sort_order: number;
@@ -43,13 +35,6 @@ export type PromotionFormProps = {
 };
 
 type FormData = {
-    slug: string;
-    background_image: File | null;
-    remove_background_image: boolean;
-    background_color: string;
-    link_url: string;
-    promo_code: string;
-    discount_percent: number | '';
     starts_at: string;
     ends_at: string;
     sort_order: number;
@@ -64,13 +49,6 @@ export default function PromotionForm({
     initial,
 }: PromotionFormProps) {
     const { data, setData, post, processing, errors } = useForm<FormData>({
-        slug: initial.slug,
-        background_image: null,
-        remove_background_image: false,
-        background_color: initial.background_color,
-        link_url: initial.link_url,
-        promo_code: initial.promo_code,
-        discount_percent: initial.discount_percent,
         starts_at: initial.starts_at,
         ends_at: initial.ends_at,
         sort_order: initial.sort_order,
@@ -89,7 +67,7 @@ export default function PromotionForm({
                       promotion: requirePromotionId(promotionId),
                   }).url;
 
-        post(url, { forceFormData: true });
+        post(url);
     };
 
     const setTranslation = (
@@ -107,11 +85,7 @@ export default function PromotionForm({
     };
 
     return (
-        <form
-            onSubmit={submit}
-            className="grid gap-8"
-            encType="multipart/form-data"
-        >
+        <form onSubmit={submit} className="grid gap-8">
             <section className="grid gap-4 rounded-lg border border-sidebar-border/70 p-6 dark:border-sidebar-border">
                 <h3 className="text-sm font-medium">Inhalte (mehrsprachig)</h3>
                 <TranslationTabs
@@ -126,68 +100,6 @@ export default function PromotionForm({
             <section className="grid gap-4 rounded-lg border border-sidebar-border/70 p-6 dark:border-sidebar-border">
                 <h3 className="text-sm font-medium">Stammdaten</h3>
                 <div className="grid gap-4 md:grid-cols-2">
-                    <SlugField
-                        value={data.slug}
-                        source={data.translations.de?.title ?? ''}
-                        error={errors.slug}
-                        onChange={(slug) => setData('slug', slug)}
-                    />
-                    <div className="grid gap-2">
-                        <Label htmlFor="background_color">
-                            Hintergrundfarbe
-                        </Label>
-                        <Input
-                            id="background_color"
-                            value={data.background_color}
-                            placeholder="#1a1530"
-                            onChange={(e) =>
-                                setData('background_color', e.target.value)
-                            }
-                        />
-                        <InputError message={errors.background_color} />
-                    </div>
-                    <div className="grid gap-2">
-                        <Label htmlFor="link_url">Link URL</Label>
-                        <Input
-                            id="link_url"
-                            value={data.link_url}
-                            placeholder="/nischenparfums"
-                            onChange={(e) =>
-                                setData('link_url', e.target.value)
-                            }
-                        />
-                        <InputError message={errors.link_url} />
-                    </div>
-                    <div className="grid gap-2">
-                        <Label htmlFor="promo_code">Promo-Code</Label>
-                        <Input
-                            id="promo_code"
-                            value={data.promo_code}
-                            onChange={(e) =>
-                                setData('promo_code', e.target.value)
-                            }
-                        />
-                        <InputError message={errors.promo_code} />
-                    </div>
-                    <div className="grid gap-2">
-                        <Label htmlFor="discount_percent">Rabatt (%)</Label>
-                        <Input
-                            id="discount_percent"
-                            type="number"
-                            min={1}
-                            max={100}
-                            value={data.discount_percent}
-                            onChange={(e) =>
-                                setData(
-                                    'discount_percent',
-                                    e.target.value
-                                        ? Number(e.target.value)
-                                        : '',
-                                )
-                            }
-                        />
-                        <InputError message={errors.discount_percent} />
-                    </div>
                     <div className="grid gap-2">
                         <Label htmlFor="sort_order">Reihenfolge</Label>
                         <Input
@@ -237,29 +149,6 @@ export default function PromotionForm({
                         <Label htmlFor="is_active">Aktiv</Label>
                     </div>
                 </div>
-            </section>
-
-            <section className="grid gap-4 rounded-lg border border-sidebar-border/70 p-6 dark:border-sidebar-border">
-                <h3 className="text-sm font-medium">Hero-Hintergrund</h3>
-                <MediaUploader
-                    mode="single"
-                    value={data.background_image}
-                    existingUrl={
-                        data.remove_background_image
-                            ? null
-                            : initial.background_image_url
-                    }
-                    onChange={(file) => {
-                        setData('background_image', file);
-
-                        if (file) {
-                            setData('remove_background_image', false);
-                        }
-                    }}
-                    onRemove={() => setData('remove_background_image', true)}
-                    error={errors.background_image}
-                    label="Hintergrundbild"
-                />
             </section>
 
             <div className="flex items-center justify-end gap-3">

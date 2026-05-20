@@ -11,13 +11,8 @@ class PromotionSeeder extends Seeder
     {
         foreach ($this->promotions() as $index => $promotion) {
             $model = Promotion::query()->updateOrCreate(
-                ['slug' => $promotion['slug']],
+                ['sort_order' => $index],
                 [
-                    'background_image_path' => $promotion['background_image_path'],
-                    'background_color' => $promotion['background_color'],
-                    'link_url' => $promotion['link_url'],
-                    'promo_code' => $promotion['promo_code'],
-                    'discount_percent' => $promotion['discount_percent'],
                     'starts_at' => now()->subDay(),
                     'ends_at' => now()->addMonths(3),
                     'sort_order' => $index,
@@ -25,44 +20,62 @@ class PromotionSeeder extends Seeder
                 ],
             );
 
-            foreach ($promotion['translations'] as $field => $value) {
-                $model->setTranslation('de', $field, $value);
+            foreach ($promotion['translations'] as $locale => $fields) {
+                foreach ($fields as $field => $value) {
+                    $model->setTranslation($locale, $field, $value);
+                }
             }
         }
     }
 
     /**
-     * @return list<array{slug: string, background_image_path: string, background_color: string, link_url: string, promo_code: string, discount_percent: int, translations: array<string, string>}>
+     * @return list<array{translations: array<string, array<string, string>>}>
      */
     private function promotions(): array
     {
         return [
             [
-                'slug' => 'luxury-week',
-                'background_image_path' => 'https://images.unsplash.com/photo-1594035910387-fea47794261f?auto=format&fit=crop&w=2200&q=85',
-                'background_color' => '#171412',
-                'link_url' => '/luxusparfums',
-                'promo_code' => 'GOAN15',
-                'discount_percent' => 15,
                 'translations' => [
-                    'title' => 'Luxury Week',
-                    'subtitle' => 'Ausgewaehlte Luxus- und Nischenduefte mit persoenlicher Beratung.',
-                    'badge' => 'Aktuelle Aktion',
-                    'cta_text' => 'Highlights ansehen',
+                    'de' => [
+                        'title' => 'Luxury Week',
+                        'subtitle' => 'Ausgewählte Luxus- und Nischendüfte mit persönlicher Beratung.',
+                        'badge' => 'Aktuelle Aktion',
+                        'cta_text' => 'Highlights ansehen',
+                    ],
+                    'en' => [
+                        'title' => 'Luxury Week',
+                        'subtitle' => 'Selected luxury and niche fragrances with personal advice.',
+                        'badge' => 'Current campaign',
+                        'cta_text' => 'View highlights',
+                    ],
+                    'ar' => [
+                        'title' => 'أسبوع الفخامة',
+                        'subtitle' => 'عطور فاخرة ونيش مختارة مع استشارة شخصية.',
+                        'badge' => 'العرض الحالي',
+                        'cta_text' => 'عرض المختارات',
+                    ],
                 ],
             ],
             [
-                'slug' => 'oud-discovery',
-                'background_image_path' => 'https://images.unsplash.com/photo-1608528577891-eb055944f2e7?auto=format&fit=crop&w=2200&q=85',
-                'background_color' => '#2b2118',
-                'link_url' => '/arabische-parfums',
-                'promo_code' => 'OUD10',
-                'discount_percent' => 10,
                 'translations' => [
-                    'title' => 'Oud Discovery',
-                    'subtitle' => 'Warme Oud-, Amber- und Safranprofile fuer intensive Abende.',
-                    'badge' => 'Arabische Parfums',
-                    'cta_text' => 'Oud entdecken',
+                    'de' => [
+                        'title' => 'Oud Discovery',
+                        'subtitle' => 'Warme Oud-, Amber- und Safranprofile für intensive Abende.',
+                        'badge' => 'Arabische Parfums',
+                        'cta_text' => 'Oud entdecken',
+                    ],
+                    'en' => [
+                        'title' => 'Oud Discovery',
+                        'subtitle' => 'Warm oud, amber, and saffron profiles for intense evenings.',
+                        'badge' => 'Arabian perfumes',
+                        'cta_text' => 'Discover oud',
+                    ],
+                    'ar' => [
+                        'title' => 'اكتشف العود',
+                        'subtitle' => 'عود وعنبر وزعفران بدفء مناسب للسهرات.',
+                        'badge' => 'عطور عربية',
+                        'cta_text' => 'اكتشف العود',
+                    ],
                 ],
             ],
         ];
