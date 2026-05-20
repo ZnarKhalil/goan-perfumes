@@ -148,7 +148,7 @@ export default function Hero({ hero, copy, ctaHref }: Props) {
             </div>
 
             <motion.div
-                className="relative mx-auto w-full max-w-7xl px-4 pt-10 pb-20 sm:pt-32 sm:pb-24 md:px-8 md:pb-28"
+                className="relative mx-auto w-full max-w-7xl px-4 pt-10 pb-20 sm:pt-32 sm:pb-24 md:px-8 md:pb-28 lg:pt-48 xl:pt-56"
                 style={
                     reduceMotion
                         ? undefined
