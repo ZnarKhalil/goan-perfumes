@@ -2,8 +2,6 @@
 
 Product showcase website for **Goan Perfume**, a German-based perfume shop. The site is a public catalogue with rich filtering — there is no cart, checkout, or order processing. Customers browse and contact the shop directly via WhatsApp / phone / email.
 
-The full project specification (scope, schema, build phases) lives in [`docs/PROJECT.md`](docs/PROJECT.md). Phase progress is tracked in [`PROGRESS.md`](PROGRESS.md).
-
 ## Stack
 
 - **PHP** 8.4
@@ -74,15 +72,3 @@ vendor/bin/pint --dirty         # auto-format only changed PHP files
 npm run build                   # production asset build
 npm run dev                     # vite dev server (or use `composer run dev`)
 ```
-
-## Project structure quick reference
-
-- `app/Models/` — Eloquent models
-- `app/Http/Middleware/EnsureUserIsAdmin.php` — gates `/dashboard`
-- `database/migrations/` — schema
-- `database/seeders/` — `AdminUserSeeder` is wired into `DatabaseSeeder`
-- `resources/js/pages/` — Inertia React pages
-- `routes/web.php` — public + dashboard routes
-- `docs/PROJECT.md` — source of truth for scope & schema
-- `PROGRESS.md` — phase log
-- `PHASE_*_TASKS.md` — per-phase task lists, generated at the start of each phase
