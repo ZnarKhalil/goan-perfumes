@@ -11,6 +11,7 @@ use App\Models\PageSection;
 use App\Models\Product;
 use App\Models\Promotion;
 use App\Models\Setting;
+use App\Support\PublicCategoryNavigation;
 use App\Support\PublicLocale;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Storage;
@@ -18,16 +19,6 @@ use Illuminate\Support\Str;
 
 abstract class PublicController extends Controller
 {
-    protected const CATEGORY_SLUGS = [
-        'luxusparfums',
-        'nischenparfums',
-        'designerparfums',
-        'arabische-parfums',
-        'damenparfums',
-        'herrenparfums',
-        'unisex-parfums',
-    ];
-
     protected function layoutProps(): array
     {
         return [
@@ -39,16 +30,7 @@ abstract class PublicController extends Controller
 
     protected function navigation(): array
     {
-        return Category::query()
-            ->with('translations')
-            ->whereIn('slug', self::CATEGORY_SLUGS)
-            ->where('is_active', true)
-            ->orderBy('sort_order')
-            ->orderBy('id')
-            ->get()
-            ->map(fn (Category $category) => $this->categoryNavItem($category))
-            ->values()
-            ->all();
+        return PublicCategoryNavigation::forLocale($this->locale());
     }
 
     protected function categoryNavItem(Category $category): array

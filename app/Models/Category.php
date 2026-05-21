@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\HasSlug;
 use App\Models\Concerns\HasTranslations;
+use App\Support\PublicCategoryNavigation;
 use Database\Factories\CategoryFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -48,5 +49,16 @@ class Category extends Model
     public function media(): MorphMany
     {
         return $this->morphMany(Media::class, 'mediable');
+    }
+
+    protected static function booted(): void
+    {
+        static::saved(function (): void {
+            PublicCategoryNavigation::flush();
+        });
+
+        static::deleted(function (): void {
+            PublicCategoryNavigation::flush();
+        });
     }
 }

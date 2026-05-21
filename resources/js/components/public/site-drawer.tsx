@@ -16,6 +16,7 @@ import type { PublicLocaleProps } from '@/types/public';
 type Props = {
     navigation: PublicCategoryNavItem[];
     locale?: PublicLocaleProps;
+    homeHref: string;
     contactHref: string;
     copy: PublicCopy;
     trigger: ReactNode;
@@ -24,6 +25,7 @@ type Props = {
 export default function SiteDrawer({
     navigation,
     locale,
+    homeHref,
     contactHref,
     copy,
     trigger,
@@ -48,7 +50,13 @@ export default function SiteDrawer({
                     </SheetTitle>
                 </SheetHeader>
                 <nav className="grid px-6 py-6">
-                    {navigation.slice(0, 4).map((category) => (
+                    <Link
+                        href={homeHref}
+                        className="border-b border-white/10 py-4 text-lg font-medium transition hover:text-[#e7c889]"
+                    >
+                        {copy.navigation.homepage}
+                    </Link>
+                    {navigation.map((category) => (
                         <Link
                             key={category.slug}
                             href={category.href}
@@ -59,12 +67,12 @@ export default function SiteDrawer({
                     ))}
                     <Link
                         href={contactHref}
-                        className="border-b border-white/10 py-4 text-lg font-medium transition hover:text-[#e7c889]"
+                        className="py-4 text-lg font-medium transition hover:text-[#e7c889]"
                     >
                         {copy.contact.eyebrow}
                     </Link>
                 </nav>
-                <div className="border-t border-white/10 px-6 py-5">
+                <div className="px-6 py-5">
                     <LocaleSwitcher locale={locale} compact tone="dark" />
                 </div>
             </SheetContent>

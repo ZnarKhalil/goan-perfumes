@@ -15,17 +15,7 @@ Route::prefix('{locale}')
         Route::get('/', HomeController::class)->name('home');
         Route::get('/kontakt', ContactController::class)->name('contact');
         Route::get('/produkt/{slug}', [ProductController::class, 'show'])->name('products.show');
-        Route::get('/{slug}', [CategoryController::class, 'show'])
-            ->whereIn('slug', [
-                'luxusparfums',
-                'nischenparfums',
-                'designerparfums',
-                'arabische-parfums',
-                'damenparfums',
-                'herrenparfums',
-                'unisex-parfums',
-            ])
-            ->name('categories.show');
+        Route::get('/{slug}', [CategoryController::class, 'show'])->name('categories.show');
     });
 
 Route::get('/', fn (Request $request) => redirect()->route('home', [
@@ -45,15 +35,7 @@ Route::get('/{slug}', fn (Request $request, string $slug) => redirect()->route('
     'locale' => PublicLocale::normalize($request->cookie(PublicLocale::CookieName)),
     'slug' => $slug,
     ...$request->query(),
-]))->whereIn('slug', [
-    'luxusparfums',
-    'nischenparfums',
-    'designerparfums',
-    'arabische-parfums',
-    'damenparfums',
-    'herrenparfums',
-    'unisex-parfums',
-]);
+]));
 
 Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');
