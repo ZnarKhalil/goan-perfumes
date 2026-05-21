@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\Promotion;
 use App\Models\Setting;
+use App\Models\User;
 use Database\Seeders\AttributeSeeder;
 use Database\Seeders\AttributeValueSeeder;
 use Database\Seeders\CategorySeeder;
@@ -44,6 +45,59 @@ test('home renders public props from stored content', function () {
             ->has('featured_products', 1)
             ->where('featured_products.0.name', 'Amber Noir Intense')
             ->where('featured_products.0.image_url', $imageUrl),
+        );
+});
+
+test('public navigation uses all active root database categories for the current locale', function () {
+    $first = publicCategory('first-category', 'Erste Kategorie');
+    $first->update(['sort_order' => 20]);
+    $first->setTranslation('en', 'name', 'First Category');
+
+    $second = publicCategory('second-category', 'Zweite Kategorie');
+    $second->update(['sort_order' => 10]);
+    $second->setTranslation('en', 'name', 'Second Category');
+
+    publicCategory('inactive-category', 'Inaktive Kategorie')->update(['is_active' => false]);
+    Category::factory()->for($second, 'parent')->create(['slug' => 'child-category']);
+
+    $this->get('/en')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('navigation', 2)
+            ->where('navigation.0.slug', 'second-category')
+            ->where('navigation.0.name', 'Second Category')
+            ->where('navigation.1.slug', 'first-category')
+            ->where('navigation.1.name', 'First Category'),
+        );
+});
+
+test('public navigation cache is flushed after dashboard category updates', function () {
+    $admin = User::factory()->create(['is_admin' => true]);
+    $category = publicCategory('old-category', 'Alte Kategorie');
+
+    $this->get('/de')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('navigation.0.name', 'Alte Kategorie'),
+        );
+
+    $this->actingAs($admin)
+        ->put("/dashboard/categories/{$category->id}", [
+            'parent_id' => null,
+            'sort_order' => 0,
+            'is_active' => true,
+            'translations' => [
+                'de' => ['name' => 'Neue Kategorie', 'description' => 'Beschreibung'],
+                'en' => ['name' => '', 'description' => ''],
+                'ar' => ['name' => '', 'description' => ''],
+            ],
+        ])
+        ->assertRedirect('/dashboard/categories');
+
+    $this->get('/de')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('navigation.0.name', 'Neue Kategorie'),
         );
 });
 

@@ -59,6 +59,7 @@ export default function SiteHeader({
                 <div className="flex items-center">
                     <SiteDrawer
                         navigation={navigation}
+                        homeHref={homeHref}
                         locale={locale}
                         contactHref={contactHref}
                         copy={copy}

@@ -61,6 +61,9 @@ export type PublicCopy = {
         whyEyebrow: string;
         whatsappCta: string;
     };
+    navigation: {
+        homepage: string;
+    };
     pagination: {
         label: string;
         next: string;
@@ -146,6 +149,9 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             whyEyebrow: 'Warum wir',
             whatsappCta: 'WhatsApp öffnen',
         },
+        navigation: {
+            homepage: 'Homepage',
+        },
         pagination: {
             label: 'Seitennavigation',
             next: 'Weiter',
@@ -230,6 +236,9 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             whyEyebrow: 'Why us',
             whatsappCta: 'Open WhatsApp',
         },
+        navigation: {
+            homepage: 'Homepage',
+        },
         pagination: {
             label: 'Pagination',
             next: 'Next',
@@ -311,6 +320,9 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             offersTitle: 'عروض حالية مع لحظة عطرية خاصة.',
             whyEyebrow: 'لماذا نحن',
             whatsappCta: 'فتح واتساب',
+        },
+        navigation: {
+            homepage: 'الصفحة الرئيسية',
         },
         pagination: {
             label: 'التنقل بين الصفحات',

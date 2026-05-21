@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Dashboard\StoreCategoryRequest;
 use App\Http\Requests\Dashboard\UpdateCategoryRequest;
 use App\Models\Category;
+use App\Support\PublicCategoryNavigation;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -87,6 +88,8 @@ class CategoryController extends Controller
             return $category;
         });
 
+        PublicCategoryNavigation::flush();
+
         return to_route('dashboard.categories.index')
             ->with('toast', ['type' => 'success', 'message' => 'Kategorie angelegt.']);
     }
@@ -149,6 +152,8 @@ class CategoryController extends Controller
             }
         });
 
+        PublicCategoryNavigation::flush();
+
         return to_route('dashboard.categories.index')
             ->with('toast', ['type' => 'success', 'message' => 'Kategorie gespeichert.']);
     }
@@ -160,6 +165,8 @@ class CategoryController extends Controller
         }
         $category->translations()->delete();
         $category->delete();
+
+        PublicCategoryNavigation::flush();
 
         return to_route('dashboard.categories.index')
             ->with('toast', ['type' => 'success', 'message' => 'Kategorie gelöscht.']);
