@@ -16,8 +16,10 @@ class AttributeValueSeeder extends Seeder
      */
     private const VALUES = [
         'art' => [
+            ['de' => 'Luxus', 'en' => 'Luxury', 'ar' => 'فاخر'],
             ['de' => 'Nische', 'en' => 'Niche', 'ar' => 'نيش'],
             ['de' => 'Designer', 'en' => 'Designer', 'ar' => 'مصمم'],
+            ['de' => 'Arabisch', 'en' => 'Arabic', 'ar' => 'عربي'],
         ],
         'familie' => [
             ['de' => 'Orientalisch', 'en' => 'Oriental', 'ar' => 'شرقي'],
@@ -85,6 +87,15 @@ class AttributeValueSeeder extends Seeder
             ['de' => 'Benzoe', 'en' => 'Benzoin', 'ar' => 'بنزوين'],
             ['de' => 'Labdanum', 'en' => 'Labdanum', 'ar' => 'لادن'],
             ['de' => 'Aldehyde', 'en' => 'Aldehydes', 'ar' => 'ألدهيدات'],
+            ['de' => 'Pistazie', 'en' => 'Pistachio', 'ar' => 'فستق'],
+            ['de' => 'Mandel', 'en' => 'Almond', 'ar' => 'لوز'],
+            ['de' => 'Ambroxan', 'en' => 'Ambroxan', 'ar' => 'أمبروكسان'],
+            ['de' => 'Mango', 'en' => 'Mango', 'ar' => 'مانجو'],
+            ['de' => 'Rum', 'en' => 'Rum', 'ar' => 'روم'],
+            ['de' => 'Kokosnuss', 'en' => 'Coconut', 'ar' => 'جوز الهند'],
+            ['de' => 'Himbeere', 'en' => 'Raspberry', 'ar' => 'توت العليق'],
+            ['de' => 'Ananas', 'en' => 'Pineapple', 'ar' => 'أناناس'],
+            ['de' => 'Aquatische', 'en' => 'Aquatic', 'ar' => 'مائي'],
         ],
     ];
 

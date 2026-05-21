@@ -12,9 +12,9 @@ class AttributeSeeder extends Seeder
      */
     private const ATTRIBUTES = [
         ['code' => 'art', 'translations' => ['de' => 'Art', 'en' => 'Type', 'ar' => 'النوع'], 'is_multiple' => false],
-        ['code' => 'familie', 'translations' => ['de' => 'Familie', 'en' => 'Family', 'ar' => 'العائلة'], 'is_multiple' => true],
-        ['code' => 'stimmung', 'translations' => ['de' => 'Stimmung', 'en' => 'Mood', 'ar' => 'الإحساس'], 'is_multiple' => true],
-        ['code' => 'noten', 'translations' => ['de' => 'Noten', 'en' => 'Notes', 'ar' => 'النوتات'], 'is_multiple' => true],
+        ['code' => 'familie', 'translations' => ['de' => 'Duftfamilie', 'en' => 'Fragrance Family', 'ar' => 'عائلة العطر'], 'is_multiple' => true],
+        ['code' => 'stimmung', 'translations' => ['de' => 'Duftstimmung', 'en' => 'Fragrance Mood', 'ar' => 'مزاج العطر'], 'is_multiple' => true],
+        ['code' => 'noten', 'translations' => ['de' => 'Duftnoten', 'en' => 'Fragrance Notes', 'ar' => 'نوتات العطر'], 'is_multiple' => true],
     ];
 
     public function run(): void

@@ -31,60 +31,6 @@ class CategorySeeder extends Seeder
             'image_path' => 'https://images.unsplash.com/photo-1541643600914-78b084683601?auto=format&fit=crop&w=1400&q=80',
         ],
         [
-            'slug' => 'nischenparfums',
-            'translations' => [
-                'de' => [
-                    'name' => 'Nischenparfums',
-                    'description' => 'Ausdrucksstarke Kompositionen abseits klassischer Duftregale.',
-                ],
-                'en' => [
-                    'name' => 'Niche Perfumes',
-                    'description' => 'Expressive compositions beyond the classic fragrance shelf.',
-                ],
-                'ar' => [
-                    'name' => 'عطور نيش',
-                    'description' => 'تركيبات معبرة بعيدة عن رفوف العطور التقليدية.',
-                ],
-            ],
-            'image_path' => 'https://images.unsplash.com/photo-1594035910387-fea47794261f?auto=format&fit=crop&w=1400&q=80',
-        ],
-        [
-            'slug' => 'designerparfums',
-            'translations' => [
-                'de' => [
-                    'name' => 'Designerparfums',
-                    'description' => 'Bekannte Duftprofile mit moderner Eleganz fuer Alltag, Office und Abend.',
-                ],
-                'en' => [
-                    'name' => 'Designer Perfumes',
-                    'description' => 'Recognizable scent profiles with modern elegance for daily wear, office, and evening.',
-                ],
-                'ar' => [
-                    'name' => 'عطور مصممين',
-                    'description' => 'روائح معروفة بأناقة عصرية للاستخدام اليومي والعمل والمساء.',
-                ],
-            ],
-            'image_path' => 'https://images.unsplash.com/photo-1615634260167-c8cdede054de?auto=format&fit=crop&w=1400&q=80',
-        ],
-        [
-            'slug' => 'arabische-parfums',
-            'translations' => [
-                'de' => [
-                    'name' => 'Arabische Parfums',
-                    'description' => 'Warme Amber-, Oud- und Gewuerzakkorde mit intensiver Praesenz.',
-                ],
-                'en' => [
-                    'name' => 'Arabic Perfumes',
-                    'description' => 'Warm amber, oud, and spice accords with intense presence.',
-                ],
-                'ar' => [
-                    'name' => 'عطور عربية',
-                    'description' => 'اتفاقات دافئة من العنبر والعود والتوابل بحضور قوي.',
-                ],
-            ],
-            'image_path' => 'https://images.unsplash.com/photo-1608528577891-eb055944f2e7?auto=format&fit=crop&w=1400&q=80',
-        ],
-        [
             'slug' => 'damenparfums',
             'translations' => [
                 'de' => [
@@ -137,6 +83,42 @@ class CategorySeeder extends Seeder
                 ],
             ],
             'image_path' => 'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?auto=format&fit=crop&w=1400&q=80',
+        ],
+        [
+            'slug' => 'arabische-parfums',
+            'translations' => [
+                'de' => [
+                    'name' => 'Arabische Parfums',
+                    'description' => 'Warme Amber-, Oud- und Gewuerzakkorde mit intensiver Praesenz.',
+                ],
+                'en' => [
+                    'name' => 'Arabic Perfumes',
+                    'description' => 'Warm amber, oud, and spice accords with intense presence.',
+                ],
+                'ar' => [
+                    'name' => 'عطور عربية',
+                    'description' => 'اتفاقات دافئة من العنبر والعود والتوابل بحضور قوي.',
+                ],
+            ],
+            'image_path' => 'https://images.unsplash.com/photo-1608528577891-eb055944f2e7?auto=format&fit=crop&w=1400&q=80',
+        ],
+        [
+            'slug' => 'sonstige-produkte',
+            'translations' => [
+                'de' => [
+                    'name' => 'Sonstige Produkte',
+                    'description' => 'Weitere Duftprodukte und Accessoires abseits der Hauptkategorien.',
+                ],
+                'en' => [
+                    'name' => 'Other Products',
+                    'description' => 'Additional fragrance products and accessories beyond the main categories.',
+                ],
+                'ar' => [
+                    'name' => 'منتجات أخرى',
+                    'description' => 'منتجات عطرية وإكسسوارات إضافية خارج الفئات الرئيسية.',
+                ],
+            ],
+            'image_path' => 'https://images.unsplash.com/photo-1615634260167-c8cdede054de?auto=format&fit=crop&w=1400&q=80',
         ],
     ];
 

@@ -277,7 +277,7 @@ class ProductCatalogSeeder extends Seeder
                 'brand' => 'Atelier Coast',
                 'short_description' => 'Frische Bergamotte, Meeresnoten und Neroli.',
                 'description' => 'Citrus Marine ist ein sauberer Tagesduft mit spritziger Bergamotte, transparenten Meeresnoten und einem leichten Neroli-Akkord. Besonders passend fuer warme Tage und Office.',
-                'categories' => ['designerparfums', 'herrenparfums', 'unisex-parfums'],
+                'categories' => ['herrenparfums', 'unisex-parfums'],
                 'attributes' => [
                     'art' => ['designer'],
                     'familie' => ['zitrisch', 'aquatisch'],
@@ -298,7 +298,7 @@ class ProductCatalogSeeder extends Seeder
                 'brand' => 'Velvet Room',
                 'short_description' => 'Pudrige Iris mit Moschus, Tonkabohne und sanftem Holz.',
                 'description' => 'Iris Musk Powder wirkt gepflegt, leise und sehr elegant. Iris, Moschus und Tonkabohne bilden ein pudrig-cremiges Profil mit sauberem Sandelholz im Fond.',
-                'categories' => ['nischenparfums', 'damenparfums', 'unisex-parfums'],
+                'categories' => ['damenparfums', 'unisex-parfums'],
                 'attributes' => [
                     'art' => ['nische'],
                     'familie' => ['blumig', 'holzig'],
@@ -319,7 +319,7 @@ class ProductCatalogSeeder extends Seeder
                 'brand' => 'Nocturne',
                 'short_description' => 'Leder, Zedernholz und Tabak in maskuliner Balance.',
                 'description' => 'Cedar Leather Club ist ein trockener, selbstbewusster Duft mit Leder, Zedernholz, Tabak und einem Hauch rosa Pfeffer. Klare Wahl fuer den Abend.',
-                'categories' => ['herrenparfums', 'nischenparfums'],
+                'categories' => ['herrenparfums'],
                 'attributes' => [
                     'art' => ['nische'],
                     'familie' => ['ledrig', 'holzig'],
@@ -361,7 +361,7 @@ class ProductCatalogSeeder extends Seeder
                 'brand' => 'Atelier Coast',
                 'short_description' => 'Zitrische Frische mit Vetiver, gruenem Tee und Moschus.',
                 'description' => 'Bergamot Vetiver bleibt hell, gepflegt und trocken. Gruener Tee und Bergamotte starten frisch, Vetiver und Moschus halten den Duft ruhig und erwachsen.',
-                'categories' => ['designerparfums', 'herrenparfums', 'unisex-parfums'],
+                'categories' => ['herrenparfums', 'unisex-parfums'],
                 'attributes' => [
                     'art' => ['designer'],
                     'familie' => ['zitrisch', 'aromatisch'],
@@ -382,7 +382,7 @@ class ProductCatalogSeeder extends Seeder
                 'brand' => 'Velvet Room',
                 'short_description' => 'Jasmin, Feige und Sandelholz mit seidiger Textur.',
                 'description' => 'Jasmine Fig Silk verbindet helle Blueten mit milchiger Feige und weichem Sandelholz. Ein femininer, moderner Duft mit sanfter Projektion.',
-                'categories' => ['damenparfums', 'nischenparfums'],
+                'categories' => ['damenparfums'],
                 'attributes' => [
                     'art' => ['nische'],
                     'familie' => ['blumig', 'fruchtig'],
@@ -403,7 +403,7 @@ class ProductCatalogSeeder extends Seeder
                 'brand' => 'Nocturne',
                 'short_description' => 'Kaffee, Kardamom und dunkle Schokolade mit Amber.',
                 'description' => 'Coffee Cardamom ist ein markanter Gourmand mit wuerzigem Auftakt. Kaffee, Kardamom und Schokolade treffen auf warmen Amber.',
-                'categories' => ['nischenparfums', 'herrenparfums', 'unisex-parfums'],
+                'categories' => ['herrenparfums', 'unisex-parfums'],
                 'attributes' => [
                     'art' => ['nische'],
                     'familie' => ['gourmand', 'aromatisch'],
@@ -445,7 +445,7 @@ class ProductCatalogSeeder extends Seeder
                 'brand' => 'Atelier Coast',
                 'short_description' => 'Minze, Neroli und Zitrone fuer sehr klare Frische.',
                 'description' => 'Mint Neroli Sport ist hell, aktiv und unkompliziert. Minze und Zitrone starten kuehl, Neroli und Moschus machen den Duft sauber tragbar.',
-                'categories' => ['designerparfums', 'herrenparfums'],
+                'categories' => ['herrenparfums'],
                 'attributes' => [
                     'art' => ['designer'],
                     'familie' => ['zitrisch', 'aromatisch'],

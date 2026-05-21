@@ -311,7 +311,7 @@ test('seeded public navigation and filters use english and arabic translations',
             ->where('navigation.0.name', 'Luxury Perfumes')
             ->where('category.name', "Women's Perfumes")
             ->where('filters.0.name', 'Type')
-            ->where('filters.0.values.0.name', 'Niche'),
+            ->where('filters.0.values.0.name', 'Luxury'),
         );
 
     $this->get('/ar/damenparfums')
@@ -322,7 +322,7 @@ test('seeded public navigation and filters use english and arabic translations',
             ->where('navigation.0.name', 'عطور فاخرة')
             ->where('category.name', 'عطور نسائية')
             ->where('filters.0.name', 'النوع')
-            ->where('filters.0.values.0.name', 'نيش'),
+            ->where('filters.0.values.0.name', 'فاخر'),
         );
 });
 
@@ -403,7 +403,7 @@ test('database seeder provides complete public demo content', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('public/home')
-            ->has('navigation', 7)
+            ->has('navigation', 6)
             ->has('promotions', 2)
             ->has('featured_products', 4)
             ->where('contact.whatsapp_url', 'https://wa.me/491701234567')
