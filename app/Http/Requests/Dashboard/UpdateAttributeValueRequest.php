@@ -5,6 +5,7 @@ namespace App\Http\Requests\Dashboard;
 use App\Http\Requests\Concerns\ValidatesTranslatedFields;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateAttributeValueRequest extends FormRequest
 {
@@ -30,7 +31,14 @@ class UpdateAttributeValueRequest extends FormRequest
     {
         return array_merge(
             [
-                'sort_order' => ['nullable', 'integer', 'min:0'],
+                'sort_order' => [
+                    'nullable',
+                    'integer',
+                    'min:0',
+                    Rule::unique('attribute_values', 'sort_order')
+                        ->where('attribute_id', $this->route('attribute')?->id)
+                        ->ignore($this->route('value')?->id),
+                ],
                 'is_active' => ['required', 'boolean'],
             ],
             $this->translationRules(
@@ -40,5 +48,15 @@ class UpdateAttributeValueRequest extends FormRequest
                 lengths: ['name' => 255],
             ),
         );
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'sort_order.unique' => 'Diese Reihenfolge ist innerhalb dieses Attributs bereits vergeben. Bitte wähle eine andere.',
+        ];
     }
 }

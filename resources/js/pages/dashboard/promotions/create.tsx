@@ -7,7 +7,11 @@ import Heading from '@/components/heading';
 import { adminTitle, dashboardLabels } from '@/lib/de';
 import promotionsRoutes from '@/routes/dashboard/promotions';
 
-export default function PromotionsCreate() {
+type Props = {
+    next_sort_order: number;
+};
+
+export default function PromotionsCreate({ next_sort_order }: Props) {
     return (
         <>
             <Head title={adminTitle('Neue Aktion')} />
@@ -21,7 +25,7 @@ export default function PromotionsCreate() {
                     initial={{
                         starts_at: '',
                         ends_at: '',
-                        sort_order: 0,
+                        sort_order: next_sort_order,
                         is_active: true,
                         translations: emptyTranslations(
                             PROMOTION_TRANSLATION_FIELDS,

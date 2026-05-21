@@ -13,9 +13,10 @@ const FIELDS = [
 
 type Props = {
     parents: CategoryParentOption[];
+    next_sort_order: number;
 };
 
-export default function CategoriesCreate({ parents }: Props) {
+export default function CategoriesCreate({ parents, next_sort_order }: Props) {
     return (
         <>
             <Head title={adminTitle('Neue Kategorie')} />
@@ -29,7 +30,7 @@ export default function CategoriesCreate({ parents }: Props) {
                     parents={parents}
                     initial={{
                         parent_id: null,
-                        sort_order: 0,
+                        sort_order: next_sort_order,
                         is_active: true,
                         image_url: null,
                         translations: emptyTranslations(FIELDS),

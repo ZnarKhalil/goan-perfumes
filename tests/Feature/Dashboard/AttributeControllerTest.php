@@ -62,7 +62,7 @@ test('admin can create an attribute with translations', function () {
 });
 
 test('store rejects duplicate attribute code and missing German name', function () {
-    Attribute::factory()->create(['code' => 'familie']);
+    Attribute::factory()->create(['code' => 'familie', 'sort_order' => 5]);
 
     $this->actingAs($this->admin)
         ->post('/dashboard/attributes', [
@@ -77,6 +77,97 @@ test('store rejects duplicate attribute code and missing German name', function 
             ],
         ])
         ->assertSessionHasErrors(['code', 'translations.de.name']);
+});
+
+test('store rejects an attribute sort order already used by another attribute', function () {
+    Attribute::factory()->create(['code' => 'familie', 'sort_order' => 2]);
+
+    $this->actingAs($this->admin)
+        ->post('/dashboard/attributes', [
+            'code' => 'noten',
+            'sort_order' => 2,
+            'is_filterable' => true,
+            'is_multiple' => true,
+            'translations' => [
+                'de' => ['name' => 'Noten'],
+                'ar' => ['name' => ''],
+                'en' => ['name' => ''],
+            ],
+        ])
+        ->assertSessionHasErrors('sort_order');
+
+    expect(Attribute::count())->toBe(1);
+});
+
+test('an attribute keeps its own sort order on update while another attribute exists', function () {
+    Attribute::factory()->create(['code' => 'familie', 'sort_order' => 0]);
+    $noten = Attribute::factory()->create(['code' => 'noten', 'sort_order' => 1]);
+    $noten->setTranslation('de', 'name', 'Noten');
+
+    $this->actingAs($this->admin)
+        ->put("/dashboard/attributes/{$noten->id}", [
+            'code' => 'noten',
+            'sort_order' => 1,
+            'is_filterable' => true,
+            'is_multiple' => true,
+            'translations' => [
+                'de' => ['name' => 'Duftnoten'],
+                'ar' => ['name' => ''],
+                'en' => ['name' => ''],
+            ],
+        ])
+        ->assertRedirect("/dashboard/attributes/{$noten->id}/edit")
+        ->assertSessionHasNoErrors();
+
+    expect($noten->refresh()->sort_order)->toBe(1);
+});
+
+test('create attribute page suggests the next free sort order', function () {
+    Attribute::factory()->create(['code' => 'familie', 'sort_order' => 0]);
+    Attribute::factory()->create(['code' => 'noten', 'sort_order' => 4]);
+
+    $this->actingAs($this->admin)
+        ->get('/dashboard/attributes/create')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('dashboard/attributes/create')
+            ->where('next_sort_order', 5),
+        );
+});
+
+test('attribute value sort order is unique within an attribute but allowed across attributes', function () {
+    $familie = Attribute::factory()->create(['code' => 'familie']);
+    $noten = Attribute::factory()->create(['code' => 'noten']);
+    AttributeValue::factory()->for($familie)->create(['slug' => 'blumig', 'sort_order' => 0]);
+
+    // Same attribute, same sort order -> rejected.
+    $this->actingAs($this->admin)
+        ->post("/dashboard/attributes/{$familie->id}/values", [
+            'sort_order' => 0,
+            'is_active' => true,
+            'translations' => [
+                'de' => ['name' => 'Holzig'],
+                'ar' => ['name' => ''],
+                'en' => ['name' => ''],
+            ],
+        ])
+        ->assertSessionHasErrors('sort_order');
+
+    // Different attribute, same sort order -> allowed.
+    $this->actingAs($this->admin)
+        ->post("/dashboard/attributes/{$noten->id}/values", [
+            'sort_order' => 0,
+            'is_active' => true,
+            'translations' => [
+                'de' => ['name' => 'Oud'],
+                'ar' => ['name' => ''],
+                'en' => ['name' => ''],
+            ],
+        ])
+        ->assertRedirect("/dashboard/attributes/{$noten->id}/edit")
+        ->assertSessionHasNoErrors();
+
+    expect(AttributeValue::query()->where('attribute_id', $noten->id)->count())->toBe(1);
 });
 
 test('admin can edit an attribute with its values', function () {

@@ -23,6 +23,7 @@ class UpdateCategoryRequest extends FormRequest
     {
         return $this->categoryRules(
             forbiddenParentIds: $this->forbiddenParentIds(),
+            ignoreCategoryId: $this->route('category')?->id,
         );
     }
 

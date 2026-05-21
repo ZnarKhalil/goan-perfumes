@@ -48,7 +48,9 @@ class PromotionController extends Controller
 
     public function create(): Response
     {
-        return Inertia::render('dashboard/promotions/create');
+        return Inertia::render('dashboard/promotions/create', [
+            'next_sort_order' => $this->nextSortOrder(),
+        ]);
     }
 
     public function store(StorePromotionRequest $request): RedirectResponse
@@ -105,6 +107,17 @@ class PromotionController extends Controller
 
         return to_route('dashboard.promotions.index')
             ->with('toast', ['type' => 'success', 'message' => 'Aktion gelöscht.']);
+    }
+
+    /**
+     * The next free sort order, suggested as the default when creating a
+     * promotion so the unique rule is not tripped on the common case.
+     */
+    private function nextSortOrder(): int
+    {
+        $max = Promotion::query()->max('sort_order');
+
+        return $max === null ? 0 : ((int) $max + 1);
     }
 
     /**

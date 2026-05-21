@@ -89,6 +89,37 @@ test('store rejects missing German title and invalid date range', function () {
     expect(Promotion::count())->toBe(0);
 });
 
+test('store rejects a promotion sort order already in use', function () {
+    Promotion::factory()->create(['sort_order' => 2]);
+
+    $this->actingAs($this->admin)
+        ->post('/dashboard/promotions', [
+            'sort_order' => 2,
+            'is_active' => true,
+            'translations' => [
+                'de' => ['title' => 'Aktion'],
+                'ar' => ['title' => ''],
+                'en' => ['title' => ''],
+            ],
+        ])
+        ->assertSessionHasErrors('sort_order');
+
+    expect(Promotion::count())->toBe(1);
+});
+
+test('create promotion page suggests the next free sort order', function () {
+    Promotion::factory()->create(['sort_order' => 0]);
+    Promotion::factory()->create(['sort_order' => 3]);
+
+    $this->actingAs($this->admin)
+        ->get('/dashboard/promotions/create')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('dashboard/promotions/create')
+            ->where('next_sort_order', 4),
+        );
+});
+
 test('admin can update a text-only promotion', function () {
     $promotion = Promotion::factory()->create();
     $promotion->setTranslation('de', 'title', 'Alt');

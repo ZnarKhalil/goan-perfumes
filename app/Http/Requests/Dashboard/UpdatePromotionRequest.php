@@ -20,6 +20,8 @@ class UpdatePromotionRequest extends FormRequest
      */
     public function rules(): array
     {
-        return $this->promotionRules();
+        return $this->promotionRules(
+            ignorePromotionId: $this->route('promotion')?->id,
+        );
     }
 }

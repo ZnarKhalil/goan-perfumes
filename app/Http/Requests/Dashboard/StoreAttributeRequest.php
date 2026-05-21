@@ -29,7 +29,7 @@ class StoreAttributeRequest extends FormRequest
         return array_merge(
             [
                 'code' => ['required', 'string', 'max:255', 'regex:/^[a-z0-9_-]+$/', Rule::unique('attributes', 'code')],
-                'sort_order' => ['nullable', 'integer', 'min:0'],
+                'sort_order' => ['nullable', 'integer', 'min:0', Rule::unique('attributes', 'sort_order')],
                 'is_filterable' => ['required', 'boolean'],
                 'is_multiple' => ['required', 'boolean'],
             ],
@@ -40,5 +40,15 @@ class StoreAttributeRequest extends FormRequest
                 lengths: ['name' => 255],
             ),
         );
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'sort_order.unique' => 'Diese Reihenfolge ist bereits vergeben. Bitte wähle eine andere.',
+        ];
     }
 }

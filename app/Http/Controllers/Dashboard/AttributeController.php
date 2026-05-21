@@ -42,7 +42,9 @@ class AttributeController extends Controller
 
     public function create(): Response
     {
-        return Inertia::render('dashboard/attributes/create');
+        return Inertia::render('dashboard/attributes/create', [
+            'next_sort_order' => $this->nextSortOrder(),
+        ]);
     }
 
     public function store(StoreAttributeRequest $request): RedirectResponse
@@ -131,6 +133,17 @@ class AttributeController extends Controller
 
         return to_route('dashboard.attributes.index')
             ->with('toast', ['type' => 'success', 'message' => 'Attribut gelöscht.']);
+    }
+
+    /**
+     * The next free sort order, suggested as the default when creating an
+     * attribute so the unique rule is not tripped on the common case.
+     */
+    private function nextSortOrder(): int
+    {
+        $max = Attribute::query()->max('sort_order');
+
+        return $max === null ? 0 : ((int) $max + 1);
     }
 
     /**

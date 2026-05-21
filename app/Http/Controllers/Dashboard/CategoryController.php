@@ -54,6 +54,7 @@ class CategoryController extends Controller
     {
         return Inertia::render('dashboard/categories/create', [
             'parents' => $this->parentOptions(),
+            'next_sort_order' => $this->nextSortOrder(),
         ]);
     }
 
@@ -226,6 +227,17 @@ class CategoryController extends Controller
         }
 
         return (int) $value;
+    }
+
+    /**
+     * The next free sort order, suggested as the default when creating a
+     * category so the unique rule is not tripped on the common case.
+     */
+    private function nextSortOrder(): int
+    {
+        $max = Category::query()->max('sort_order');
+
+        return $max === null ? 0 : ((int) $max + 1);
     }
 
     /**

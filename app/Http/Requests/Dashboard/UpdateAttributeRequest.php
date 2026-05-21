@@ -35,7 +35,12 @@ class UpdateAttributeRequest extends FormRequest
                     'regex:/^[a-z0-9_-]+$/',
                     Rule::unique('attributes', 'code')->ignore($this->route('attribute')),
                 ],
-                'sort_order' => ['nullable', 'integer', 'min:0'],
+                'sort_order' => [
+                    'nullable',
+                    'integer',
+                    'min:0',
+                    Rule::unique('attributes', 'sort_order')->ignore($this->route('attribute')),
+                ],
                 'is_filterable' => ['required', 'boolean'],
                 'is_multiple' => ['required', 'boolean'],
             ],
@@ -46,5 +51,15 @@ class UpdateAttributeRequest extends FormRequest
                 lengths: ['name' => 255],
             ),
         );
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'sort_order.unique' => 'Diese Reihenfolge ist bereits vergeben. Bitte wähle eine andere.',
+        ];
     }
 }
