@@ -251,7 +251,10 @@ export default function PageSectionForm({ section, products }: Props) {
                             setData('hero_image', file);
 
                             if (file) {
+                                // Image and video are mutually exclusive.
                                 setData('remove_hero_image', false);
+                                setData('hero_video', null);
+                                setData('remove_hero_video', true);
                             }
                         }}
                         onRemove={() => setData('remove_hero_image', true)}
@@ -270,15 +273,18 @@ export default function PageSectionForm({ section, products }: Props) {
                             setData('hero_video', file);
 
                             if (file) {
+                                // Image and video are mutually exclusive.
                                 setData('remove_hero_video', false);
+                                setData('hero_image', null);
+                                setData('remove_hero_image', true);
                             }
                         }}
                         onRemove={() => setData('remove_hero_video', true)}
                         error={errors.hero_video}
                     />
                     <p className="text-sm text-muted-foreground">
-                        MP4 oder WebM, maximal 20 MB. Das Hero-Bild wird als
-                        Poster und Fallback verwendet.
+                        Bild oder Video – es wird nur eines angezeigt. Video:
+                        MP4 oder WebM, maximal 20 MB.
                     </p>
                 </section>
             )}

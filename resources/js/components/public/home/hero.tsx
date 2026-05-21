@@ -68,7 +68,6 @@ export default function Hero({ hero, copy, ctaHref }: Props) {
 
     const words = hero.title.trim().split(/\s+/);
     const eyebrow = hero.eyebrow ?? copy.home.featuredEyebrow;
-    const hasMedia = Boolean(hero.image_url || hero.video_url);
 
     return (
         <section
@@ -91,18 +90,10 @@ export default function Hero({ hero, copy, ctaHref }: Props) {
                           }
                 }
             >
-                {hero.image_url && (
-                    <img
-                        src={hero.image_url}
-                        alt=""
-                        className="h-auto w-full object-contain object-center sm:h-full sm:object-cover"
-                    />
-                )}
-                {hero.video_url && (
+                {hero.video_url ? (
                     <video
                         key={hero.video_url}
                         className="h-auto w-full object-contain object-center sm:h-full sm:object-cover"
-                        poster={hero.image_url ?? undefined}
                         autoPlay
                         muted
                         loop
@@ -110,8 +101,13 @@ export default function Hero({ hero, copy, ctaHref }: Props) {
                     >
                         <source src={hero.video_url} />
                     </video>
-                )}
-                {!hasMedia && (
+                ) : hero.image_url ? (
+                    <img
+                        src={hero.image_url}
+                        alt=""
+                        className="h-auto w-full object-contain object-center sm:h-full sm:object-cover"
+                    />
+                ) : (
                     <div className="h-[60svh] w-full bg-[radial-gradient(120%_120%_at_30%_20%,#241708,#0b0907)] sm:h-full" />
                 )}
             </motion.div>

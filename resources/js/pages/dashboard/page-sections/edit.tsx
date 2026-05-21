@@ -16,9 +16,11 @@ type Props = {
         type: string;
         payload: {
             image_path?: string | null;
+            video_path?: string | null;
             product_ids?: number[];
         };
         image_url: string | null;
+        video_url: string | null;
         sort_order: number;
         is_active: boolean;
         translations: PageSectionTranslations;

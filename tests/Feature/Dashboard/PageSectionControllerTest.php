@@ -167,6 +167,111 @@ test('admin can remove hero video', function () {
     Storage::disk('public')->assertMissing($oldPath);
 });
 
+test('uploading a hero video removes the existing hero image', function () {
+    Storage::fake('public');
+
+    $section = PageSection::query()->create([
+        'key' => 'hero',
+        'type' => 'image',
+        'payload' => [
+            'image_path' => UploadedFile::fake()
+                ->image('old.jpg')
+                ->store('page-sections/hero', 'public'),
+        ],
+        'sort_order' => 0,
+        'is_active' => true,
+    ]);
+    $oldImage = $section->payload['image_path'];
+
+    $this->actingAs($this->admin)
+        ->post("/dashboard/page-sections/{$section->id}", [
+            '_method' => 'PUT',
+            'hero_video' => UploadedFile::fake()->create('hero.mp4', 1024, 'video/mp4'),
+            'sort_order' => 0,
+            'is_active' => true,
+            'translations' => [
+                'de' => ['title' => 'GOAN Parfums'],
+                'ar' => ['title' => ''],
+                'en' => ['title' => ''],
+            ],
+        ])
+        ->assertRedirect('/dashboard/page-sections');
+
+    $section->refresh();
+
+    expect($section->payload['image_path'])->toBeNull();
+    expect($section->payload['video_path'])->not->toBeNull();
+    Storage::disk('public')->assertMissing($oldImage);
+    Storage::disk('public')->assertExists($section->payload['video_path']);
+});
+
+test('uploading a hero image removes the existing hero video', function () {
+    Storage::fake('public');
+
+    $section = PageSection::query()->create([
+        'key' => 'hero',
+        'type' => 'image',
+        'payload' => [
+            'video_path' => UploadedFile::fake()
+                ->create('old.mp4', 512, 'video/mp4')
+                ->store('page-sections/hero', 'public'),
+        ],
+        'sort_order' => 0,
+        'is_active' => true,
+    ]);
+    $oldVideo = $section->payload['video_path'];
+
+    $this->actingAs($this->admin)
+        ->post("/dashboard/page-sections/{$section->id}", [
+            '_method' => 'PUT',
+            'hero_image' => UploadedFile::fake()->image('hero.jpg', 1600, 900),
+            'sort_order' => 0,
+            'is_active' => true,
+            'translations' => [
+                'de' => ['title' => 'GOAN Parfums'],
+                'ar' => ['title' => ''],
+                'en' => ['title' => ''],
+            ],
+        ])
+        ->assertRedirect('/dashboard/page-sections');
+
+    $section->refresh();
+
+    expect($section->payload['video_path'])->toBeNull();
+    expect($section->payload['image_path'])->not->toBeNull();
+    Storage::disk('public')->assertMissing($oldVideo);
+    Storage::disk('public')->assertExists($section->payload['image_path']);
+});
+
+test('hero rejects an image and a video uploaded together', function () {
+    Storage::fake('public');
+
+    $section = PageSection::query()->create([
+        'key' => 'hero',
+        'type' => 'image',
+        'payload' => [],
+        'sort_order' => 0,
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($this->admin)
+        ->post("/dashboard/page-sections/{$section->id}", [
+            '_method' => 'PUT',
+            'hero_image' => UploadedFile::fake()->image('hero.jpg', 1600, 900),
+            'hero_video' => UploadedFile::fake()->create('hero.mp4', 1024, 'video/mp4'),
+            'sort_order' => 0,
+            'is_active' => true,
+            'translations' => [
+                'de' => ['title' => 'GOAN Parfums'],
+                'ar' => ['title' => ''],
+                'en' => ['title' => ''],
+            ],
+        ])
+        ->assertSessionHasErrors('hero_image');
+
+    expect($section->refresh()->payload)->toBe([]);
+});
+
 test('admin can update about title and body', function () {
     $section = PageSection::query()->create([
         'key' => 'about',

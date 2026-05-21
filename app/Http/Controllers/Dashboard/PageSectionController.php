@@ -93,14 +93,20 @@ class PageSectionController extends Controller
             }
 
             if ($pageSection->key === 'hero' && $request->hasFile('hero_image')) {
+                // The hero shows an image or a video, never both.
                 $this->deleteHeroImage($payload);
+                $this->deleteHeroVideo($payload);
+                $payload['video_path'] = null;
                 $payload['image_path'] = $request
                     ->file('hero_image')
                     ->store('page-sections/hero', 'public');
             }
 
             if ($pageSection->key === 'hero' && $request->hasFile('hero_video')) {
+                // The hero shows an image or a video, never both.
                 $this->deleteHeroVideo($payload);
+                $this->deleteHeroImage($payload);
+                $payload['image_path'] = null;
                 $payload['video_path'] = $request
                     ->file('hero_video')
                     ->store('page-sections/hero', 'public');
@@ -137,7 +143,6 @@ class PageSectionController extends Controller
             $hasVideo = (bool) ($section->payload['video_path'] ?? null);
 
             return match (true) {
-                $hasImage && $hasVideo => 'Bild und Video hinterlegt',
                 $hasVideo => 'Video hinterlegt',
                 $hasImage => 'Bild hinterlegt',
                 default => 'Kein Medium hinterlegt',
