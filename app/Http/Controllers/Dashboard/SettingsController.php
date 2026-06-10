@@ -50,20 +50,21 @@ class SettingsController extends Controller
         $currentLogoPath = Setting::get('logo_path', '');
 
         if ($request->boolean('remove_logo') && $currentLogoPath !== '') {
-            Storage::disk('public')->delete($currentLogoPath);
             Setting::put('logo_path', '');
+            Storage::disk('public')->delete($currentLogoPath);
             $currentLogoPath = '';
         }
 
         if ($request->hasFile('logo')) {
-            if ($currentLogoPath !== '') {
-                Storage::disk('public')->delete($currentLogoPath);
-            }
-
             Setting::put(
                 'logo_path',
                 $request->file('logo')->store('branding', 'public'),
             );
+
+            // Remove the previous file only after the new path is persisted.
+            if ($currentLogoPath !== '') {
+                Storage::disk('public')->delete($currentLogoPath);
+            }
         }
 
         return to_route('dashboard.settings.site.edit')

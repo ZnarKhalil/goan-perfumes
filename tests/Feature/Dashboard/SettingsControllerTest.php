@@ -128,3 +128,17 @@ test('settings validation rejects invalid urls email and locale', function () {
             'default_locale',
         ]);
 });
+
+test('svg logos are rejected', function () {
+    Storage::fake('public');
+
+    $this->actingAs($this->admin)
+        ->post('/dashboard/settings/site', [
+            '_method' => 'PUT',
+            'default_locale' => 'de',
+            'logo' => UploadedFile::fake()->create('logo.svg', 16, 'image/svg+xml'),
+        ])
+        ->assertSessionHasErrors('logo');
+
+    expect(Setting::get('logo_path'))->toBeNull();
+});

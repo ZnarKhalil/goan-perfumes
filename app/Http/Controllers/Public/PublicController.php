@@ -14,11 +14,15 @@ use App\Models\Setting;
 use App\Support\PublicCategoryNavigation;
 use App\Support\PublicLocale;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 abstract class PublicController extends Controller
 {
+    /** @var EloquentCollection<int, Attribute>|null */
+    private ?EloquentCollection $filterableAttributes = null;
+
     protected function layoutProps(): array
     {
         return [
@@ -139,19 +143,7 @@ abstract class PublicController extends Controller
 
     protected function filterGroups(array $selectedFilters, string $categorySlug): array
     {
-        return Attribute::query()
-            ->with([
-                'translations',
-                'values' => fn ($query) => $query
-                    ->with('translations')
-                    ->where('is_active', true)
-                    ->orderBy('sort_order')
-                    ->orderBy('id'),
-            ])
-            ->where('is_filterable', true)
-            ->orderBy('sort_order')
-            ->orderBy('id')
-            ->get()
+        return $this->filterableAttributes()
             ->map(fn (Attribute $attribute) => [
                 'id' => $attribute->id,
                 'code' => $attribute->code,
@@ -174,10 +166,7 @@ abstract class PublicController extends Controller
 
     protected function selectedFilters(array $query): array
     {
-        $validCodes = Attribute::query()
-            ->where('is_filterable', true)
-            ->pluck('code')
-            ->all();
+        $validCodes = $this->filterableAttributes()->pluck('code')->all();
 
         return collect($query)
             ->only($validCodes)
@@ -189,6 +178,29 @@ abstract class PublicController extends Controller
                 ->all())
             ->filter(fn (array $values) => $values !== [])
             ->all();
+    }
+
+    /**
+     * The filterable attributes with their active values, loaded once per
+     * request and shared between selectedFilters() and filterGroups().
+     *
+     * @return EloquentCollection<int, Attribute>
+     */
+    protected function filterableAttributes(): EloquentCollection
+    {
+        return $this->filterableAttributes ??= Attribute::query()
+            ->with([
+                'translations',
+                'values' => fn ($query) => $query
+                    ->with('translations')
+                    ->where('is_active', true)
+                    ->orderBy('sort_order')
+                    ->orderBy('id'),
+            ])
+            ->where('is_filterable', true)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get();
     }
 
     protected function applyFilters(Builder $query, array $selectedFilters): Builder

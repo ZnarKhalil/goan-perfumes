@@ -10,7 +10,17 @@
       "Bash(PEST_NO_OUTPUT_INTERCEPT=1 vendor/bin/pest tests/Feature/Dashboard/CategoryControllerTest.php --filter=\"admin can create\" -v)",
       "Bash(php -r '$r = file_get_contents\\(\"php://stdin\"\\); echo $r;')",
       "Bash(vendor/bin/pest --version)",
-      "Bash(vendor/bin/pest --help)"
+      "Bash(vendor/bin/pest --help)",
+      "Bash(sed -n 20,45p tests/Feature/Dashboard/PageSectionControllerTest.php)",
+      "Bash(sed -n 345,410p tests/Feature/Dashboard/PageSectionControllerTest.php)",
+      "Bash(sed -n 320,340p tests/Feature/Dashboard/ProductControllerTest.php)",
+      "Bash(perl -pi -e \"s/^use App\\\\\\\\\\\\\\\\Models\\\\\\\\\\\\\\\\Product;\\\\n//\" tests/Feature/Dashboard/PageSectionControllerTest.php)",
+      "Bash(sed -n 1,60p tests/Feature/MediaServiceTest.php)",
+      "Bash(sed -n 207,240p tests/Feature/Dashboard/ProductControllerTest.php)",
+      "Bash(sed -n 39,66p tests/Feature/Dashboard/SettingsControllerTest.php)",
+      "Bash(sed -n 183,207p tests/Feature/Dashboard/ProductControllerTest.php)",
+      "Bash(sed -n 360,394p resources/js/pages/public/category.tsx)",
+      "Bash(sed -n 150,170p resources/js/types/public.ts)"
     ]
   },
   "enableAllProjectMcpServers": true,

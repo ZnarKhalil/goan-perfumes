@@ -16,12 +16,15 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class ProductController extends Controller
 {
     private const MAX_FEATURED_PRODUCTS = 4;
+
+    private const PRODUCTS_PER_PAGE = 25;
 
     private const LOCALES = ['de', 'ar', 'en'];
 
@@ -43,29 +46,41 @@ class ProductController extends Controller
             ->withMax('variants', 'price')
             ->withCount('variants')
             ->orderByDesc('id')
-            ->get()
-            ->map(fn (Product $product) => [
-                'id' => $product->id,
-                'slug' => $product->slug,
-                'name' => $product->translate('de', 'name') ?? $product->slug,
-                'brand' => $product->brand,
-                'categories' => $product->categories
-                    ->map(fn (Category $category) => $category->translate('de', 'name') ?? $category->slug)
-                    ->values()
-                    ->all(),
-                'min_price' => $this->decimal($product->variants_min_price),
-                'max_price' => $this->decimal($product->variants_max_price),
-                'variants_count' => $product->variants_count,
-                'is_active' => $product->is_active,
-                'is_featured' => $product->is_featured,
-                'image_url' => $product->primaryMedia?->path
-                    ? Storage::url($product->primaryMedia->path)
-                    : null,
-            ])
-            ->values();
+            ->paginate(self::PRODUCTS_PER_PAGE)
+            ->withQueryString();
 
         return Inertia::render('dashboard/products/index', [
-            'products' => $products,
+            'products' => $products
+                ->getCollection()
+                ->map(fn (Product $product) => [
+                    'id' => $product->id,
+                    'slug' => $product->slug,
+                    'name' => $product->translate('de', 'name') ?? $product->slug,
+                    'brand' => $product->brand,
+                    'categories' => $product->categories
+                        ->map(fn (Category $category) => $category->translate('de', 'name') ?? $category->slug)
+                        ->values()
+                        ->all(),
+                    'min_price' => $this->decimal($product->variants_min_price),
+                    'max_price' => $this->decimal($product->variants_max_price),
+                    'variants_count' => $product->variants_count,
+                    'is_active' => $product->is_active,
+                    'is_featured' => $product->is_featured,
+                    'image_url' => $product->primaryMedia?->path
+                        ? Storage::url($product->primaryMedia->path)
+                        : null,
+                ])
+                ->values()
+                ->all(),
+            'pagination' => [
+                'current_page' => $products->currentPage(),
+                'last_page' => $products->lastPage(),
+                'per_page' => $products->perPage(),
+                'total' => $products->total(),
+                'from' => $products->firstItem(),
+                'to' => $products->lastItem(),
+                'links' => $products->linkCollection()->all(),
+            ],
         ]);
     }
 
@@ -83,6 +98,10 @@ class ProductController extends Controller
         $data = $request->validated();
 
         DB::transaction(function () use ($data, $request): void {
+            if ((bool) $data['is_featured']) {
+                $this->assertFeaturedSlotAvailable();
+            }
+
             $product = new Product([
                 'slug' => '',
                 'brand' => $data['brand'] ?? null,
@@ -169,14 +188,15 @@ class ProductController extends Controller
         $data = $request->validated();
 
         DB::transaction(function () use ($product, $data, $request): void {
+            if ((bool) $data['is_featured']) {
+                $this->assertFeaturedSlotAvailable($product);
+            }
+
             $product->fill([
                 'brand' => $data['brand'] ?? null,
                 'is_active' => (bool) $data['is_active'],
                 'is_featured' => (bool) $data['is_featured'],
             ]);
-
-            $product->slug = '';
-            $product->setSlugSource($data['translations']['de']['name']);
 
             $product->save();
 
@@ -199,15 +219,17 @@ class ProductController extends Controller
     {
         DB::transaction(function () use ($product): void {
             $product->load('media.translations');
+            $mediaPaths = $product->media->pluck('path')->all();
 
             foreach ($product->media as $media) {
-                Storage::disk('public')->delete($media->path);
                 $media->translations()->delete();
                 $media->delete();
             }
 
             $product->translations()->delete();
             $product->delete();
+
+            DB::afterCommit(fn () => Storage::disk('public')->delete($mediaPaths));
         });
 
         return to_route('dashboard.products.index')
@@ -231,6 +253,31 @@ class ProductController extends Controller
             ])
             ->values()
             ->all();
+    }
+
+    /**
+     * Guard the homepage highlight limit inside the write transaction. The
+     * locked count keeps two concurrent saves from both claiming the last
+     * free slot.
+     *
+     * @throws ValidationException
+     */
+    private function assertFeaturedSlotAvailable(?Product $product = null): void
+    {
+        $used = Product::query()
+            ->where('is_featured', true)
+            ->when(
+                $product instanceof Product,
+                fn ($query) => $query->whereKeyNot($product->id),
+            )
+            ->lockForUpdate()
+            ->count();
+
+        if ($used >= self::MAX_FEATURED_PRODUCTS) {
+            throw ValidationException::withMessages([
+                'is_featured' => 'Es sind bereits 4 Highlights ausgewählt. Entferne zuerst ein Highlight, um ein neues hinzuzufügen.',
+            ]);
+        }
     }
 
     /**

@@ -128,22 +128,19 @@ class CategoryController extends Controller
                 'is_active' => (bool) $data['is_active'],
             ]);
 
-            $category->slug = '';
-            $category->setSlugSource($data['translations']['de']['name']);
-
             $category->save();
 
             $this->syncTranslations($category, $data['translations'] ?? []);
 
             if ($request->boolean('remove_image') && $category->image_path) {
-                Storage::disk('public')->delete($category->image_path);
+                $this->deleteFileAfterCommit($category->image_path);
                 $category->image_path = null;
                 $category->save();
             }
 
             if ($request->hasFile('image')) {
                 if ($category->image_path) {
-                    Storage::disk('public')->delete($category->image_path);
+                    $this->deleteFileAfterCommit($category->image_path);
                 }
                 $category->image_path = $request->file('image')->store(
                     'categories/banners',
@@ -161,11 +158,13 @@ class CategoryController extends Controller
 
     public function destroy(Category $category): RedirectResponse
     {
-        if ($category->image_path) {
-            Storage::disk('public')->delete($category->image_path);
-        }
-        $category->translations()->delete();
-        $category->delete();
+        DB::transaction(function () use ($category): void {
+            if ($category->image_path) {
+                $this->deleteFileAfterCommit($category->image_path);
+            }
+            $category->translations()->delete();
+            $category->delete();
+        });
 
         PublicCategoryNavigation::flush();
 
@@ -218,6 +217,15 @@ class CategoryController extends Controller
         }
 
         return $ids;
+    }
+
+    /**
+     * Remove the file only once the surrounding transaction has committed so
+     * a rollback never leaves a row pointing at a deleted file.
+     */
+    private function deleteFileAfterCommit(string $path): void
+    {
+        DB::afterCommit(fn () => Storage::disk('public')->delete($path));
     }
 
     private function normalizeParentId(int|string|null $value): ?int

@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\PageSection;
-use App\Models\Product;
 use App\Models\User;
 use Database\Seeders\PageSectionSeeder;
 use Illuminate\Http\UploadedFile;
@@ -23,12 +22,11 @@ test('page section seeder creates the fixed sections idempotently', function () 
     $this->seed(PageSectionSeeder::class);
     $this->seed(PageSectionSeeder::class);
 
-    expect(PageSection::query()->count())->toBe(4);
+    expect(PageSection::query()->count())->toBe(3);
     expect(PageSection::query()->pluck('key')->all())->toEqualCanonicalizing([
         'hero',
         'about',
         'why_us',
-        'featured_products',
     ]);
 });
 
@@ -43,7 +41,7 @@ test('admin can list page sections with status badges data', function () {
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->component('dashboard/page-sections/index')
-            ->has('sections', 4)
+            ->has('sections', 3)
             ->where('sections.0.key', 'hero')
             ->where('sections.0.title', 'Start Hero')
             ->where('sections.0.is_active', true),
@@ -348,62 +346,6 @@ test('admin can update why us bullet points and read them back', function () {
         );
 });
 
-test('admin can update featured product ids in order', function () {
-    $products = Product::factory()->count(3)->create();
-    $products->each(fn (Product $product, int $index) => $product
-        ->setTranslation('de', 'name', "Produkt {$index}"));
-
-    $section = PageSection::query()->create([
-        'key' => 'featured_products',
-        'type' => 'product_list',
-        'payload' => ['product_ids' => []],
-        'sort_order' => 30,
-        'is_active' => true,
-    ]);
-
-    $this->actingAs($this->admin)
-        ->put("/dashboard/page-sections/{$section->id}", [
-            'sort_order' => 30,
-            'is_active' => true,
-            'payload' => [
-                'product_ids' => [
-                    $products[2]->id,
-                    $products[0]->id,
-                ],
-            ],
-            'translations' => [
-                'de' => ['title' => 'Highlights'],
-                'ar' => ['title' => ''],
-                'en' => ['title' => ''],
-            ],
-        ])
-        ->assertRedirect('/dashboard/page-sections');
-
-    expect($section->refresh()->payload['product_ids'])->toBe([
-        $products[2]->id,
-        $products[0]->id,
-    ]);
-});
-
-test('featured products reject missing product ids', function () {
-    $section = PageSection::query()->create([
-        'key' => 'featured_products',
-        'type' => 'product_list',
-        'payload' => ['product_ids' => []],
-        'sort_order' => 30,
-        'is_active' => true,
-    ]);
-
-    $this->actingAs($this->admin)
-        ->put("/dashboard/page-sections/{$section->id}", [
-            'sort_order' => 30,
-            'is_active' => true,
-            'payload' => ['product_ids' => [999999]],
-            'translations' => [
-                'de' => ['title' => 'Highlights'],
-                'ar' => ['title' => ''],
-                'en' => ['title' => ''],
-            ],
-        ])
-        ->assertSessionHasErrors('payload.product_ids.0');
+test('the featured products section is removed by the cleanup migration', function () {
+    expect(PageSection::query()->where('key', 'featured_products')->exists())->toBeFalse();
 });

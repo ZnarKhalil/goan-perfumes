@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Dashboard;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Dashboard\UpdatePageSectionRequest;
 use App\Models\PageSection;
-use App\Models\Product;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -27,7 +26,6 @@ class PageSectionController extends Controller
         'hero' => 'Hero',
         'about' => 'Über uns',
         'why_us' => 'Warum GOAN',
-        'featured_products' => 'Ausgewählte Produkte',
     ];
 
     public function index(): Response
@@ -71,7 +69,6 @@ class PageSectionController extends Controller
                 'is_active' => $pageSection->is_active,
                 'translations' => $this->translationsAsTabs($pageSection),
             ],
-            'products' => $this->productOptions(),
         ]);
     }
 
@@ -80,7 +77,7 @@ class PageSectionController extends Controller
         $data = $request->validated();
 
         DB::transaction(function () use ($pageSection, $data, $request): void {
-            $payload = $this->payloadFor($pageSection, $data);
+            $payload = $pageSection->payload ?? [];
 
             if ($pageSection->key === 'hero' && $request->boolean('remove_hero_image')) {
                 $this->deleteHeroImage($payload);
@@ -132,12 +129,6 @@ class PageSectionController extends Controller
 
     private function summaryFor(PageSection $section): string
     {
-        if ($section->key === 'featured_products') {
-            $count = count($section->payload['product_ids'] ?? []);
-
-            return "{$count} Produkte ausgewählt";
-        }
-
         if ($section->key === 'hero') {
             $hasImage = (bool) ($section->payload['image_path'] ?? null);
             $hasVideo = (bool) ($section->payload['video_path'] ?? null);
@@ -159,30 +150,11 @@ class PageSectionController extends Controller
     }
 
     /**
-     * @param  array<string, mixed>  $data
-     * @return array<string, mixed>
-     */
-    private function payloadFor(PageSection $section, array $data): array
-    {
-        $payload = $section->payload ?? [];
-
-        if ($section->key === 'featured_products') {
-            return [
-                'product_ids' => array_values($data['payload']['product_ids'] ?? []),
-            ];
-        }
-
-        return $payload;
-    }
-
-    /**
      * @param  array<string, mixed>  $payload
      */
     private function deleteHeroImage(array $payload): void
     {
-        if (! empty($payload['image_path'])) {
-            Storage::disk('public')->delete($payload['image_path']);
-        }
+        $this->deleteFileAfterCommit($payload['image_path'] ?? null);
     }
 
     /**
@@ -190,8 +162,17 @@ class PageSectionController extends Controller
      */
     private function deleteHeroVideo(array $payload): void
     {
-        if (! empty($payload['video_path'])) {
-            Storage::disk('public')->delete($payload['video_path']);
+        $this->deleteFileAfterCommit($payload['video_path'] ?? null);
+    }
+
+    /**
+     * Remove the file only once the surrounding transaction has committed so
+     * a rollback never leaves a payload pointing at a deleted file.
+     */
+    private function deleteFileAfterCommit(?string $path): void
+    {
+        if (! empty($path)) {
+            DB::afterCommit(fn () => Storage::disk('public')->delete($path));
         }
     }
 
@@ -207,25 +188,6 @@ class PageSectionController extends Controller
         $videoPath = $section->payload['video_path'] ?? null;
 
         return $videoPath ? Storage::url($videoPath) : null;
-    }
-
-    /**
-     * @return array<int, array{id: int, name: string, brand: ?string}>
-     */
-    private function productOptions(): array
-    {
-        return Product::query()
-            ->with('translations')
-            ->where('is_active', true)
-            ->orderByDesc('id')
-            ->get()
-            ->map(fn (Product $product) => [
-                'id' => $product->id,
-                'name' => $product->translate('de', 'name') ?? $product->slug,
-                'brand' => $product->brand,
-            ])
-            ->values()
-            ->all();
     }
 
     /**

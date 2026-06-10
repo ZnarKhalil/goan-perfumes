@@ -5,9 +5,11 @@ namespace App\Services;
 use App\Models\Media;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
+use Throwable;
 
 class MediaService
 {
@@ -48,44 +50,56 @@ class MediaService
         $this->deleteRemoved($model, $removedIds, $disk);
 
         $primaryAssigned = false;
+        $storedPaths = [];
 
-        foreach ($meta['existing'] ?? [] as $item) {
-            $media = $model->media()
-                ->whereKey($item['id'] ?? null)
-                ->first();
+        try {
+            foreach ($meta['existing'] ?? [] as $item) {
+                $media = $model->media()
+                    ->whereKey($item['id'] ?? null)
+                    ->first();
 
-            if (! $media instanceof Media) {
-                continue;
+                if (! $media instanceof Media) {
+                    continue;
+                }
+
+                $isPrimary = $this->boolean($item['is_primary'] ?? false) && ! $primaryAssigned;
+                $primaryAssigned = $primaryAssigned || $isPrimary;
+
+                $media->update([
+                    'sort_order' => (int) ($item['sort_order'] ?? $media->sort_order),
+                    'is_primary' => $isPrimary,
+                    'alt_text' => $this->altTextFallback($item['alt_text'] ?? null),
+                ]);
+
+                $this->syncAltTextTranslations($media, $item['alt_text'] ?? []);
             }
 
-            $isPrimary = $this->boolean($item['is_primary'] ?? false) && ! $primaryAssigned;
-            $primaryAssigned = $primaryAssigned || $isPrimary;
+            foreach ($uploads as $index => $upload) {
+                $item = $meta['new'][$index] ?? [];
+                $isPrimary = $this->boolean($item['is_primary'] ?? false) && ! $primaryAssigned;
+                $primaryAssigned = $primaryAssigned || $isPrimary;
 
-            $media->update([
-                'sort_order' => (int) ($item['sort_order'] ?? $media->sort_order),
-                'is_primary' => $isPrimary,
-                'alt_text' => $this->altTextFallback($item['alt_text'] ?? null),
-            ]);
+                $path = $this->storeUpload($model, $upload, $disk);
+                $storedPaths[] = $path;
 
-            $this->syncAltTextTranslations($media, $item['alt_text'] ?? []);
+                $media = $model->media()->create([
+                    'path' => $path,
+                    'sort_order' => (int) ($item['sort_order'] ?? $index),
+                    'is_primary' => $isPrimary,
+                    'alt_text' => $this->altTextFallback($item['alt_text'] ?? null),
+                ]);
+
+                $this->syncAltTextTranslations($media, $item['alt_text'] ?? []);
+            }
+
+            $this->ensurePrimary($model);
+        } catch (Throwable $exception) {
+            // The surrounding transaction rolls the rows back; remove the
+            // files stored in this call so they don't linger as orphans.
+            Storage::disk($disk)->delete($storedPaths);
+
+            throw $exception;
         }
-
-        foreach ($uploads as $index => $upload) {
-            $item = $meta['new'][$index] ?? [];
-            $isPrimary = $this->boolean($item['is_primary'] ?? false) && ! $primaryAssigned;
-            $primaryAssigned = $primaryAssigned || $isPrimary;
-
-            $media = $model->media()->create([
-                'path' => $this->storeUpload($model, $upload, $disk),
-                'sort_order' => (int) ($item['sort_order'] ?? $index),
-                'is_primary' => $isPrimary,
-                'alt_text' => $this->altTextFallback($item['alt_text'] ?? null),
-            ]);
-
-            $this->syncAltTextTranslations($media, $item['alt_text'] ?? []);
-        }
-
-        $this->ensurePrimary($model);
     }
 
     /**
@@ -115,9 +129,12 @@ class MediaService
             ->whereKey($removedIds)
             ->get()
             ->each(function (Media $media) use ($disk): void {
-                Storage::disk($disk)->delete($media->path);
                 $media->translations()->delete();
                 $media->delete();
+
+                // Only remove the file once the surrounding transaction has
+                // committed; a rollback must not leave rows without files.
+                DB::afterCommit(fn () => Storage::disk($disk)->delete($media->path));
             });
     }
 

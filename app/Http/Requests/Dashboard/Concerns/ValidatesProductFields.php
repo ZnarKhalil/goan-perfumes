@@ -13,8 +13,6 @@ trait ValidatesProductFields
 {
     use ValidatesTranslatedFields;
 
-    private const MAX_FEATURED_PRODUCTS = 4;
-
     /**
      * Slugs and SEO meta are derived on the server from the German name and
      * descriptions; they are never accepted from the request.
@@ -79,7 +77,6 @@ trait ValidatesProductFields
                 $this->validateSingleSelectAttributeValues($validator);
                 $this->validateVariantOwnership($validator);
                 $this->validateMediaOwnership($validator);
-                $this->validateFeaturedLimit($validator);
             },
         ];
     }
@@ -190,29 +187,6 @@ trait ValidatesProductFields
 
         if ($ownedCount !== $ids->count()) {
             $validator->errors()->add('media_meta', 'Mindestens ein Bild gehört nicht zu diesem Produkt.');
-        }
-    }
-
-    private function validateFeaturedLimit(Validator $validator): void
-    {
-        if (! filter_var($this->input('is_featured'), FILTER_VALIDATE_BOOLEAN)) {
-            return;
-        }
-
-        $product = $this->route('product');
-        $featuredCount = Product::query()
-            ->where('is_featured', true)
-            ->when(
-                $product instanceof Product,
-                fn ($query) => $query->whereKeyNot($product->id),
-            )
-            ->count();
-
-        if ($featuredCount >= self::MAX_FEATURED_PRODUCTS) {
-            $validator->errors()->add(
-                'is_featured',
-                'Es sind bereits 4 Highlights ausgewählt. Entferne zuerst ein Highlight, um ein neues hinzuzufügen.',
-            );
         }
     }
 }

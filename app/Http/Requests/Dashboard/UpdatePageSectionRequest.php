@@ -5,7 +5,6 @@ namespace App\Http\Requests\Dashboard;
 use App\Models\PageSection;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class UpdatePageSectionRequest extends FormRequest
 {
@@ -54,16 +53,6 @@ class UpdatePageSectionRequest extends FormRequest
             $rules['translations.de.title'] = ['required', 'string', 'max:255'];
             $rules['translations.de.bullet_points'] = ['required', 'array', 'min:1'];
             $rules['translations.de.bullet_points.*'] = ['required', 'string', 'max:255'];
-        }
-
-        if ($pageSection?->key === 'featured_products') {
-            $rules['payload'] = ['required', 'array'];
-            $rules['payload.product_ids'] = ['nullable', 'array'];
-            $rules['payload.product_ids.*'] = [
-                'integer',
-                'distinct',
-                Rule::exists('products', 'id'),
-            ];
         }
 
         return $rules;

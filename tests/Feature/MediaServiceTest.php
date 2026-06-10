@@ -4,6 +4,7 @@ use App\Models\Media;
 use App\Models\Product;
 use App\Services\MediaService;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 test('media service creates uploaded media rows with metadata and translations', function () {
@@ -133,3 +134,59 @@ test('media service rejects unsaved models', function () {
 
     (new MediaService)->syncFromRequest($product, [], []);
 })->throws(InvalidArgumentException::class);
+
+test('removed media files are kept when the surrounding transaction rolls back', function () {
+    Storage::fake('public');
+
+    $product = Product::factory()->create();
+    $path = UploadedFile::fake()
+        ->image('keep.jpg')
+        ->store('media/products/'.$product->id, 'public');
+    $media = $product->media()->create([
+        'path' => $path,
+        'sort_order' => 0,
+        'is_primary' => true,
+    ]);
+
+    try {
+        DB::transaction(function () use ($product, $media): void {
+            (new MediaService)->syncFromRequest(
+                model: $product,
+                uploads: [],
+                meta: ['removed' => [$media->id]],
+            );
+
+            throw new RuntimeException('boom');
+        });
+    } catch (RuntimeException) {
+        // Expected: the transaction rolled back.
+    }
+
+    expect(Media::query()->whereKey($media->id)->exists())->toBeTrue();
+    Storage::disk('public')->assertExists($path);
+});
+
+test('removed media files are deleted once the transaction commits', function () {
+    Storage::fake('public');
+
+    $product = Product::factory()->create();
+    $path = UploadedFile::fake()
+        ->image('gone.jpg')
+        ->store('media/products/'.$product->id, 'public');
+    $media = $product->media()->create([
+        'path' => $path,
+        'sort_order' => 0,
+        'is_primary' => true,
+    ]);
+
+    DB::transaction(function () use ($product, $media): void {
+        (new MediaService)->syncFromRequest(
+            model: $product,
+            uploads: [],
+            meta: ['removed' => [$media->id]],
+        );
+    });
+
+    expect(Media::query()->whereKey($media->id)->exists())->toBeFalse();
+    Storage::disk('public')->assertMissing($path);
+});

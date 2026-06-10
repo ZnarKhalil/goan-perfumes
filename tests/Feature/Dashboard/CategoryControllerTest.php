@@ -219,7 +219,7 @@ test('admin can update an existing category and replace its banner', function ()
 
     $category->refresh();
 
-    expect($category->slug)->toBe('neu');
+    expect($category->slug)->toBe('old-slug');
     expect($category->is_active)->toBeFalse();
     expect($category->sort_order)->toBe(9);
     expect($category->translate('de', 'name'))->toBe('Neu');

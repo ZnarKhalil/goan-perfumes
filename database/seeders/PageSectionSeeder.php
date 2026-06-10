@@ -121,14 +121,6 @@ class PageSectionSeeder extends Seeder
                     ],
                 ],
             ],
-            [
-                'key' => 'featured_products',
-                'type' => 'product_list',
-                'payload' => ['product_ids' => []],
-                'sort_order' => 30,
-                'is_active' => true,
-                'translations' => [],
-            ],
         ];
     }
 }

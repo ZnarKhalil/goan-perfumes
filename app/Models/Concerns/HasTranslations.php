@@ -37,7 +37,10 @@ trait HasTranslations
         if ($this->relationLoaded('translations')) {
             $this->setRelation(
                 'translations',
-                $this->translations()->getResults(),
+                $this->translations
+                    ->reject(fn (Translation $t) => $t->locale === $locale && $t->field === $field)
+                    ->push($translation)
+                    ->values(),
             );
         }
 
