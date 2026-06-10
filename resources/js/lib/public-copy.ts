@@ -25,6 +25,9 @@ export type PublicCopy = {
             total: number,
         ) => string;
         reset: string;
+        search: string;
+        clearSearch: string;
+        noFilterResults: string;
     };
     contact: {
         directExchangeBody: string;
@@ -110,6 +113,9 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             results: (from, to, total) =>
                 `Ergebnisse ${from ?? 0}-${to ?? 0} von ${total}`,
             reset: 'Zurücksetzen',
+            search: 'Filter suchen',
+            clearSearch: 'Suche löschen',
+            noFilterResults: 'Keine Filter gefunden.',
         },
         contact: {
             directExchangeBody:
@@ -196,6 +202,9 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             results: (from, to, total) =>
                 `Results ${from ?? 0}-${to ?? 0} of ${total}`,
             reset: 'Reset',
+            search: 'Search filters',
+            clearSearch: 'Clear search',
+            noFilterResults: 'No filters found.',
         },
         contact: {
             directExchangeBody:
@@ -283,6 +292,9 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             results: (from, to, total) =>
                 `النتائج ${from ?? 0}-${to ?? 0} من ${total}`,
             reset: 'إعادة ضبط',
+            search: 'بحث في الفلاتر',
+            clearSearch: 'مسح البحث',
+            noFilterResults: 'لم يتم العثور على فلاتر.',
         },
         contact: {
             directExchangeBody:
