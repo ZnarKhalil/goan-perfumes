@@ -334,7 +334,7 @@ function FilterGroup({
                 />
             </button>
             {isExpanded && (
-                <div className="max-h-72 overflow-y-auto border-t border-white/10 px-4 py-4">
+                <div className="border-t border-white/10 px-4 py-4">
                     <div className="flex flex-wrap gap-2">
                         {group.values.map((value) => (
                             <FilterChip

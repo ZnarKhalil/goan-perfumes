@@ -1933,7 +1933,17 @@ final class PerfumeCatalog
                         2 => 'sauber',
                     ],
                     'noten' => [
-                        0 => 'aprikose-galbanum-himbeere-hyazinthe-jasmin-moschus-pfirsich-rose-sandelholz-ylang-ylang-zedernholz',
+                        0 => 'aprikose',
+                        1 => 'galbanum',
+                        2 => 'himbeere',
+                        3 => 'hyazinthe',
+                        4 => 'jasmin',
+                        5 => 'moschus',
+                        6 => 'pfirsich',
+                        7 => 'rose',
+                        8 => 'sandelholz',
+                        9 => 'ylang-ylang',
+                        10 => 'zedernholz',
                     ],
                 ],
                 'variants' => [
@@ -6075,7 +6085,15 @@ final class PerfumeCatalog
                         2 => 'anziehend',
                     ],
                     'noten' => [
-                        0 => 'amber-basilikum-grapefruit-ingwer-kardamom-koriander-orangenbluete-tabak-zedernholz',
+                        0 => 'amber',
+                        1 => 'basilikum',
+                        2 => 'grapefruit',
+                        3 => 'ingwer',
+                        4 => 'kardamom',
+                        5 => 'koriander',
+                        6 => 'orangenbluete',
+                        7 => 'tabak',
+                        8 => 'zedernholz',
                     ],
                 ],
                 'variants' => [
@@ -11515,7 +11533,13 @@ final class PerfumeCatalog
                         2 => 'unvergesslich',
                     ],
                     'noten' => [
-                        0 => 'bulgarische-damaszener-rose-tuerkische-damaszener-rose-absolue-laotisches-oud-vanille-siam-benzoe-veilchen-amber',
+                        0 => 'bulgarische-damaszener-rose',
+                        1 => 'tuerkische-damaszener-rose-absolue',
+                        2 => 'laotisches-oud',
+                        3 => 'vanille',
+                        4 => 'siam-benzoe',
+                        5 => 'veilchen',
+                        6 => 'amber',
                     ],
                 ],
                 'variants' => [
@@ -12499,124 +12523,124 @@ final class PerfumeCatalog
                     'name' => 'Pimentblatt',
                 ],
                 99 => [
-                    'slug' => 'aprikose-galbanum-himbeere-hyazinthe-jasmin-moschus-pfirsich-rose-sandelholz-ylang-ylang-zedernholz',
-                    'name' => 'Aprikose, Galbanum, Himbeere, Hyazinthe, Jasmin, Moschus, Pfirsich, Rose, Sandelholz, Ylang-Ylang, Zedernholz',
+                    'slug' => 'galbanum',
+                    'name' => 'Galbanum',
                 ],
                 100 => [
+                    'slug' => 'hyazinthe',
+                    'name' => 'Hyazinthe',
+                ],
+                101 => [
                     'slug' => 'freesie',
                     'name' => 'Freesie',
                 ],
-                101 => [
+                102 => [
                     'slug' => 'eichenmoos',
                     'name' => 'Eichenmoos',
                 ],
-                102 => [
+                103 => [
                     'slug' => 'grapefruit',
                     'name' => 'Grapefruit',
                 ],
-                103 => [
+                104 => [
                     'slug' => 'tuerkische-damaszener-rose',
                     'name' => 'Türkische Damaszener-Rose',
                 ],
-                104 => [
+                105 => [
                     'slug' => 'weihrauch',
                     'name' => 'Weihrauch',
                 ],
-                105 => [
+                106 => [
                     'slug' => 'holzige-noten',
                     'name' => 'Holzige Noten',
                 ],
-                106 => [
+                107 => [
                     'slug' => 'moos',
                     'name' => 'Moos',
                 ],
-                107 => [
+                108 => [
                     'slug' => 'ambroxan',
                     'name' => 'Ambroxan',
                 ],
-                108 => [
+                109 => [
                     'slug' => 'bitterorangenbluete',
                     'name' => 'Bitterorangenblüte',
                 ],
-                109 => [
+                110 => [
                     'slug' => 'jasmin-sambac-absolue',
                     'name' => 'Jasmin-Sambac Absolue',
                 ],
-                110 => [
+                111 => [
                     'slug' => 'siam-benzoe',
                     'name' => 'Siam-Benzoe',
                 ],
-                111 => [
+                112 => [
                     'slug' => 'tangerine',
                     'name' => 'Tangerine',
                 ],
-                112 => [
+                113 => [
                     'slug' => 'tunesische-orangenbluete-absolue',
                     'name' => 'Tunesische Orangenblüte Absolue',
                 ],
-                113 => [
+                114 => [
                     'slug' => 'lotus',
                     'name' => 'Lotus',
                 ],
-                114 => [
+                115 => [
                     'slug' => 'mairose',
                     'name' => 'Mairose',
                 ],
-                115 => [
+                116 => [
                     'slug' => 'melone',
                     'name' => 'Melone',
                 ],
-                116 => [
+                117 => [
                     'slug' => 'quitte',
                     'name' => 'Quitte',
                 ],
-                117 => [
+                118 => [
                     'slug' => 'schwarze-johannisbeere',
                     'name' => 'Schwarze Johannisbeere',
                 ],
-                118 => [
+                119 => [
                     'slug' => 'seerose',
                     'name' => 'Seerose',
                 ],
-                119 => [
+                120 => [
                     'slug' => 'veilchenwurzel',
                     'name' => 'Veilchenwurzel',
                 ],
-                120 => [
+                121 => [
                     'slug' => 'weissdorn',
                     'name' => 'Weißdorn',
                 ],
-                121 => [
+                122 => [
                     'slug' => 'zitrische-noten',
                     'name' => 'Zitrische Noten',
                 ],
-                122 => [
+                123 => [
                     'slug' => 'cognac',
                     'name' => 'Cognac',
                 ],
-                123 => [
+                124 => [
                     'slug' => 'tabak',
                     'name' => 'Tabak',
                 ],
-                124 => [
+                125 => [
                     'slug' => 'kastanie',
                     'name' => 'Kastanie',
                 ],
-                125 => [
+                126 => [
                     'slug' => 'seide',
                     'name' => 'Seide',
                 ],
-                126 => [
+                127 => [
                     'slug' => 'rote-pfingstrose',
                     'name' => 'Rote Pfingstrose',
                 ],
-                127 => [
+                128 => [
                     'slug' => 'tulpen',
                     'name' => 'Tulpen',
-                ],
-                128 => [
-                    'slug' => 'hyazinthe',
-                    'name' => 'Hyazinthe',
                 ],
                 129 => [
                     'slug' => 'kamelie',
@@ -13043,8 +13067,8 @@ final class PerfumeCatalog
                     'name' => 'Mango',
                 ],
                 235 => [
-                    'slug' => 'amber-basilikum-grapefruit-ingwer-kardamom-koriander-orangenbluete-tabak-zedernholz',
-                    'name' => 'Amber, Basilikum, Grapefruit, Ingwer, Kardamom, Koriander, Orangenblüte, Tabak, Zedernholz',
+                    'slug' => 'koriander',
+                    'name' => 'Koriander',
                 ],
                 236 => [
                     'slug' => 'atlaszeder',
@@ -13067,524 +13091,524 @@ final class PerfumeCatalog
                     'name' => 'Papaya',
                 ],
                 241 => [
-                    'slug' => 'koriander',
-                    'name' => 'Koriander',
-                ],
-                242 => [
                     'slug' => 'iriswurzel',
                     'name' => 'Iriswurzel',
                 ],
-                243 => [
+                242 => [
                     'slug' => 'kiefer',
                     'name' => 'Kiefer',
                 ],
-                244 => [
+                243 => [
                     'slug' => 'petitgrain',
                     'name' => 'Petitgrain',
                 ],
-                245 => [
+                244 => [
                     'slug' => 'wacholderbeere',
                     'name' => 'Wacholderbeere',
                 ],
-                246 => [
+                245 => [
                     'slug' => 'blaetter',
                     'name' => 'Blätter',
                 ],
-                247 => [
+                246 => [
                     'slug' => 'heliotrop',
                     'name' => 'Heliotrop',
                 ],
-                248 => [
+                247 => [
                     'slug' => 'zypresse',
                     'name' => 'Zypresse',
                 ],
-                249 => [
+                248 => [
                     'slug' => 'java-vetiver',
                     'name' => 'Java-Vetiver',
                 ],
-                250 => [
+                249 => [
                     'slug' => 'primofiore-zitrone',
                     'name' => 'Primofiore-Zitrone',
                 ],
-                251 => [
+                250 => [
                     'slug' => 'rum-absolue',
                     'name' => 'Rum Absolue',
                 ],
-                252 => [
+                251 => [
                     'slug' => 'styrax',
                     'name' => 'Styrax',
                 ],
-                253 => [
+                252 => [
                     'slug' => 'tabak-absolue',
                     'name' => 'Tabak Absolue',
                 ],
-                254 => [
+                253 => [
                     'slug' => 'brasilianische-tonkabohne',
                     'name' => 'Brasilianische Tonkabohne',
                 ],
-                255 => [
+                254 => [
                     'slug' => 'cade-holz',
                     'name' => 'Cade-Holz',
                 ],
-                256 => [
+                255 => [
                     'slug' => 'guatemala-kardamom',
                     'name' => 'Guatemala-Kardamom',
                 ],
-                257 => [
+                256 => [
                     'slug' => 'kalabrische-zitrone',
                     'name' => 'Kalabrische Zitrone',
                 ],
-                258 => [
+                257 => [
                     'slug' => 'kakao-absolue',
                     'name' => 'Kakao Absolue',
                 ],
-                259 => [
+                258 => [
                     'slug' => 'weisser-pfeffer',
                     'name' => 'Weißer Pfeffer',
                 ],
-                260 => [
+                259 => [
                     'slug' => 'elemiharz',
                     'name' => 'Elemiharz',
                 ],
-                261 => [
+                260 => [
                     'slug' => 'rosengeranie-absolue',
                     'name' => 'Rosengeranie Absolue',
                 ],
-                262 => [
+                261 => [
                     'slug' => 'artemisia',
                     'name' => 'Artemisia',
                 ],
-                263 => [
+                262 => [
                     'slug' => 'calamondinorange',
                     'name' => 'Calamondinorange',
                 ],
-                264 => [
+                263 => [
                     'slug' => 'ebenholz',
                     'name' => 'Ebenholz',
                 ],
-                265 => [
+                264 => [
                     'slug' => 'schwarzer-amber',
                     'name' => 'Schwarzer Amber',
                 ],
-                266 => [
+                265 => [
                     'slug' => 'schwarzer-kardamom',
                     'name' => 'Schwarzer Kardamom',
                 ],
-                267 => [
+                266 => [
                     'slug' => 'tagetes',
                     'name' => 'Tagetes',
                 ],
-                268 => [
+                267 => [
                     'slug' => 'tolubalsam',
                     'name' => 'Tolubalsam',
                 ],
-                269 => [
+                268 => [
                     'slug' => 'lorbeer',
                     'name' => 'Lorbeer',
                 ],
-                270 => [
+                269 => [
                     'slug' => 'ringelblume',
                     'name' => 'Ringelblume',
                 ],
-                271 => [
+                270 => [
                     'slug' => 'kulfi',
                     'name' => 'Kulfi',
                 ],
-                272 => [
+                271 => [
                     'slug' => 'mastixharz',
                     'name' => 'Mastixharz',
                 ],
-                273 => [
+                272 => [
                     'slug' => 'safran',
                     'name' => 'Safran',
                 ],
-                274 => [
+                273 => [
                     'slug' => 'kreuzkuemmel',
                     'name' => 'Kreuzkümmel',
                 ],
-                275 => [
+                274 => [
                     'slug' => 'agarholz-oud',
                     'name' => 'Agarholz (Oud)',
                 ],
-                276 => [
+                275 => [
                     'slug' => 'angelika',
                     'name' => 'Angelika',
                 ],
-                277 => [
-                    'slug' => 'galbanum',
-                    'name' => 'Galbanum',
-                ],
-                278 => [
+                276 => [
                     'slug' => 'pinker-pfeffer',
                     'name' => 'Pinker Pfeffer',
                 ],
-                279 => [
+                277 => [
                     'slug' => 'muskatnuss',
                     'name' => 'Muskatnuss',
                 ],
-                280 => [
+                278 => [
                     'slug' => 'suessholz-lakritze',
                     'name' => 'Süßholz (Lakritze)',
                 ],
-                281 => [
+                279 => [
                     'slug' => 'patschuli',
                     'name' => 'Patschuli',
                 ],
-                282 => [
+                280 => [
                     'slug' => 'weisses-oud-synthetischhell',
                     'name' => 'Weißes Oud (Synthetisch/Hell)',
                 ],
-                283 => [
+                281 => [
                     'slug' => 'florale-noten-oft-rose-oder-jasmin',
                     'name' => 'Florale Noten (oft Rose oder Jasmin)',
                 ],
-                284 => [
+                282 => [
                     'slug' => 'leichte-zitrusnoten',
                     'name' => 'Leichte Zitrusnoten',
                 ],
-                285 => [
+                283 => [
                     'slug' => 'schwarze-vanille',
                     'name' => 'Schwarze Vanille',
                 ],
-                286 => [
+                284 => [
                     'slug' => 'wacholder',
                     'name' => 'Wacholder',
                 ],
-                287 => [
+                285 => [
                     'slug' => 'virginia-zeder',
                     'name' => 'Virginia-Zeder',
                 ],
-                288 => [
+                286 => [
                     'slug' => 'atlas-zeder',
                     'name' => 'Atlas-Zeder',
                 ],
-                289 => [
+                287 => [
                     'slug' => 'himalaya-zeder',
                     'name' => 'Himalaya-Zeder',
                 ],
-                290 => [
+                288 => [
                     'slug' => 'labdanum-absolue',
                     'name' => 'Labdanum Absolue',
                 ],
-                291 => [
+                289 => [
                     'slug' => 'irisbutter',
                     'name' => 'Irisbutter',
                 ],
-                292 => [
+                290 => [
                     'slug' => 'vanillin',
                     'name' => 'Vanillin',
                 ],
-                293 => [
+                291 => [
                     'slug' => 'chili',
                     'name' => 'Chili',
                 ],
-                294 => [
+                292 => [
                     'slug' => 'amberholz',
                     'name' => 'Amberholz',
                 ],
-                295 => [
+                293 => [
                     'slug' => 'davana',
                     'name' => 'Davana',
                 ],
-                296 => [
+                294 => [
                     'slug' => 'oregano',
                     'name' => 'Oregano',
                 ],
-                297 => [
+                295 => [
                     'slug' => 'zistrose',
                     'name' => 'Zistrose',
                 ],
-                298 => [
+                296 => [
                     'slug' => 'tuerkische-rose',
                     'name' => 'Türkische Rose',
                 ],
-                299 => [
+                297 => [
                     'slug' => 'sizilianische-orange',
                     'name' => 'Sizilianische Orange',
                 ],
-                300 => [
+                298 => [
                     'slug' => 'sizilianische-zitrone',
                     'name' => 'Sizilianische Zitrone',
                 ],
-                301 => [
+                299 => [
                     'slug' => 'getrocknete-fruechte',
                     'name' => 'Getrocknete Früchte',
                 ],
-                302 => [
+                300 => [
                     'slug' => 'harze',
                     'name' => 'Harze',
                 ],
-                303 => [
+                301 => [
                     'slug' => 'animalische-noten',
                     'name' => 'Animalische Noten',
                 ],
-                304 => [
+                302 => [
                     'slug' => 'indische-vanille',
                     'name' => 'Indische Vanille',
                 ],
-                305 => [
+                303 => [
                     'slug' => 'jasmin-absolue',
                     'name' => 'Jasmin Absolue',
                 ],
-                306 => [
+                304 => [
                     'slug' => 'kirsch-likoer',
                     'name' => 'Kirsch-Likör',
                 ],
-                307 => [
+                305 => [
                     'slug' => 'perubalsam',
                     'name' => 'Perubalsam',
                 ],
-                308 => [
+                306 => [
                     'slug' => 'sauerkirschsirup',
                     'name' => 'Sauerkirschsirup',
                 ],
-                309 => [
+                307 => [
                     'slug' => 'schwarzkirsche',
                     'name' => 'Schwarzkirsche',
                 ],
-                310 => [
+                308 => [
                     'slug' => 'helle-hoelzer',
                     'name' => 'Helle Hölzer',
                 ],
-                311 => [
+                309 => [
                     'slug' => 'sizilianische-blutorange',
                     'name' => 'Sizilianische Blutorange',
                 ],
-                312 => [
+                310 => [
                     'slug' => 'tonkabohne-absolue',
                     'name' => 'Tonkabohne Absolue',
                 ],
-                313 => [
+                311 => [
                     'slug' => 'weinbergpfirsich',
                     'name' => 'Weinbergpfirsich',
                 ],
-                314 => [
+                312 => [
                     'slug' => 'indischer-ingwer',
                     'name' => 'Indischer Ingwer',
                 ],
-                315 => [
+                313 => [
                     'slug' => 'indischer-jasmin-sambac-absolue',
                     'name' => 'Indischer Jasmin-Sambac Absolue',
                 ],
-                316 => [
+                314 => [
                     'slug' => 'pistazie',
                     'name' => 'Pistazie',
                 ],
-                317 => [
+                315 => [
                     'slug' => 'sauerkirsche',
                     'name' => 'Sauerkirsche',
                 ],
-                318 => [
+                316 => [
                     'slug' => 'nepalesisches-oud',
                     'name' => 'Nepalesisches Oud',
                 ],
-                319 => [
+                317 => [
                     'slug' => 'rohrzucker',
                     'name' => 'Rohrzucker',
                 ],
-                320 => [
+                318 => [
                     'slug' => 'ceylon-zimtblatt',
                     'name' => 'Ceylon-Zimtblatt',
                 ],
-                321 => [
+                319 => [
                     'slug' => 'spanisches-labdanum',
                     'name' => 'Spanisches Labdanum',
                 ],
-                322 => [
+                320 => [
                     'slug' => 'zim',
                     'name' => 'Zim',
                 ],
-                323 => [
+                321 => [
                     'slug' => 'agarholz',
                     'name' => 'Agarholz',
                 ],
-                324 => [
+                322 => [
                     'slug' => 'beifuss',
                     'name' => 'Beifuß',
                 ],
-                325 => [
+                323 => [
                     'slug' => 'gurjanbalsam',
                     'name' => 'Gurjanbalsam',
                 ],
-                326 => [
+                324 => [
                     'slug' => 'hanf',
                     'name' => 'Hanf',
                 ],
-                327 => [
+                325 => [
                     'slug' => 'dattel',
                     'name' => 'Dattel',
                 ],
-                328 => [
+                326 => [
                     'slug' => 'myrrhe',
                     'name' => 'Myrrhe',
                 ],
-                329 => [
+                327 => [
                     'slug' => 'balsamische-noten',
                     'name' => 'Balsamische Noten',
                 ],
-                330 => [
+                328 => [
                     'slug' => 'moschusnoten',
                     'name' => 'Moschusnoten',
                 ],
-                331 => [
+                329 => [
                     'slug' => 'trockene-hoelzer',
                     'name' => 'Trockene Hölzer',
                 ],
-                332 => [
+                330 => [
                     'slug' => 'passionsfrucht',
                     'name' => 'Passionsfrucht',
                 ],
-                333 => [
+                331 => [
                     'slug' => 'spanische-zistrose-absolue',
                     'name' => 'Spanische Zistrose Absolue',
                 ],
-                334 => [
+                332 => [
                     'slug' => 'tuerkische-rose-absolue',
                     'name' => 'Türkische Rose Absolue',
                 ],
-                335 => [
+                333 => [
                     'slug' => 'eiche',
                     'name' => 'Eiche',
                 ],
-                336 => [
+                334 => [
                     'slug' => 'himbeer-likoer',
                     'name' => 'Himbeer-Likör',
                 ],
-                337 => [
+                335 => [
                     'slug' => 'indisches-sandelholz',
                     'name' => 'Indisches Sandelholz',
                 ],
-                338 => [
+                336 => [
                     'slug' => 'sand',
                     'name' => 'Sand',
                 ],
-                339 => [
+                337 => [
                     'slug' => 'ambrettesamen-absolue',
                     'name' => 'Ambrettesamen Absolue',
                 ],
-                340 => [
+                338 => [
                     'slug' => 'damaszener-rose-absolue',
                     'name' => 'Damaszener-Rose Absolue',
                 ],
-                341 => [
+                339 => [
                     'slug' => 'granatapfel',
                     'name' => 'Granatapfel',
                 ],
-                342 => [
+                340 => [
                     'slug' => 'gruene-minze',
                     'name' => 'Grüne Minze',
                 ],
-                343 => [
+                341 => [
                     'slug' => 'hibiskus',
                     'name' => 'Hibiskus',
                 ],
-                344 => [
+                342 => [
                     'slug' => 'hibiskustee',
                     'name' => 'Hibiskustee',
                 ],
-                345 => [
+                343 => [
                     'slug' => 'vanilleorchidee',
                     'name' => 'Vanilleorchidee',
                 ],
-                346 => [
+                344 => [
                     'slug' => 'schwarze-rose',
                     'name' => 'Schwarze Rose',
                 ],
-                347 => [
+                345 => [
                     'slug' => 'schwarzer-trueffel',
                     'name' => 'Schwarzer Trüffel',
                 ],
-                348 => [
+                346 => [
                     'slug' => 'haselnuss',
                     'name' => 'Haselnuss',
                 ],
-                349 => [
+                347 => [
                     'slug' => 'schwarzes-leder',
                     'name' => 'Schwarzes Leder',
                 ],
-                350 => [
+                348 => [
                     'slug' => 'weisses-moos',
                     'name' => 'Weißes Moos',
                 ],
-                351 => [
+                349 => [
                     'slug' => 'gewuerzter-rum',
                     'name' => 'Gewürzter Rum',
                 ],
-                352 => [
+                350 => [
                     'slug' => 'kandierter-apfel',
                     'name' => 'Kandierter Apfel',
                 ],
-                353 => [
+                351 => [
                     'slug' => 'mate',
                     'name' => 'Mate',
                 ],
-                354 => [
+                352 => [
                     'slug' => 'schokolade',
                     'name' => 'Schokolade',
                 ],
-                355 => [
+                353 => [
                     'slug' => 'japanische-yuzu',
                     'name' => 'Japanische Yuzu',
                 ],
-                356 => [
+                354 => [
                     'slug' => 'gewuerznelke',
                     'name' => 'Gewürznelke',
                 ],
-                357 => [
+                355 => [
                     'slug' => 'ambrettesamen',
                     'name' => 'Ambrettesamen',
                 ],
-                358 => [
+                356 => [
                     'slug' => 'feige',
                     'name' => 'Feige',
                 ],
-                359 => [
+                357 => [
                     'slug' => 'moehrensamen',
                     'name' => 'Möhrensamen',
                 ],
-                360 => [
+                358 => [
                     'slug' => 'zitronatzitrone',
                     'name' => 'Zitronatzitrone',
                 ],
-                361 => [
+                359 => [
                     'slug' => 'mandelmilch',
                     'name' => 'Mandelmilch',
                 ],
-                362 => [
+                360 => [
                     'slug' => 'nagarmotha',
                     'name' => 'Nagarmotha',
                 ],
-                363 => [
+                361 => [
                     'slug' => 'heller-tabak',
                     'name' => 'Heller Tabak',
                 ],
-                364 => [
+                362 => [
                     'slug' => 'anis',
                     'name' => 'Anis',
                 ],
-                365 => [
+                363 => [
                     'slug' => 'papyrus',
                     'name' => 'Papyrus',
                 ],
-                366 => [
+                364 => [
                     'slug' => 'provenzalischer-honig-absolue',
                     'name' => 'Provenzalischer Honig Absolue',
                 ],
-                367 => [
+                365 => [
                     'slug' => 'somalischer-weihrauch',
                     'name' => 'Somalischer Weihrauch',
                 ],
-                368 => [
+                366 => [
                     'slug' => 'rosenlokum',
                     'name' => 'Rosenlokum',
                 ],
-                369 => [
+                367 => [
                     'slug' => 'suessholz',
                     'name' => 'Süßholz',
                 ],
+                368 => [
+                    'slug' => 'bulgarische-damaszener-rose',
+                    'name' => 'Bulgarische Damaszener-Rose',
+                ],
+                369 => [
+                    'slug' => 'tuerkische-damaszener-rose-absolue',
+                    'name' => 'Türkische Damaszener-Rose Absolue',
+                ],
                 370 => [
-                    'slug' => 'bulgarische-damaszener-rose-tuerkische-damaszener-rose-absolue-laotisches-oud-vanille-siam-benzoe-veilchen-amber',
-                    'name' => 'Bulgarische Damaszener-Rose, Türkische Damaszener-Rose Absolue, Laotisches Oud, Vanille, Siam-Benzoe, Veilchen, Amber',
+                    'slug' => 'laotisches-oud',
+                    'name' => 'Laotisches Oud',
                 ],
                 371 => [
                     'slug' => 'duftnoten-bergamotte',

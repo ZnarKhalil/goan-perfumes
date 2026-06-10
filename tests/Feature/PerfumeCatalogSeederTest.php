@@ -62,6 +62,38 @@ test('the perfume catalog seeds products attributes and variants', function () {
 
     expect($gesalzeneVanille->translate('de', 'name'))->toBe('Gesalzene Vanille');
 
+    $combinedNoteSlugs = [
+        'aprikose-galbanum-himbeere-hyazinthe-jasmin-moschus-pfirsich-rose-sandelholz-ylang-ylang-zedernholz',
+        'amber-basilikum-grapefruit-ingwer-kardamom-koriander-orangenbluete-tabak-zedernholz',
+        'bulgarische-damaszener-rose-tuerkische-damaszener-rose-absolue-laotisches-oud-vanille-siam-benzoe-veilchen-amber',
+    ];
+    $catalogNoteSlugs = collect(PerfumeCatalog::attributeValues()['noten'])->pluck('slug');
+    $productNoteSlugs = collect(PerfumeCatalog::products())
+        ->flatMap(fn (array $product): array => $product['attributes']['noten']);
+
+    expect($catalogNoteSlugs->intersect($combinedNoteSlugs)->all())->toBe([])
+        ->and($productNoteSlugs->intersect($combinedNoteSlugs)->all())->toBe([]);
+
+    expect(
+        AttributeValue::query()
+            ->whereHas('attribute', fn ($query) => $query->where('code', 'noten'))
+            ->whereIn('slug', [
+                'aprikose',
+                'galbanum',
+                'hyazinthe',
+                'ylang-ylang',
+                'basilikum',
+                'grapefruit',
+                'koriander',
+                'bulgarische-damaszener-rose',
+                'tuerkische-damaszener-rose-absolue',
+                'laotisches-oud',
+                'siam-benzoe',
+                'veilchen',
+            ])
+            ->count(),
+    )->toBe(12);
+
     $orientalischCount = AttributeValue::query()
         ->where('slug', 'orientalisch')
         ->whereHas('attribute', fn ($query) => $query->where('code', 'familie'))
