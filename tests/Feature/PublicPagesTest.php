@@ -297,7 +297,7 @@ test('public payloads use active locale with German fallback', function () {
         );
 });
 
-test('seeded public navigation and filters use english and arabic translations', function () {
+test('seeded public navigation and filters use catalog names in every locale', function () {
     $this->seed([
         CategorySeeder::class,
         AttributeSeeder::class,
@@ -308,10 +308,10 @@ test('seeded public navigation and filters use english and arabic translations',
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('public/category')
-            ->where('navigation.0.name', 'Luxury Perfumes')
-            ->where('category.name', "Women's Perfumes")
-            ->where('filters.0.name', 'Type')
-            ->where('filters.0.values.0.name', 'Luxury'),
+            ->where('navigation.0.name', 'Damenparfums')
+            ->where('category.name', 'Damenparfums')
+            ->where('filters.0.name', 'Art')
+            ->where('filters.0.values.0.name', 'Designer'),
         );
 
     $this->get('/ar/damenparfums')
@@ -319,10 +319,10 @@ test('seeded public navigation and filters use english and arabic translations',
         ->assertInertia(fn (Assert $page) => $page
             ->component('public/category')
             ->where('locale.dir', 'rtl')
-            ->where('navigation.0.name', 'عطور فاخرة')
-            ->where('category.name', 'عطور نسائية')
-            ->where('filters.0.name', 'النوع')
-            ->where('filters.0.values.0.name', 'فاخر'),
+            ->where('navigation.0.name', 'Damenparfums')
+            ->where('category.name', 'Damenparfums')
+            ->where('filters.0.name', 'Art')
+            ->where('filters.0.values.0.name', 'Designer'),
         );
 });
 
@@ -403,10 +403,12 @@ test('database seeder provides complete public demo content', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('public/home')
-            ->has('navigation', 6)
-            ->has('promotions', 2)
+            ->has('navigation', 4)
+            ->has('promotions', 0)
             ->has('featured_products', 4)
             ->where('contact.whatsapp_url', 'https://wa.me/491701234567')
+            ->where('page_sections.hero.title', 'Parfums gezielt entdecken, persönlich beraten lassen.')
+            ->where('page_sections.hero.cta_text', 'Kollektion ansehen')
             ->where('page_sections.hero.image_url', null)
             ->where('page_sections.hero.video_url', null),
         );
@@ -415,9 +417,9 @@ test('database seeder provides complete public demo content', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('public/category')
-            ->where('category.image_url', fn (string $url) => str_starts_with($url, 'https://images.unsplash.com/'))
-            ->has('products', 5)
-            ->where('pagination.total', 5)
+            ->where('category.image_url', null)
+            ->has('products', 12)
+            ->where('pagination.total', 15)
             ->has('filters', 4),
         );
 });
