@@ -12,6 +12,9 @@ use App\Models\Media;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Services\MediaService;
+use App\Support\Price;
+use App\Support\PublicLocale;
+use App\Support\StorageUrl;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -25,8 +28,6 @@ class ProductController extends Controller
     private const MAX_FEATURED_PRODUCTS = 4;
 
     private const PRODUCTS_PER_PAGE = 25;
-
-    private const LOCALES = ['de', 'ar', 'en'];
 
     private const TRANSLATABLE_FIELDS = [
         'name',
@@ -61,14 +62,12 @@ class ProductController extends Controller
                         ->map(fn (Category $category) => $category->translate('de', 'name') ?? $category->slug)
                         ->values()
                         ->all(),
-                    'min_price' => $this->decimal($product->variants_min_price),
-                    'max_price' => $this->decimal($product->variants_max_price),
+                    'min_price' => Price::decimal($product->variants_min_price),
+                    'max_price' => Price::decimal($product->variants_max_price),
                     'variants_count' => $product->variants_count,
                     'is_active' => $product->is_active,
                     'is_featured' => $product->is_featured,
-                    'image_url' => $product->primaryMedia?->path
-                        ? Storage::url($product->primaryMedia->path)
-                        : null,
+                    'image_url' => StorageUrl::for($product->primaryMedia?->path),
                 ])
                 ->values()
                 ->all(),
@@ -164,7 +163,7 @@ class ProductController extends Controller
                 'media' => $product->media
                     ->map(fn (Media $media) => [
                         'id' => $media->id,
-                        'url' => Storage::url($media->path),
+                        'url' => StorageUrl::for($media->path),
                         'sort_order' => $media->sort_order,
                         'is_primary' => $media->is_primary,
                         'alt_text' => $media->translate('de', 'alt_text') ?? $media->alt_text ?? '',
@@ -342,22 +341,12 @@ class ProductController extends Controller
      */
     private function syncTranslations(Product $product, array $translations): void
     {
-        foreach (self::LOCALES as $locale) {
-            $payload = $this->withDerivedSeoTranslations($translations[$locale] ?? []);
-            foreach (self::TRANSLATABLE_FIELDS as $field) {
-                $value = $payload[$field] ?? null;
-                if ($value === null || $value === '') {
-                    $product->translations()
-                        ->where('locale', $locale)
-                        ->where('field', $field)
-                        ->delete();
-
-                    continue;
-                }
-
-                $product->setTranslation($locale, $field, $value);
-            }
+        $payloads = [];
+        foreach (PublicLocale::codes() as $locale) {
+            $payloads[$locale] = $this->withDerivedSeoTranslations($translations[$locale] ?? []);
         }
+
+        $product->syncTranslations($payloads, self::TRANSLATABLE_FIELDS);
     }
 
     /**
@@ -386,7 +375,7 @@ class ProductController extends Controller
     private function translationsAsTabs(Product $product): array
     {
         $shape = [];
-        foreach (self::LOCALES as $locale) {
+        foreach (PublicLocale::codes() as $locale) {
             $shape[$locale] = [];
             foreach (self::TRANSLATABLE_FIELDS as $field) {
                 $shape[$locale][$field] = $product->translate($locale, $field) ?? '';
@@ -408,15 +397,6 @@ class ProductController extends Controller
             ->unique()
             ->values()
             ->all();
-    }
-
-    private function decimal(mixed $value): ?string
-    {
-        if ($value === null) {
-            return null;
-        }
-
-        return number_format((float) $value, 2, '.', '');
     }
 
     /**

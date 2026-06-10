@@ -13,8 +13,6 @@ use Illuminate\Support\Str;
 
 class AttributeValueController extends Controller
 {
-    private const LOCALES = ['de', 'ar', 'en'];
-
     public function store(StoreAttributeValueRequest $request, Attribute $attribute): RedirectResponse
     {
         $data = $request->validated();
@@ -34,7 +32,7 @@ class AttributeValueController extends Controller
             );
 
             $value->save();
-            $this->syncTranslations($value, $data['translations'] ?? []);
+            $value->syncTranslations($data['translations'] ?? [], ['name']);
         });
 
         return to_route('dashboard.attributes.edit', $attribute)
@@ -63,7 +61,7 @@ class AttributeValueController extends Controller
             );
 
             $value->save();
-            $this->syncTranslations($value, $data['translations'] ?? []);
+            $value->syncTranslations($data['translations'] ?? [], ['name']);
         });
 
         return to_route('dashboard.attributes.edit', $attribute)
@@ -81,27 +79,6 @@ class AttributeValueController extends Controller
 
         return to_route('dashboard.attributes.edit', $attribute)
             ->with('toast', ['type' => 'success', 'message' => 'Wert gelöscht.']);
-    }
-
-    /**
-     * @param  array<string, array<string, ?string>>  $translations
-     */
-    private function syncTranslations(AttributeValue $value, array $translations): void
-    {
-        foreach (self::LOCALES as $locale) {
-            $name = $translations[$locale]['name'] ?? null;
-
-            if ($name === null || $name === '') {
-                $value->translations()
-                    ->where('locale', $locale)
-                    ->where('field', 'name')
-                    ->delete();
-
-                continue;
-            }
-
-            $value->setTranslation($locale, 'name', $name);
-        }
     }
 
     private function generateScopedSlug(

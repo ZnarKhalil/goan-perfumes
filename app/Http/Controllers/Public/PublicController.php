@@ -11,11 +11,12 @@ use App\Models\PageSection;
 use App\Models\Product;
 use App\Models\Promotion;
 use App\Models\Setting;
+use App\Support\Price;
 use App\Support\PublicCategoryNavigation;
 use App\Support\PublicLocale;
+use App\Support\StorageUrl;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 abstract class PublicController extends Controller
@@ -47,7 +48,7 @@ abstract class PublicController extends Controller
                 'locale' => $this->locale(),
                 'slug' => $category->slug,
             ]),
-            'image_url' => $this->storageUrl($category->image_path),
+            'image_url' => StorageUrl::for($category->image_path),
         ];
     }
 
@@ -85,10 +86,10 @@ abstract class PublicController extends Controller
             ]),
             'name' => $name,
             'brand' => $product->brand,
-            'image_url' => $this->storageUrl($primaryMedia?->path),
+            'image_url' => StorageUrl::for($primaryMedia?->path),
             'image_alt' => $primaryMedia ? ($this->translation($primaryMedia, 'alt_text') ?? $primaryMedia->alt_text ?? $name) : $name,
-            'min_price' => $this->decimal($product->variants_min_price),
-            'max_price' => $this->decimal($product->variants_max_price),
+            'min_price' => Price::decimal($product->variants_min_price),
+            'max_price' => Price::decimal($product->variants_max_price),
             'categories' => $product->categories
                 ->map(fn (Category $category) => $this->categoryNavItem($category))
                 ->values()
@@ -214,24 +215,6 @@ abstract class PublicController extends Controller
         return $query;
     }
 
-    protected function storageUrl(?string $path): ?string
-    {
-        if (! $path) {
-            return null;
-        }
-
-        if (Str::startsWith($path, ['http://', 'https://'])) {
-            return $path;
-        }
-
-        return Storage::url($path);
-    }
-
-    protected function decimal(mixed $value): ?string
-    {
-        return $value === null ? null : number_format((float) $value, 2, '.', '');
-    }
-
     private const SITE_NAME = 'Goan Perfume';
 
     /**
@@ -292,7 +275,7 @@ abstract class PublicController extends Controller
 
     protected function logoUrl(): ?string
     {
-        return $this->storageUrl($this->setting('logo_path'));
+        return StorageUrl::for($this->setting('logo_path'));
     }
 
     protected function locale(): string
@@ -316,8 +299,8 @@ abstract class PublicController extends Controller
             'title' => $section ? ($this->translation($section, 'title') ?? 'Goan Perfume') : 'Goan Perfume',
             'body' => $section ? ($this->translation($section, 'body') ?? '') : '',
             'cta_text' => $section ? $this->translation($section, 'cta_text') : null,
-            'image_url' => $this->storageUrl($section?->payload['image_path'] ?? null),
-            'video_url' => $this->storageUrl($section?->payload['video_path'] ?? null),
+            'image_url' => StorageUrl::for($section?->payload['image_path'] ?? null),
+            'video_url' => StorageUrl::for($section?->payload['video_path'] ?? null),
         ];
     }
 
@@ -333,24 +316,8 @@ abstract class PublicController extends Controller
     {
         return [
             'title' => $section ? ($this->translation($section, 'title') ?? $fallbackTitle) : $fallbackTitle,
-            'items' => $this->decodeBulletPoints($section ? $this->translation($section, 'bullet_points') : null),
+            'items' => PageSection::decodeBulletPoints($section ? $this->translation($section, 'bullet_points') : null),
         ];
-    }
-
-    /**
-     * @return array<int, string>
-     */
-    private function decodeBulletPoints(?string $value): array
-    {
-        if ($value === null || $value === '') {
-            return [];
-        }
-
-        $decoded = json_decode($value, true);
-
-        return is_array($decoded)
-            ? array_values(array_filter($decoded, is_string(...)))
-            : [];
     }
 
     private function whatsappUrl(?string $number): ?string

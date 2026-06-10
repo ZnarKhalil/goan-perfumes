@@ -4,8 +4,6 @@ namespace App\Support;
 
 use App\Models\Category;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 final class PublicCategoryNavigation
 {
@@ -55,20 +53,7 @@ final class PublicCategoryNavigation
                 'locale' => $locale,
                 'slug' => $category->slug,
             ]),
-            'image_url' => self::storageUrl($category->image_path),
+            'image_url' => StorageUrl::for($category->image_path),
         ];
-    }
-
-    private static function storageUrl(?string $path): ?string
-    {
-        if (! $path) {
-            return null;
-        }
-
-        if (Str::startsWith($path, ['http://', 'https://'])) {
-            return $path;
-        }
-
-        return Storage::url($path);
     }
 }

@@ -7,6 +7,7 @@ use App\Http\Requests\Dashboard\StoreAttributeRequest;
 use App\Http\Requests\Dashboard\UpdateAttributeRequest;
 use App\Models\Attribute;
 use App\Models\AttributeValue;
+use App\Support\PublicLocale;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -14,8 +15,6 @@ use Inertia\Response;
 
 class AttributeController extends Controller
 {
-    private const LOCALES = ['de', 'ar', 'en'];
-
     public function index(): Response
     {
         $attributes = Attribute::query()
@@ -59,7 +58,7 @@ class AttributeController extends Controller
                 'is_multiple' => (bool) $data['is_multiple'],
             ]);
 
-            $this->syncTranslations($attribute, $data['translations'] ?? []);
+            $attribute->syncTranslations($data['translations'] ?? [], ['name']);
         });
 
         return to_route('dashboard.attributes.index')
@@ -111,7 +110,7 @@ class AttributeController extends Controller
                 'is_multiple' => (bool) $data['is_multiple'],
             ]);
 
-            $this->syncTranslations($attribute, $data['translations'] ?? []);
+            $attribute->syncTranslations($data['translations'] ?? [], ['name']);
         });
 
         return to_route('dashboard.attributes.edit', $attribute)
@@ -147,34 +146,13 @@ class AttributeController extends Controller
     }
 
     /**
-     * @param  array<string, array<string, ?string>>  $translations
-     */
-    private function syncTranslations(Attribute|AttributeValue $model, array $translations): void
-    {
-        foreach (self::LOCALES as $locale) {
-            $value = $translations[$locale]['name'] ?? null;
-
-            if ($value === null || $value === '') {
-                $model->translations()
-                    ->where('locale', $locale)
-                    ->where('field', 'name')
-                    ->delete();
-
-                continue;
-            }
-
-            $model->setTranslation($locale, 'name', $value);
-        }
-    }
-
-    /**
      * @return array<string, array{name: string}>
      */
     private function translationsAsTabs(Attribute|AttributeValue $model): array
     {
         $shape = [];
 
-        foreach (self::LOCALES as $locale) {
+        foreach (PublicLocale::codes() as $locale) {
             $shape[$locale] = [
                 'name' => $model->translate($locale, 'name') ?? '',
             ];

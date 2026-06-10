@@ -20,7 +20,15 @@
       "Bash(sed -n 39,66p tests/Feature/Dashboard/SettingsControllerTest.php)",
       "Bash(sed -n 183,207p tests/Feature/Dashboard/ProductControllerTest.php)",
       "Bash(sed -n 360,394p resources/js/pages/public/category.tsx)",
-      "Bash(sed -n 150,170p resources/js/types/public.ts)"
+      "Bash(sed -n 150,170p resources/js/types/public.ts)",
+      "Bash(sed -n 130,200p app/Http/Controllers/Dashboard/PromotionController.php)",
+      "Bash(sed -n 145,200p app/Http/Controllers/Dashboard/AttributeController.php)",
+      "Bash(sed -n 80,120p app/Http/Controllers/Dashboard/AttributeValueController.php)",
+      "Bash(perl -0pi -e 's/use App\\\\\\\\Models\\\\\\\\Promotion;/use App\\\\\\\\Models\\\\\\\\Promotion;\\\\nuse App\\\\\\\\Support\\\\\\\\PublicLocale;/' app/Http/Controllers/Dashboard/PromotionController.php)",
+      "Bash(perl -0pi -e \"s/    private const LOCALES = \\\\['de', 'ar', 'en'\\\\];\\\\n\\\\n//\" app/Http/Controllers/Dashboard/PromotionController.php)",
+      "Bash(perl -0pi -e 's/\\\\$this->syncTranslations\\\\\\(\\\\$promotion, \\\\$data\\\\[.translations.\\\\] \\\\?\\\\? \\\\[\\\\]\\\\\\);/\\\\$promotion->syncTranslations\\(\\\\$data[\"translations\"] ?? [], self::TRANSLATABLE_FIELDS\\);/g' app/Http/Controllers/Dashboard/PromotionController.php)",
+      "Bash(sed -n 58,66p app/Http/Controllers/Dashboard/PromotionController.php)",
+      "Bash(sed -n 90,96p app/Http/Controllers/Dashboard/PromotionController.php)"
     ]
   },
   "enableAllProjectMcpServers": true,

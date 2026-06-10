@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Concerns;
 
+use App\Support\PublicLocale;
 use Illuminate\Contracts\Validation\ValidationRule;
 
 trait ValidatesTranslatedFields
@@ -16,7 +17,7 @@ trait ValidatesTranslatedFields
      * @param  array<int, string>  $requiredOn
      * @param  array<int, string>  $fields
      * @param  array<string, int>  $lengths
-     * @param  array<int, string>  $locales
+     * @param  array<int, string>|null  $locales
      * @return array<string, array<int, ValidationRule|array<mixed>|string>>
      */
     protected function translationRules(
@@ -24,8 +25,9 @@ trait ValidatesTranslatedFields
         array $requiredOn,
         array $fields,
         array $lengths,
-        array $locales = ['de', 'ar', 'en'],
+        ?array $locales = null,
     ): array {
+        $locales ??= PublicLocale::codes();
         $rules = ['translations' => ['array']];
 
         foreach ($locales as $locale) {

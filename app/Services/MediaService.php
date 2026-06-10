@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Media;
+use App\Support\PublicLocale;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -13,8 +14,6 @@ use Throwable;
 
 class MediaService
 {
-    private const LOCALES = ['de', 'ar', 'en'];
-
     /**
      * Sync uploaded and existing media rows for a saved model.
      *
@@ -173,7 +172,7 @@ class MediaService
             return filled($altText) ? (string) $altText : null;
         }
 
-        foreach (self::LOCALES as $locale) {
+        foreach (PublicLocale::codes() as $locale) {
             if (filled($altText[$locale] ?? null)) {
                 return (string) $altText[$locale];
             }
@@ -195,20 +194,11 @@ class MediaService
             return;
         }
 
-        foreach (self::LOCALES as $locale) {
-            $value = $altText[$locale] ?? null;
+        $payloads = collect($altText)
+            ->map(fn (mixed $value) => ['alt_text' => $value])
+            ->all();
 
-            if ($value === null || $value === '') {
-                $media->translations()
-                    ->where('locale', $locale)
-                    ->where('field', 'alt_text')
-                    ->delete();
-
-                continue;
-            }
-
-            $media->setTranslation($locale, 'alt_text', (string) $value);
-        }
+        $media->syncTranslations($payloads, ['alt_text']);
     }
 
     private function ensurePrimary(Model $model): void

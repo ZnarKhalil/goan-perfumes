@@ -70,16 +70,16 @@ When the `translations` relation is loaded, each `setTranslation()` re-fetches *
 
 ---
 
-## 4. Code duplication / maintainability
+## ✅ 4. Code duplication / maintainability — DONE (2026-06-10)
 
-| Duplication | Locations | Suggestion |
+| Duplication | Locations | Resolution |
 |---|---|---|
-| `LOCALES = ['de', 'ar', 'en']` | `Dashboard\ProductController`, `PageSectionController`, `MediaService` (+ implicit in `PublicLocale`) | Single source: `PublicLocale::codes()` |
-| `MAX_FEATURED_PRODUCTS = 4` | `Dashboard\ProductController`, `ValidatesProductFields` | One shared constant (e.g. on `Product`) |
-| `storageUrl()` helper | `PublicController`, `PublicCategoryNavigation` | Extract to a small support class/helper |
-| `decodeBulletPoints()` | `PublicController`, `PageSectionController` | Same — or cast `bullet_points` via a value object |
-| Translation sync loop (delete-empty / set) | `Dashboard\ProductController::syncTranslations()`, `PageSectionController::syncTranslations()`, `MediaService::syncAltTextTranslations()` | Add `syncTranslations(array $byLocale, array $fields)` to the `HasTranslations` trait |
-| `decimal()` formatting | `Dashboard\ProductController`, `PublicController` | Shared formatter (or cast prices with `decimal:2`) |
+| `LOCALES = ['de', 'ar', 'en']` | `Dashboard\ProductController`, `CategoryController`, `PageSectionController`, `PromotionController`, `AttributeController`, `AttributeValueController`, `MediaService`, `UpdateSettingsRequest`, `ValidatesTranslatedFields` | ✅ All read from `PublicLocale::codes()` |
+| `MAX_FEATURED_PRODUCTS = 4` | `Dashboard\ProductController`, `ValidatesProductFields` | ✅ Resolved with finding 1.4 — single constant in `ProductController` |
+| `storageUrl()` helper | `PublicController`, `PublicCategoryNavigation` (+ inline `Storage::url` ternaries in dashboard controllers) | ✅ Extracted to `App\Support\StorageUrl::for()` |
+| `decodeBulletPoints()` | `PublicController`, `PageSectionController` | ✅ `encodeBulletPoints()`/`decodeBulletPoints()` are static methods on `PageSection` |
+| Translation sync loop (delete-empty / set) | Six dashboard controllers + `MediaService::syncAltTextTranslations()` | ✅ Single `syncTranslations(array $byLocale, array $fields)` on the `HasTranslations` trait |
+| `decimal()` formatting | `Dashboard\ProductController`, `PublicController` | ✅ Extracted to `App\Support\Price::decimal()` |
 
 Also worth considering (optional, only if the team agrees): the dashboard controllers shape large response arrays inline. Extracting Eloquent API Resources (or dedicated presenter classes) would shrink controllers like `Dashboard\ProductController` (405 lines) considerably. The current pattern is at least consistent.
 
@@ -123,6 +123,6 @@ Also worth considering (optional, only if the team agrees): the dashboard contro
 3. ~~Whitelist shared auth user fields (**2.1**)~~ ✅ Fixed 2026-06-10 — only `id`, `name`, `email`, `email_verified_at` are shared.
 4. ~~Cache/batch settings reads (**3.1**)~~ ✅ Fixed 2026-06-10 — settings are cached forever and flushed on save/delete.
 5. ~~Move file deletes out of transactions (**1.3**)~~ ✅ Fixed 2026-06-10 — deferred via `DB::afterCommit()`, with upload cleanup on failure.
-6. Deduplicate locales/constants/helpers (**§4**)
+6. ~~Deduplicate locales/constants/helpers (**§4**)~~ ✅ Fixed 2026-06-10 — `PublicLocale::codes()`, `StorageUrl`, `Price`, `PageSection` bullet codecs, and `HasTranslations::syncTranslations()`.
 7. i18n the public meta fallbacks (**§5**)
 8. Housekeeping (**§7**)

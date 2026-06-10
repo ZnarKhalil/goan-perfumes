@@ -8,6 +8,8 @@ use App\Models\Category;
 use App\Models\Media;
 use App\Models\Product;
 use App\Models\ProductVariant;
+use App\Support\Price;
+use App\Support\StorageUrl;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -59,7 +61,7 @@ class ProductController extends PublicController
             'media' => $product->media
                 ->map(fn (Media $media) => [
                     'id' => $media->id,
-                    'url' => $this->storageUrl($media->path),
+                    'url' => StorageUrl::for($media->path),
                     'alt' => $this->translation($media, 'alt_text') ?? $media->alt_text ?? $name,
                     'is_primary' => $media->is_primary,
                 ])
@@ -69,8 +71,8 @@ class ProductController extends PublicController
                 ->map(fn (ProductVariant $variant) => [
                     'id' => $variant->id,
                     'size' => "{$variant->size_ml} ml",
-                    'price' => $this->decimal($variant->price),
-                    'compare_at_price' => $this->decimal($variant->compare_at_price),
+                    'price' => Price::decimal($variant->price),
+                    'compare_at_price' => Price::decimal($variant->compare_at_price),
                     'is_default' => $variant->is_default,
                 ])
                 ->values()
