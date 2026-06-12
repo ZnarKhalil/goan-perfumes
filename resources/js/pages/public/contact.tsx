@@ -45,11 +45,14 @@ export default function Contact(page: PublicContactPageProps) {
                     {links.length > 0 ? (
                         links.map((link) => {
                             const Icon = link.icon;
+                            const isExternal = link.href.startsWith('http');
 
                             return (
                                 <a
                                     key={link.label}
                                     href={link.href}
+                                    target={isExternal ? '_blank' : undefined}
+                                    rel={isExternal ? 'noreferrer' : undefined}
                                     className="group grid min-h-48 rounded-[1.4rem] border border-white/10 bg-white/[0.035] p-6 backdrop-blur-xl transition-colors duration-500 hover:border-[#e7c889]/40 hover:bg-white/[0.06]"
                                 >
                                     <div className="flex items-start justify-between gap-4">

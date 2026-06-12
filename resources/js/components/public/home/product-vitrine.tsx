@@ -96,8 +96,20 @@ function VitrineCard({
                             className="vitrine-float absolute inset-0 m-auto h-[82%] w-auto object-contain drop-shadow-[0_24px_30px_rgba(0,0,0,0.55)] transition-transform duration-700 group-hover/tilt:scale-[1.06]"
                         />
                     ) : (
-                        <div className="flex h-full items-center justify-center text-sm text-stone-500">
-                            {copy.productCard.imageMissing}
+                        <div className="flex h-full flex-col items-center justify-center gap-3 text-stone-500">
+                            <svg
+                                viewBox="0 0 24 24"
+                                className="size-10 text-[#e7c889]/40"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="1.2"
+                                aria-hidden
+                            >
+                                <path d="M10 3h4M11 3v4h2V3M8.5 9.5 7 11a5 5 0 0 0-1 3v4a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3v-4a5 5 0 0 0-1-3l-1.5-1.5M9 9.5h6a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v.5a1 1 0 0 0 1 1Z" />
+                            </svg>
+                            <span className="text-[0.65rem] tracking-[0.24em] uppercase">
+                                {copy.productCard.imageMissing}
+                            </span>
                         </div>
                     )}
 

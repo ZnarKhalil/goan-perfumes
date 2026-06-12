@@ -66,8 +66,24 @@ test('public navigation uses all active root database categories for the current
             ->has('navigation', 2)
             ->where('navigation.0.slug', 'second-category')
             ->where('navigation.0.name', 'Second Category')
+            ->where('navigation.0.href', '/en/second-category')
             ->where('navigation.1.slug', 'first-category')
             ->where('navigation.1.name', 'First Category'),
+        );
+});
+
+test('cached navigation links are host-relative so they survive a host change', function () {
+    publicCategory('luxusparfums', 'Luxusparfums');
+
+    // Warm the navigation cache from a request on one host, then assert the
+    // cached href still works when the app is served from a different host
+    // (e.g. `php artisan serve --host=0.0.0.0`).
+    $this->get('/de')->assertOk();
+
+    $this->get('http://192.168.0.10:8000/de')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('navigation.0.href', '/de/luxusparfums'),
         );
 });
 
@@ -217,6 +233,35 @@ test('category page renders filters products and pagination', function () {
             ->has('products', 1)
             ->where('products.0.slug', 'rose-oud')
             ->where('pagination.total', 1),
+        );
+});
+
+test('category pagination links use href and products are sorted by catalog number', function () {
+    $category = publicCategory('damenparfums', 'Damenparfums');
+
+    collect(['LU1', 'D12', 'D1', 'D2', 'D10', 'D3', 'D4', 'D5', 'D6', 'D7', 'D8', 'D9', 'D11', 'LU2'])
+        ->each(fn (string $name) => publicProduct(strtolower($name), $name, $category));
+
+    $this->get('/de/damenparfums')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('public/category')
+            ->has('products', 12)
+            ->where('products.0.name', 'D1')
+            ->where('products.1.name', 'D2')
+            ->where('products.9.name', 'D10')
+            ->where('products.11.name', 'D12')
+            ->where('pagination.last_page', 2)
+            ->where('pagination.links.2.href', fn (string $href) => str_contains($href, '/de/damenparfums?page=2')),
+        );
+
+    $this->get('/de/damenparfums?page=2')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('public/category')
+            ->has('products', 2)
+            ->where('products.0.name', 'LU1')
+            ->where('products.1.name', 'LU2'),
         );
 });
 

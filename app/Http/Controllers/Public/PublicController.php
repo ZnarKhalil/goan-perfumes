@@ -17,6 +17,8 @@ use App\Support\PublicLocale;
 use App\Support\StorageUrl;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Database\Query\JoinClause;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 abstract class PublicController extends Controller
@@ -101,10 +103,51 @@ abstract class PublicController extends Controller
     protected function productCardQuery(): Builder
     {
         return Product::query()
+            ->select('products.*')
             ->with(['translations', 'categories.translations', 'primaryMedia.translations'])
             ->withMin(['variants as variants_min_price' => fn (Builder $query) => $query->where('is_active', true)], 'price')
             ->withMax(['variants as variants_max_price' => fn (Builder $query) => $query->where('is_active', true)], 'price')
             ->where('is_active', true);
+    }
+
+    protected function orderByPublicCatalogName(Builder $query): Builder
+    {
+        $locale = $this->locale();
+        $nameExpression = 'lower(coalesce(product_locale_names.value, product_default_names.value, products.slug))';
+
+        $query
+            ->leftJoin('translations as product_locale_names', function (JoinClause $join) use ($locale): void {
+                $join
+                    ->on('product_locale_names.translatable_id', '=', 'products.id')
+                    ->where('product_locale_names.translatable_type', Product::class)
+                    ->where('product_locale_names.locale', $locale)
+                    ->where('product_locale_names.field', 'name');
+            })
+            ->leftJoin('translations as product_default_names', function (JoinClause $join): void {
+                $join
+                    ->on('product_default_names.translatable_id', '=', 'products.id')
+                    ->where('product_default_names.translatable_type', Product::class)
+                    ->where('product_default_names.locale', PublicLocale::Default)
+                    ->where('product_default_names.field', 'name');
+            })
+            ->orderByRaw("case when {$nameExpression} like 'l%' then 1 else 0 end");
+
+        if (DB::connection()->getDriverName() === 'pgsql') {
+            return $query
+                ->orderByRaw("regexp_replace({$nameExpression}, '[0-9].*$', '')")
+                ->orderByRaw("nullif(regexp_replace({$nameExpression}, '[^0-9]', '', 'g'), '')::integer asc nulls last")
+                ->orderByRaw($nameExpression)
+                ->orderBy('products.id');
+        }
+
+        $sqliteCatalogNumberExpression = "case when {$nameExpression} glob 'lu[0-9]*' then cast(substr({$nameExpression}, 3) as integer) when {$nameExpression} glob '[a-z][0-9]*' then cast(substr({$nameExpression}, 2) as integer) else null end";
+
+        return $query
+            ->orderByRaw("case when {$nameExpression} glob 'lu[0-9]*' then 'lu' when {$nameExpression} glob '[a-z][0-9]*' then substr({$nameExpression}, 1, 1) else {$nameExpression} end")
+            ->orderByRaw("case when {$sqliteCatalogNumberExpression} is null then 1 else 0 end")
+            ->orderByRaw($sqliteCatalogNumberExpression)
+            ->orderByRaw($nameExpression)
+            ->orderBy('products.id');
     }
 
     protected function pageSections(): array

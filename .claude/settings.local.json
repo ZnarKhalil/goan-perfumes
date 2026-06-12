@@ -28,7 +28,15 @@
       "Bash(perl -0pi -e \"s/    private const LOCALES = \\\\['de', 'ar', 'en'\\\\];\\\\n\\\\n//\" app/Http/Controllers/Dashboard/PromotionController.php)",
       "Bash(perl -0pi -e 's/\\\\$this->syncTranslations\\\\\\(\\\\$promotion, \\\\$data\\\\[.translations.\\\\] \\\\?\\\\? \\\\[\\\\]\\\\\\);/\\\\$promotion->syncTranslations\\(\\\\$data[\"translations\"] ?? [], self::TRANSLATABLE_FIELDS\\);/g' app/Http/Controllers/Dashboard/PromotionController.php)",
       "Bash(sed -n 58,66p app/Http/Controllers/Dashboard/PromotionController.php)",
-      "Bash(sed -n 90,96p app/Http/Controllers/Dashboard/PromotionController.php)"
+      "Bash(sed -n 90,96p app/Http/Controllers/Dashboard/PromotionController.php)",
+      "Bash(python3 /Users/znarkhalil/.claude/plugins/cache/ui-ux-pro-max-skill/ui-ux-pro-max/2.5.0/.claude/skills/ui-ux-pro-max/scripts/search.py \"luxury perfume fragrance e-commerce elegant\" --design-system -p \"Goan Perfume\")",
+      "mcp__plugin_chrome-devtools-mcp_chrome-devtools__new_page",
+      "mcp__plugin_chrome-devtools-mcp_chrome-devtools__resize_page",
+      "mcp__plugin_chrome-devtools-mcp_chrome-devtools__take_screenshot",
+      "mcp__plugin_chrome-devtools-mcp_chrome-devtools__evaluate_script",
+      "mcp__plugin_chrome-devtools-mcp_chrome-devtools__navigate_page",
+      "Bash(npx prettier *)",
+      "Bash(npx eslint *)"
     ]
   },
   "enableAllProjectMcpServers": true,

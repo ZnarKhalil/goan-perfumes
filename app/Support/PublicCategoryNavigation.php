@@ -52,7 +52,7 @@ final class PublicCategoryNavigation
             'href' => route('categories.show', [
                 'locale' => $locale,
                 'slug' => $category->slug,
-            ]),
+            ], absolute: false),
             'image_url' => StorageUrl::for($category->image_path),
         ];
     }

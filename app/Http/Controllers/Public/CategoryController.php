@@ -20,9 +20,10 @@ class CategoryController extends PublicController
             ->firstOrFail();
         $selectedFilters = $this->selectedFilters($request->query());
         $products = $this->applyFilters(
-            $this->productCardQuery()
-                ->whereHas('categories', fn ($query) => $query->whereKey($category->id))
-                ->orderByDesc('id'),
+            $this->orderByPublicCatalogName(
+                $this->productCardQuery()
+                    ->whereHas('categories', fn ($query) => $query->whereKey($category->id)),
+            ),
             $selectedFilters,
         )->paginate(12)->withQueryString();
 
@@ -48,7 +49,13 @@ class CategoryController extends PublicController
                 'total' => $products->total(),
                 'from' => $products->firstItem(),
                 'to' => $products->lastItem(),
-                'links' => $products->linkCollection()->all(),
+                'links' => $products->linkCollection()
+                    ->map(fn (array $link): array => [
+                        'label' => $link['label'],
+                        'href' => $link['url'],
+                        'active' => $link['active'],
+                    ])
+                    ->all(),
             ],
         ]);
     }

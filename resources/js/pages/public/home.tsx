@@ -16,6 +16,7 @@ export default function Home(page: PublicHomePageProps) {
     const luxuryHref =
         page.navigation.find((category) => category.slug === 'luxusparfums')
             ?.href ?? `/${locale}`;
+    const contactHref = `/${locale}/kontakt`;
 
     return (
         <PublicLayout
@@ -35,6 +36,7 @@ export default function Home(page: PublicHomePageProps) {
                 hero={page.page_sections.hero}
                 copy={copy}
                 ctaHref={luxuryHref}
+                contactHref={contactHref}
             />
 
             <Offers
