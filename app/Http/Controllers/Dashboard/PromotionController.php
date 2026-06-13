@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Dashboard\StorePromotionRequest;
 use App\Http\Requests\Dashboard\UpdatePromotionRequest;
 use App\Models\Promotion;
+use App\Support\PublicLocale;
 use Carbon\CarbonInterface;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
@@ -14,8 +15,6 @@ use Inertia\Response;
 
 class PromotionController extends Controller
 {
-    private const LOCALES = ['de', 'ar', 'en'];
-
     private const TRANSLATABLE_FIELDS = [
         'badge',
         'title',
@@ -48,7 +47,9 @@ class PromotionController extends Controller
 
     public function create(): Response
     {
-        return Inertia::render('dashboard/promotions/create');
+        return Inertia::render('dashboard/promotions/create', [
+            'next_sort_order' => $this->nextSortOrder(),
+        ]);
     }
 
     public function store(StorePromotionRequest $request): RedirectResponse
@@ -58,7 +59,7 @@ class PromotionController extends Controller
         DB::transaction(function () use ($data): void {
             $promotion = new Promotion($this->promotionAttributes($data));
             $promotion->save();
-            $this->syncTranslations($promotion, $data['translations'] ?? []);
+            $promotion->syncTranslations($data['translations'] ?? [], self::TRANSLATABLE_FIELDS);
         });
 
         return to_route('dashboard.promotions.index')
@@ -89,7 +90,7 @@ class PromotionController extends Controller
         DB::transaction(function () use ($promotion, $data): void {
             $promotion->fill($this->promotionAttributes($data));
             $promotion->save();
-            $this->syncTranslations($promotion, $data['translations'] ?? []);
+            $promotion->syncTranslations($data['translations'] ?? [], self::TRANSLATABLE_FIELDS);
         });
 
         return to_route('dashboard.promotions.index')
@@ -108,6 +109,17 @@ class PromotionController extends Controller
     }
 
     /**
+     * The next free sort order, suggested as the default when creating a
+     * promotion so the unique rule is not tripped on the common case.
+     */
+    private function nextSortOrder(): int
+    {
+        $max = Promotion::query()->max('sort_order');
+
+        return $max === null ? 0 : ((int) $max + 1);
+    }
+
+    /**
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
@@ -122,37 +134,13 @@ class PromotionController extends Controller
     }
 
     /**
-     * @param  array<string, array<string, ?string>>  $translations
-     */
-    private function syncTranslations(Promotion $promotion, array $translations): void
-    {
-        foreach (self::LOCALES as $locale) {
-            $payload = $translations[$locale] ?? [];
-            foreach (self::TRANSLATABLE_FIELDS as $field) {
-                $value = $payload[$field] ?? null;
-
-                if ($value === null || $value === '') {
-                    $promotion->translations()
-                        ->where('locale', $locale)
-                        ->where('field', $field)
-                        ->delete();
-
-                    continue;
-                }
-
-                $promotion->setTranslation($locale, $field, $value);
-            }
-        }
-    }
-
-    /**
      * @return array<string, array<string, string>>
      */
     private function translationsAsTabs(Promotion $promotion): array
     {
         $shape = [];
 
-        foreach (self::LOCALES as $locale) {
+        foreach (PublicLocale::codes() as $locale) {
             $shape[$locale] = [];
             foreach (self::TRANSLATABLE_FIELDS as $field) {
                 $shape[$locale][$field] = $promotion->translate($locale, $field) ?? '';

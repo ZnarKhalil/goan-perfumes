@@ -1,3 +1,4 @@
+import { Link } from '@inertiajs/react';
 import {
     motion,
     useMotionValue,
@@ -16,6 +17,7 @@ type Props = {
     hero: PublicHeroSection;
     copy: PublicCopy;
     ctaHref: string;
+    contactHref: string;
 };
 
 const PARTICLES = [
@@ -29,7 +31,7 @@ const PARTICLES = [
     { top: '84%', left: '32%', size: 4, delay: -1, dur: 23 },
 ];
 
-export default function Hero({ hero, copy, ctaHref }: Props) {
+export default function Hero({ hero, copy, ctaHref, contactHref }: Props) {
     const reduceMotion = useReducedMotion();
     const sectionRef = useRef<HTMLElement>(null);
 
@@ -68,7 +70,6 @@ export default function Hero({ hero, copy, ctaHref }: Props) {
 
     const words = hero.title.trim().split(/\s+/);
     const eyebrow = hero.eyebrow ?? copy.home.featuredEyebrow;
-    const hasMedia = Boolean(hero.image_url || hero.video_url);
 
     return (
         <section
@@ -91,18 +92,10 @@ export default function Hero({ hero, copy, ctaHref }: Props) {
                           }
                 }
             >
-                {hero.image_url && (
-                    <img
-                        src={hero.image_url}
-                        alt=""
-                        className="h-auto w-full object-contain object-center sm:h-full sm:object-cover"
-                    />
-                )}
-                {hero.video_url && (
+                {hero.video_url ? (
                     <video
                         key={hero.video_url}
                         className="h-auto w-full object-contain object-center sm:h-full sm:object-cover"
-                        poster={hero.image_url ?? undefined}
                         autoPlay
                         muted
                         loop
@@ -110,22 +103,24 @@ export default function Hero({ hero, copy, ctaHref }: Props) {
                     >
                         <source src={hero.video_url} />
                     </video>
-                )}
-                {!hasMedia && (
-                    <div className="h-[60svh] w-full bg-[radial-gradient(120%_120%_at_30%_20%,#241708,#0b0907)] sm:h-full" />
+                ) : hero.image_url ? (
+                    <img
+                        src={hero.image_url}
+                        alt=""
+                        className="h-auto w-full object-contain object-center sm:h-full sm:object-cover"
+                    />
+                ) : (
+                    <div className="h-[22svh] w-full bg-[radial-gradient(120%_120%_at_30%_20%,#241708,#0b0907)] sm:h-full" />
                 )}
             </motion.div>
 
             {/* legibility scrims (desktop overlay only) */}
             <div className="absolute inset-0 -z-10 hidden bg-[linear-gradient(105deg,rgba(7,5,4,0.86)_0%,rgba(7,5,4,0.55)_42%,rgba(7,5,4,0.2)_70%,rgba(7,5,4,0.45)_100%)] sm:block" />
             <div className="absolute inset-0 -z-10 hidden bg-[linear-gradient(180deg,rgba(7,5,4,0.55)_0%,transparent_28%,transparent_55%,rgba(11,9,7,0.96)_100%)] sm:block" />
-            <div className="grain-layer absolute inset-0 -z-10 hidden opacity-[0.12] mix-blend-overlay sm:block" />
+            <div className="absolute inset-0 -z-10 hidden grain-layer opacity-[0.12] mix-blend-overlay sm:block" />
 
             {/* ambient drifting embers */}
-            <div
-                aria-hidden
-                className="absolute inset-0 -z-10 hidden sm:block"
-            >
+            <div aria-hidden className="absolute inset-0 -z-10 hidden sm:block">
                 {PARTICLES.map((p, i) => (
                     <span
                         key={i}
@@ -148,7 +143,7 @@ export default function Hero({ hero, copy, ctaHref }: Props) {
             </div>
 
             <motion.div
-                className="relative mx-auto w-full max-w-7xl px-4 pt-10 pb-20 sm:pt-32 sm:pb-24 md:px-8 md:pb-28 lg:pt-48 xl:pt-56"
+                className="relative mx-auto w-full max-w-7xl px-4 pt-10 pb-20 sm:pt-28 sm:pb-24 md:px-8 md:pb-28 lg:pt-36 xl:pt-40"
                 style={
                     reduceMotion
                         ? undefined
@@ -166,18 +161,18 @@ export default function Hero({ hero, copy, ctaHref }: Props) {
                         {eyebrow}
                     </motion.p>
 
-                    <h1 className="font-display text-[clamp(2.75rem,8vw,7rem)] leading-[0.95] font-light">
+                    <h1 className="font-display text-[clamp(2.5rem,5.5vw,5rem)] leading-[1.02] font-light [[dir=rtl]_&]:leading-[1.35]">
                         {words.map((word, index) => (
                             <span
                                 key={`${word}-${index}`}
-                                className="mr-[0.22em] inline-block overflow-hidden align-bottom"
+                                className="-my-[0.25em] mr-[0.22em] inline-block overflow-hidden py-[0.25em] align-bottom"
                             >
                                 <motion.span
                                     className="vitrine-shimmer-text inline-block"
                                     initial={
                                         reduceMotion
                                             ? false
-                                            : { y: '115%', rotate: 5 }
+                                            : { y: '150%', rotate: 5 }
                                     }
                                     animate={{ y: 0, rotate: 0 }}
                                     transition={{
@@ -218,9 +213,13 @@ export default function Hero({ hero, copy, ctaHref }: Props) {
                         <CtaLink href={ctaHref}>
                             {hero.cta_text ?? copy.home.heroCta}
                         </CtaLink>
-                        <span className="hidden text-xs tracking-[0.28em] text-stone-400 uppercase sm:inline">
-                            {copy.home.luxuryLink}
-                        </span>
+                        <Link
+                            href={contactHref}
+                            className="group/advice hidden items-center gap-2 text-xs tracking-[0.28em] text-stone-300 uppercase transition-colors duration-300 hover:text-[#e7c889] sm:inline-flex"
+                        >
+                            {copy.home.heroSecondary}
+                            <span className="h-px w-7 bg-current opacity-50 transition-all duration-300 group-hover/advice:w-10 group-hover/advice:opacity-100" />
+                        </Link>
                     </motion.div>
                 </div>
             </motion.div>

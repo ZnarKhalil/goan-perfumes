@@ -8,6 +8,13 @@ use App\Support\PublicLocale;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+Route::middleware(['auth', 'verified', 'admin'])->group(function () {
+    Route::inertia('dashboard', 'dashboard')->name('dashboard');
+});
+
+require __DIR__.'/settings.php';
+require __DIR__.'/dashboard.php';
+
 Route::prefix('{locale}')
     ->whereIn('locale', PublicLocale::codes())
     ->middleware('public.locale')
@@ -36,10 +43,3 @@ Route::get('/{slug}', fn (Request $request, string $slug) => redirect()->route('
     'slug' => $slug,
     ...$request->query(),
 ]));
-
-Route::middleware(['auth', 'verified', 'admin'])->group(function () {
-    Route::inertia('dashboard', 'dashboard')->name('dashboard');
-});
-
-require __DIR__.'/settings.php';
-require __DIR__.'/dashboard.php';

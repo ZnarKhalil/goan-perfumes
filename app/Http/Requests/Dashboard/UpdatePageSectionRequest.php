@@ -5,7 +5,6 @@ namespace App\Http\Requests\Dashboard;
 use App\Models\PageSection;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class UpdatePageSectionRequest extends FormRequest
 {
@@ -36,8 +35,9 @@ class UpdatePageSectionRequest extends FormRequest
         ];
 
         if ($pageSection?->key === 'hero') {
-            $rules['hero_image'] = ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,avif', 'max:5120'];
-            $rules['hero_video'] = ['nullable', 'file', 'mimes:mp4,webm', 'max:20480'];
+            // The hero shows an image or a video, never both.
+            $rules['hero_image'] = ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,avif', 'max:5120', 'prohibits:hero_video'];
+            $rules['hero_video'] = ['nullable', 'file', 'mimes:mp4,webm', 'max:20480', 'prohibits:hero_image'];
             $rules['remove_hero_image'] = ['nullable', 'boolean'];
             $rules['remove_hero_video'] = ['nullable', 'boolean'];
             $rules['translations.de.title'] = ['required', 'string', 'max:255'];
@@ -53,16 +53,6 @@ class UpdatePageSectionRequest extends FormRequest
             $rules['translations.de.title'] = ['required', 'string', 'max:255'];
             $rules['translations.de.bullet_points'] = ['required', 'array', 'min:1'];
             $rules['translations.de.bullet_points.*'] = ['required', 'string', 'max:255'];
-        }
-
-        if ($pageSection?->key === 'featured_products') {
-            $rules['payload'] = ['required', 'array'];
-            $rules['payload.product_ids'] = ['nullable', 'array'];
-            $rules['payload.product_ids.*'] = [
-                'integer',
-                'distinct',
-                Rule::exists('products', 'id'),
-            ];
         }
 
         return $rules;

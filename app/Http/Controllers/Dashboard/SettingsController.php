@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Dashboard;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Dashboard\UpdateSettingsRequest;
 use App\Models\Setting;
+use App\Support\StorageUrl;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -50,20 +51,21 @@ class SettingsController extends Controller
         $currentLogoPath = Setting::get('logo_path', '');
 
         if ($request->boolean('remove_logo') && $currentLogoPath !== '') {
-            Storage::disk('public')->delete($currentLogoPath);
             Setting::put('logo_path', '');
+            Storage::disk('public')->delete($currentLogoPath);
             $currentLogoPath = '';
         }
 
         if ($request->hasFile('logo')) {
-            if ($currentLogoPath !== '') {
-                Storage::disk('public')->delete($currentLogoPath);
-            }
-
             Setting::put(
                 'logo_path',
                 $request->file('logo')->store('branding', 'public'),
             );
+
+            // Remove the previous file only after the new path is persisted.
+            if ($currentLogoPath !== '') {
+                Storage::disk('public')->delete($currentLogoPath);
+            }
         }
 
         return to_route('dashboard.settings.site.edit')
@@ -72,8 +74,6 @@ class SettingsController extends Controller
 
     private function logoUrl(): ?string
     {
-        $logoPath = Setting::get('logo_path', '');
-
-        return $logoPath !== '' ? Storage::url($logoPath) : null;
+        return StorageUrl::for(Setting::get('logo_path'));
     }
 }

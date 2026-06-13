@@ -52,7 +52,30 @@ test('admin can list products with German names categories image and price range
             ->where('products.0.categories.0', 'Damenparfums')
             ->where('products.0.min_price', '49.90')
             ->where('products.0.max_price', '79.90')
-            ->where('products.0.is_featured', true),
+            ->where('products.0.is_featured', true)
+            ->where('pagination.total', 1)
+            ->where('pagination.per_page', 25),
+        );
+});
+
+test('the product index is paginated', function () {
+    Product::factory()->count(26)->create();
+
+    $this->actingAs($this->admin)
+        ->get('/dashboard/products')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('products', 25)
+            ->where('pagination.total', 26)
+            ->where('pagination.last_page', 2),
+        );
+
+    $this->actingAs($this->admin)
+        ->get('/dashboard/products?page=2')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('products', 1)
+            ->where('pagination.current_page', 2),
         );
 });
 
@@ -236,6 +259,45 @@ test('store rejects a fifth homepage highlight', function () {
     expect(Product::where('is_featured', true)->count())->toBe(4);
 });
 
+test('update rejects exceeding the homepage highlight limit', function () {
+    Product::factory()->count(4)->featured()->create();
+    $category = Category::factory()->create();
+    $product = Product::factory()->create(['slug' => 'normal']);
+    $variant = ProductVariant::factory()->for($product)->create([
+        'size_ml' => 50,
+        'price' => '50.00',
+        'is_default' => true,
+    ]);
+
+    $this->actingAs($this->admin)
+        ->put("/dashboard/products/{$product->id}", [
+            'brand' => null,
+            'is_active' => true,
+            'is_featured' => true,
+            'translations' => [
+                'de' => ['name' => 'Normal'],
+                'ar' => ['name' => ''],
+                'en' => ['name' => ''],
+            ],
+            'categories' => [$category->id],
+            'attribute_values' => [],
+            'variants' => [
+                [
+                    'id' => $variant->id,
+                    'size_ml' => 50,
+                    'price' => '50.00',
+                    'compare_at_price' => null,
+                    'is_default' => true,
+                    'is_active' => true,
+                ],
+            ],
+        ])
+        ->assertSessionHasErrors('is_featured');
+
+    expect($product->refresh()->is_featured)->toBeFalse();
+    expect(Product::where('is_featured', true)->count())->toBe(4);
+});
+
 test('admin can update product graph variants and media', function () {
     Storage::fake('public');
 
@@ -332,7 +394,7 @@ test('admin can update product graph variants and media', function () {
 
     $product->refresh();
 
-    expect($product->slug)->toBe('neu');
+    expect($product->slug)->toBe('old');
     expect($product->brand)->toBe('Neu');
     expect($product->translate('de', 'name'))->toBe('Neu');
     expect($product->translate('de', 'meta_title'))->toBe('Neu');

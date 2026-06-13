@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
@@ -32,6 +33,10 @@ class AppServiceProvider extends ServiceProvider
     protected function configureDefaults(): void
     {
         Date::use(CarbonImmutable::class);
+
+        // Surface lazy loading (N+1), discarded attributes, and missing
+        // attribute access during development and testing.
+        Model::shouldBeStrict(! $this->app->isProduction());
 
         DB::prohibitDestructiveCommands(
             app()->isProduction(),

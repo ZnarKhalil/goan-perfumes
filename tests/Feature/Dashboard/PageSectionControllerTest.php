@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\PageSection;
-use App\Models\Product;
 use App\Models\User;
 use Database\Seeders\PageSectionSeeder;
 use Illuminate\Http\UploadedFile;
@@ -23,12 +22,11 @@ test('page section seeder creates the fixed sections idempotently', function () 
     $this->seed(PageSectionSeeder::class);
     $this->seed(PageSectionSeeder::class);
 
-    expect(PageSection::query()->count())->toBe(4);
+    expect(PageSection::query()->count())->toBe(3);
     expect(PageSection::query()->pluck('key')->all())->toEqualCanonicalizing([
         'hero',
         'about',
         'why_us',
-        'featured_products',
     ]);
 });
 
@@ -43,7 +41,7 @@ test('admin can list page sections with status badges data', function () {
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->component('dashboard/page-sections/index')
-            ->has('sections', 4)
+            ->has('sections', 3)
             ->where('sections.0.key', 'hero')
             ->where('sections.0.title', 'Start Hero')
             ->where('sections.0.is_active', true),
@@ -167,6 +165,111 @@ test('admin can remove hero video', function () {
     Storage::disk('public')->assertMissing($oldPath);
 });
 
+test('uploading a hero video removes the existing hero image', function () {
+    Storage::fake('public');
+
+    $section = PageSection::query()->create([
+        'key' => 'hero',
+        'type' => 'image',
+        'payload' => [
+            'image_path' => UploadedFile::fake()
+                ->image('old.jpg')
+                ->store('page-sections/hero', 'public'),
+        ],
+        'sort_order' => 0,
+        'is_active' => true,
+    ]);
+    $oldImage = $section->payload['image_path'];
+
+    $this->actingAs($this->admin)
+        ->post("/dashboard/page-sections/{$section->id}", [
+            '_method' => 'PUT',
+            'hero_video' => UploadedFile::fake()->create('hero.mp4', 1024, 'video/mp4'),
+            'sort_order' => 0,
+            'is_active' => true,
+            'translations' => [
+                'de' => ['title' => 'GOAN Parfums'],
+                'ar' => ['title' => ''],
+                'en' => ['title' => ''],
+            ],
+        ])
+        ->assertRedirect('/dashboard/page-sections');
+
+    $section->refresh();
+
+    expect($section->payload['image_path'])->toBeNull();
+    expect($section->payload['video_path'])->not->toBeNull();
+    Storage::disk('public')->assertMissing($oldImage);
+    Storage::disk('public')->assertExists($section->payload['video_path']);
+});
+
+test('uploading a hero image removes the existing hero video', function () {
+    Storage::fake('public');
+
+    $section = PageSection::query()->create([
+        'key' => 'hero',
+        'type' => 'image',
+        'payload' => [
+            'video_path' => UploadedFile::fake()
+                ->create('old.mp4', 512, 'video/mp4')
+                ->store('page-sections/hero', 'public'),
+        ],
+        'sort_order' => 0,
+        'is_active' => true,
+    ]);
+    $oldVideo = $section->payload['video_path'];
+
+    $this->actingAs($this->admin)
+        ->post("/dashboard/page-sections/{$section->id}", [
+            '_method' => 'PUT',
+            'hero_image' => UploadedFile::fake()->image('hero.jpg', 1600, 900),
+            'sort_order' => 0,
+            'is_active' => true,
+            'translations' => [
+                'de' => ['title' => 'GOAN Parfums'],
+                'ar' => ['title' => ''],
+                'en' => ['title' => ''],
+            ],
+        ])
+        ->assertRedirect('/dashboard/page-sections');
+
+    $section->refresh();
+
+    expect($section->payload['video_path'])->toBeNull();
+    expect($section->payload['image_path'])->not->toBeNull();
+    Storage::disk('public')->assertMissing($oldVideo);
+    Storage::disk('public')->assertExists($section->payload['image_path']);
+});
+
+test('hero rejects an image and a video uploaded together', function () {
+    Storage::fake('public');
+
+    $section = PageSection::query()->create([
+        'key' => 'hero',
+        'type' => 'image',
+        'payload' => [],
+        'sort_order' => 0,
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($this->admin)
+        ->post("/dashboard/page-sections/{$section->id}", [
+            '_method' => 'PUT',
+            'hero_image' => UploadedFile::fake()->image('hero.jpg', 1600, 900),
+            'hero_video' => UploadedFile::fake()->create('hero.mp4', 1024, 'video/mp4'),
+            'sort_order' => 0,
+            'is_active' => true,
+            'translations' => [
+                'de' => ['title' => 'GOAN Parfums'],
+                'ar' => ['title' => ''],
+                'en' => ['title' => ''],
+            ],
+        ])
+        ->assertSessionHasErrors('hero_image');
+
+    expect($section->refresh()->payload)->toBe([]);
+});
+
 test('admin can update about title and body', function () {
     $section = PageSection::query()->create([
         'key' => 'about',
@@ -243,62 +346,6 @@ test('admin can update why us bullet points and read them back', function () {
         );
 });
 
-test('admin can update featured product ids in order', function () {
-    $products = Product::factory()->count(3)->create();
-    $products->each(fn (Product $product, int $index) => $product
-        ->setTranslation('de', 'name', "Produkt {$index}"));
-
-    $section = PageSection::query()->create([
-        'key' => 'featured_products',
-        'type' => 'product_list',
-        'payload' => ['product_ids' => []],
-        'sort_order' => 30,
-        'is_active' => true,
-    ]);
-
-    $this->actingAs($this->admin)
-        ->put("/dashboard/page-sections/{$section->id}", [
-            'sort_order' => 30,
-            'is_active' => true,
-            'payload' => [
-                'product_ids' => [
-                    $products[2]->id,
-                    $products[0]->id,
-                ],
-            ],
-            'translations' => [
-                'de' => ['title' => 'Highlights'],
-                'ar' => ['title' => ''],
-                'en' => ['title' => ''],
-            ],
-        ])
-        ->assertRedirect('/dashboard/page-sections');
-
-    expect($section->refresh()->payload['product_ids'])->toBe([
-        $products[2]->id,
-        $products[0]->id,
-    ]);
-});
-
-test('featured products reject missing product ids', function () {
-    $section = PageSection::query()->create([
-        'key' => 'featured_products',
-        'type' => 'product_list',
-        'payload' => ['product_ids' => []],
-        'sort_order' => 30,
-        'is_active' => true,
-    ]);
-
-    $this->actingAs($this->admin)
-        ->put("/dashboard/page-sections/{$section->id}", [
-            'sort_order' => 30,
-            'is_active' => true,
-            'payload' => ['product_ids' => [999999]],
-            'translations' => [
-                'de' => ['title' => 'Highlights'],
-                'ar' => ['title' => ''],
-                'en' => ['title' => ''],
-            ],
-        ])
-        ->assertSessionHasErrors('payload.product_ids.0');
+test('the featured products section is removed by the cleanup migration', function () {
+    expect(PageSection::query()->where('key', 'featured_products')->exists())->toBeFalse();
 });

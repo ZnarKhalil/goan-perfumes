@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Dashboard;
 
+use App\Support\PublicLocale;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -25,8 +26,8 @@ class UpdateSettingsRequest extends FormRequest
             'instagram_url' => ['nullable', 'url', 'max:255'],
             'tiktok_url' => ['nullable', 'url', 'max:255'],
             'facebook_url' => ['nullable', 'url', 'max:255'],
-            'default_locale' => ['required', 'string', Rule::in(['de', 'ar', 'en'])],
-            'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,avif,svg', 'max:5120'],
+            'default_locale' => ['required', 'string', Rule::in(PublicLocale::codes())],
+            'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,avif', 'max:5120'],
             'remove_logo' => ['nullable', 'boolean'],
         ];
     }

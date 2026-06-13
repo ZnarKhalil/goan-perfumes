@@ -75,6 +75,59 @@ test('admin can create a category with translations and a banner image', functio
     Storage::disk('public')->assertExists($category->image_path);
 });
 
+test('store rejects a sort order already used by another category', function () {
+    Category::factory()->create(['slug' => 'existing', 'sort_order' => 3]);
+
+    $this->actingAs($this->admin)
+        ->post('/dashboard/categories', [
+            'sort_order' => 3,
+            'is_active' => true,
+            'translations' => [
+                'de' => ['name' => 'Neu'],
+                'ar' => ['name' => ''],
+                'en' => ['name' => ''],
+            ],
+        ])
+        ->assertSessionHasErrors('sort_order');
+
+    expect(Category::count())->toBe(1);
+});
+
+test('a category can be updated while keeping its own sort order', function () {
+    $category = Category::factory()->create(['slug' => 'kat', 'sort_order' => 4]);
+    $category->setTranslation('de', 'name', 'Kategorie');
+
+    $this->actingAs($this->admin)
+        ->put("/dashboard/categories/{$category->id}", [
+            'parent_id' => 'none',
+            'sort_order' => 4,
+            'is_active' => true,
+            'translations' => [
+                'de' => ['name' => 'Kategorie neu'],
+                'ar' => ['name' => ''],
+                'en' => ['name' => ''],
+            ],
+        ])
+        ->assertRedirect('/dashboard/categories')
+        ->assertSessionHasNoErrors();
+
+    expect($category->refresh()->sort_order)->toBe(4);
+    expect($category->translate('de', 'name'))->toBe('Kategorie neu');
+});
+
+test('create page suggests the next free sort order', function () {
+    Category::factory()->create(['slug' => 'a', 'sort_order' => 0]);
+    Category::factory()->create(['slug' => 'b', 'sort_order' => 5]);
+
+    $this->actingAs($this->admin)
+        ->get('/dashboard/categories/create')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('dashboard/categories/create')
+            ->where('next_sort_order', 6),
+        );
+});
+
 test('store rejects a request without a German name', function () {
     $this->actingAs($this->admin)
         ->post('/dashboard/categories', [
@@ -93,7 +146,7 @@ test('store rejects a request without a German name', function () {
 });
 
 test('category slug is generated from the German name and deduped', function () {
-    Category::factory()->create(['slug' => 'sommer']);
+    Category::factory()->create(['slug' => 'sommer', 'sort_order' => 1]);
 
     $this->actingAs($this->admin)
         ->post('/dashboard/categories', [
@@ -166,13 +219,35 @@ test('admin can update an existing category and replace its banner', function ()
 
     $category->refresh();
 
-    expect($category->slug)->toBe('neu');
+    expect($category->slug)->toBe('old-slug');
     expect($category->is_active)->toBeFalse();
     expect($category->sort_order)->toBe(9);
     expect($category->translate('de', 'name'))->toBe('Neu');
     expect($category->image_path)->not->toBe($oldPath);
     Storage::disk('public')->assertMissing($oldPath);
     Storage::disk('public')->assertExists($category->image_path);
+});
+
+test('update accepts the "none" parent sentinel sent by the form', function () {
+    $root = Category::factory()->create(['slug' => 'root', 'parent_id' => null, 'sort_order' => 0]);
+    $category = Category::factory()->create(['slug' => 'kind', 'parent_id' => $root->id, 'sort_order' => 1]);
+    $category->setTranslation('de', 'name', 'Kind');
+
+    $this->actingAs($this->admin)
+        ->put("/dashboard/categories/{$category->id}", [
+            'parent_id' => 'none',
+            'sort_order' => 1,
+            'is_active' => true,
+            'translations' => [
+                'de' => ['name' => 'Kind'],
+                'ar' => ['name' => ''],
+                'en' => ['name' => ''],
+            ],
+        ])
+        ->assertRedirect('/dashboard/categories')
+        ->assertSessionHasNoErrors();
+
+    expect($category->refresh()->parent_id)->toBeNull();
 });
 
 test('clearing a translation removes its row', function () {
@@ -248,10 +323,10 @@ test('parent select on edit excludes the current category and its descendants', 
 });
 
 test('update rejects parent values that would create a category cycle', function () {
-    $root = Category::factory()->create(['slug' => 'root']);
+    $root = Category::factory()->create(['slug' => 'root', 'sort_order' => 0]);
     $root->setTranslation('de', 'name', 'Root');
 
-    $child = Category::factory()->create(['slug' => 'child', 'parent_id' => $root->id]);
+    $child = Category::factory()->create(['slug' => 'child', 'parent_id' => $root->id, 'sort_order' => 1]);
     $child->setTranslation('de', 'name', 'Kind');
 
     $this->actingAs($this->admin)

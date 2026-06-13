@@ -16,21 +16,17 @@ type Props = {
         type: string;
         payload: {
             image_path?: string | null;
-            product_ids?: number[];
+            video_path?: string | null;
         };
         image_url: string | null;
+        video_url: string | null;
         sort_order: number;
         is_active: boolean;
         translations: PageSectionTranslations;
     };
-    products: Array<{
-        id: number;
-        name: string;
-        brand: string | null;
-    }>;
 };
 
-export default function PageSectionsEdit({ section, products }: Props) {
+export default function PageSectionsEdit({ section }: Props) {
     return (
         <>
             <Head
@@ -43,7 +39,7 @@ export default function PageSectionsEdit({ section, products }: Props) {
                     title={section.label}
                     description="Bearbeite diesen festen Bereich der Startseite."
                 />
-                <PageSectionForm section={section} products={products} />
+                <PageSectionForm section={section} />
             </div>
         </>
     );

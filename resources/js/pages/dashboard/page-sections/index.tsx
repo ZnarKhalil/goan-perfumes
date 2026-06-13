@@ -25,7 +25,6 @@ type Props = {
 const typeLabels: Record<string, string> = {
     image: 'Bild',
     text: 'Text',
-    product_list: 'Produktliste',
 };
 
 export default function PageSectionsIndex({ sections }: Props) {

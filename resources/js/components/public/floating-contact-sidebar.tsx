@@ -1,4 +1,3 @@
-import { Link } from '@inertiajs/react';
 import {
     Facebook,
     Instagram,
@@ -62,13 +61,15 @@ export default function FloatingContactSidebar({
     return (
         <>
             {contact.whatsapp_url && (
-                <Link
+                <a
                     href={contact.whatsapp_url}
+                    target="_blank"
+                    rel="noreferrer"
                     className="fixed right-4 bottom-4 z-40 flex size-14 items-center justify-center rounded-full bg-[#e7c889] text-stone-950 shadow-lg shadow-black/40 transition hover:bg-[#f0dca0] md:hidden"
                     aria-label={links[0]?.label ?? 'WhatsApp'}
                 >
                     <MessageCircle className="size-6" />
-                </Link>
+                </a>
             )}
 
             {links.length > 0 && (
@@ -81,16 +82,19 @@ export default function FloatingContactSidebar({
                 >
                     {links.map((item) => {
                         const Icon = item.icon;
+                        const isExternal = item.href?.startsWith('http');
 
                         return (
-                            <Link
+                            <a
                                 key={item.label}
                                 href={item.href ?? '#'}
+                                target={isExternal ? '_blank' : undefined}
+                                rel={isExternal ? 'noreferrer' : undefined}
                                 className="flex size-11 items-center justify-center border-b border-white/10 text-stone-300 transition last:border-b-0 hover:bg-[#e7c889] hover:text-stone-950"
                                 aria-label={item.label}
                             >
                                 <Icon className="size-4" />
-                            </Link>
+                            </a>
                         );
                     })}
                 </aside>

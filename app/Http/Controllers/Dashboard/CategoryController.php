@@ -7,6 +7,8 @@ use App\Http\Requests\Dashboard\StoreCategoryRequest;
 use App\Http\Requests\Dashboard\UpdateCategoryRequest;
 use App\Models\Category;
 use App\Support\PublicCategoryNavigation;
+use App\Support\PublicLocale;
+use App\Support\StorageUrl;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -16,8 +18,6 @@ use Inertia\Response;
 
 class CategoryController extends Controller
 {
-    private const LOCALES = ['de', 'ar', 'en'];
-
     private const TRANSLATABLE_FIELDS = [
         'name',
         'description',
@@ -39,9 +39,7 @@ class CategoryController extends Controller
                 'parent_name' => $category->parent?->translate('de', 'name'),
                 'sort_order' => $category->sort_order,
                 'is_active' => $category->is_active,
-                'image_url' => $category->image_path
-                    ? Storage::url($category->image_path)
-                    : null,
+                'image_url' => StorageUrl::for($category->image_path),
             ])
             ->values();
 
@@ -54,6 +52,7 @@ class CategoryController extends Controller
     {
         return Inertia::render('dashboard/categories/create', [
             'parents' => $this->parentOptions(),
+            'next_sort_order' => $this->nextSortOrder(),
         ]);
     }
 
@@ -105,9 +104,7 @@ class CategoryController extends Controller
                 'parent_id' => $category->parent_id,
                 'sort_order' => $category->sort_order,
                 'is_active' => $category->is_active,
-                'image_url' => $category->image_path
-                    ? Storage::url($category->image_path)
-                    : null,
+                'image_url' => StorageUrl::for($category->image_path),
                 'translations' => $this->translationsAsTabs($category),
                 'name' => $category->translate('de', 'name') ?? $category->slug,
             ],
@@ -127,22 +124,19 @@ class CategoryController extends Controller
                 'is_active' => (bool) $data['is_active'],
             ]);
 
-            $category->slug = '';
-            $category->setSlugSource($data['translations']['de']['name']);
-
             $category->save();
 
             $this->syncTranslations($category, $data['translations'] ?? []);
 
             if ($request->boolean('remove_image') && $category->image_path) {
-                Storage::disk('public')->delete($category->image_path);
+                $this->deleteFileAfterCommit($category->image_path);
                 $category->image_path = null;
                 $category->save();
             }
 
             if ($request->hasFile('image')) {
                 if ($category->image_path) {
-                    Storage::disk('public')->delete($category->image_path);
+                    $this->deleteFileAfterCommit($category->image_path);
                 }
                 $category->image_path = $request->file('image')->store(
                     'categories/banners',
@@ -160,11 +154,13 @@ class CategoryController extends Controller
 
     public function destroy(Category $category): RedirectResponse
     {
-        if ($category->image_path) {
-            Storage::disk('public')->delete($category->image_path);
-        }
-        $category->translations()->delete();
-        $category->delete();
+        DB::transaction(function () use ($category): void {
+            if ($category->image_path) {
+                $this->deleteFileAfterCommit($category->image_path);
+            }
+            $category->translations()->delete();
+            $category->delete();
+        });
 
         PublicCategoryNavigation::flush();
 
@@ -219,6 +215,15 @@ class CategoryController extends Controller
         return $ids;
     }
 
+    /**
+     * Remove the file only once the surrounding transaction has committed so
+     * a rollback never leaves a row pointing at a deleted file.
+     */
+    private function deleteFileAfterCommit(string $path): void
+    {
+        DB::afterCommit(fn () => Storage::disk('public')->delete($path));
+    }
+
     private function normalizeParentId(int|string|null $value): ?int
     {
         if ($value === null || $value === '' || $value === 'none') {
@@ -229,32 +234,27 @@ class CategoryController extends Controller
     }
 
     /**
+     * The next free sort order, suggested as the default when creating a
+     * category so the unique rule is not tripped on the common case.
+     */
+    private function nextSortOrder(): int
+    {
+        $max = Category::query()->max('sort_order');
+
+        return $max === null ? 0 : ((int) $max + 1);
+    }
+
+    /**
      * @param  array<string, array<string, ?string>>  $translations
      */
     private function syncTranslations(Category $category, array $translations): void
     {
-        foreach (self::LOCALES as $locale) {
-            $payload = $this->withDerivedSeoTranslations($translations[$locale] ?? []);
-            foreach (self::TRANSLATABLE_FIELDS as $field) {
-                $value = $payload[$field] ?? null;
-                if ($value === null || $value === '') {
-                    if ($category->translations()
-                        ->where('locale', $locale)
-                        ->where('field', $field)
-                        ->exists()
-                    ) {
-                        $category->translations()
-                            ->where('locale', $locale)
-                            ->where('field', $field)
-                            ->delete();
-                    }
-
-                    continue;
-                }
-
-                $category->setTranslation($locale, $field, $value);
-            }
+        $payloads = [];
+        foreach (PublicLocale::codes() as $locale) {
+            $payloads[$locale] = $this->withDerivedSeoTranslations($translations[$locale] ?? []);
         }
+
+        $category->syncTranslations($payloads, self::TRANSLATABLE_FIELDS);
     }
 
     /**
@@ -285,7 +285,7 @@ class CategoryController extends Controller
     private function translationsAsTabs(Category $category): array
     {
         $shape = [];
-        foreach (self::LOCALES as $locale) {
+        foreach (PublicLocale::codes() as $locale) {
             $shape[$locale] = [];
             foreach (self::TRANSLATABLE_FIELDS as $field) {
                 $shape[$locale][$field] = $category->translate($locale, $field) ?? '';

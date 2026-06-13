@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
-import { SlidersHorizontal, X } from 'lucide-react';
+import { ChevronDown, Menu, Search, X } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import ProductGrid from '@/components/public/product-grid';
 import {
     Sheet,
@@ -49,7 +50,7 @@ export default function Category(page: PublicCategoryPageProps) {
                     <div className="absolute inset-0 bg-[radial-gradient(120%_120%_at_30%_10%,#241708,#0b0907)]" />
                 )}
                 <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,5,4,0.5)_0%,rgba(7,5,4,0.35)_45%,rgba(11,9,7,0.96)_100%)]" />
-                <div className="grain-layer absolute inset-0 opacity-[0.1] mix-blend-overlay" />
+                <div className="absolute inset-0 grain-layer opacity-[0.1] mix-blend-overlay" />
                 <div className="relative flex min-h-[58svh] items-end px-4 pt-28 pb-12 md:px-8 md:pt-32 md:pb-16">
                     <div className="max-w-4xl">
                         <p className="mb-5 flex items-center gap-3 text-[0.7rem] font-semibold tracking-[0.38em] text-[#e7c889] uppercase">
@@ -67,17 +68,7 @@ export default function Category(page: PublicCategoryPageProps) {
             </section>
 
             <section className="px-4 py-12 md:px-8 md:py-16">
-                <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[18rem_1fr]">
-                    <aside className="hidden lg:sticky lg:top-28 lg:block lg:self-start">
-                        <FilterPanel
-                            activeFilters={activeFilters}
-                            categoryHref={page.category.href}
-                            copy={copy}
-                            filters={page.filters}
-                            selectedFilters={page.selected_filters}
-                        />
-                    </aside>
-
+                <div className="mx-auto max-w-7xl">
                     <div className="grid gap-8">
                         <div className="flex flex-col justify-between gap-3 border-b border-white/10 pb-5 md:flex-row md:items-end">
                             <div>
@@ -96,7 +87,7 @@ export default function Category(page: PublicCategoryPageProps) {
                                 <p className="max-w-sm text-sm leading-6 text-stone-400">
                                     {copy.category.filterHelp}
                                 </p>
-                                <MobileFilterSheet
+                                <FilterSheet
                                     activeFilters={activeFilters}
                                     categoryHref={page.category.href}
                                     copy={copy}
@@ -121,7 +112,7 @@ export default function Category(page: PublicCategoryPageProps) {
     );
 }
 
-function MobileFilterSheet({
+function FilterSheet({
     activeFilters,
     categoryHref,
     copy,
@@ -141,12 +132,12 @@ function MobileFilterSheet({
             <SheetTrigger asChild>
                 <button
                     type="button"
-                    className="inline-flex w-fit items-center gap-2 rounded-full border border-[#e7c889]/40 px-4 py-2.5 text-sm font-medium text-stone-100 transition hover:bg-[#e7c889] hover:text-stone-950 lg:hidden"
+                    className="relative inline-flex h-11 items-center gap-2 rounded-full border border-[#e7c889]/40 px-4 text-sm font-medium text-stone-100 transition hover:bg-[#e7c889] hover:text-stone-950"
                 >
-                    <SlidersHorizontal className="size-4" />
-                    {copy.category.filter}
+                    <Menu className="size-5 shrink-0" />
+                    <span>{copy.category.filter}</span>
                     {activeFilters.length > 0 && (
-                        <span className="rounded-full bg-[#e7c889] px-2 py-0.5 text-xs text-stone-950">
+                        <span className="absolute -top-2 -right-2 min-w-5 rounded-full bg-[#e7c889] px-1.5 py-0.5 text-center text-xs font-semibold text-stone-950">
                             {activeFilters.length}
                         </span>
                     )}
@@ -154,11 +145,11 @@ function MobileFilterSheet({
             </SheetTrigger>
             <SheetContent
                 side={isRtl ? 'right' : 'left'}
-                className="w-[88vw] overflow-y-auto border-white/10 bg-[#0b0907] p-0 text-stone-100 sm:max-w-md lg:hidden"
+                className="h-svh w-[92vw] gap-0 overflow-hidden border-white/10 bg-[#0b0907] p-0 text-stone-100 sm:max-w-md"
             >
                 <SheetHeader
                     className={cn(
-                        'border-b border-white/10 px-5 py-5',
+                        'shrink-0 border-b border-white/10 px-5 py-5',
                         isRtl ? 'text-right' : 'text-left',
                     )}
                 >
@@ -166,7 +157,7 @@ function MobileFilterSheet({
                         {copy.category.filter}
                     </SheetTitle>
                 </SheetHeader>
-                <div className="px-5 pb-8">
+                <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-8">
                     <FilterPanel
                         activeFilters={activeFilters}
                         categoryHref={categoryHref}
@@ -198,9 +189,30 @@ function FilterPanel({
     filters: PublicFilterGroup[];
     selectedFilters: PublicCategoryPageProps['selected_filters'];
 }) {
+    const [query, setQuery] = useState('');
+    const searchableQuery = query.trim().toLocaleLowerCase();
+    const filteredGroups = useMemo(
+        () =>
+            filters
+                .map((group) => {
+                    const values =
+                        searchableQuery === ''
+                            ? group.values
+                            : group.values.filter((value) =>
+                                  value.name
+                                      .toLocaleLowerCase()
+                                      .includes(searchableQuery),
+                              );
+
+                    return { ...group, values };
+                })
+                .filter((group) => group.values.length > 0),
+        [filters, searchableQuery],
+    );
+
     return (
         <>
-            <div className="border-y border-white/10 py-5">
+            <div className="sticky top-0 z-10 border-b border-white/10 bg-[#0b0907] py-5">
                 <div className="flex items-center justify-between gap-4">
                     <h2 className="text-sm font-semibold tracking-[0.18em] text-[#e7c889] uppercase">
                         {copy.category.filter}
@@ -214,6 +226,26 @@ function FilterPanel({
                         </Link>
                     )}
                 </div>
+                <label className="mt-4 flex h-11 items-center gap-3 rounded-full border border-white/10 bg-white/[0.04] px-4 text-sm text-stone-300 focus-within:border-[#e7c889]/60">
+                    <Search className="size-4 shrink-0 text-stone-500" />
+                    <input
+                        type="search"
+                        value={query}
+                        onChange={(event) => setQuery(event.target.value)}
+                        placeholder={copy.category.search}
+                        className="min-w-0 flex-1 bg-transparent text-sm text-stone-100 outline-none placeholder:text-stone-500"
+                    />
+                    {query !== '' && (
+                        <button
+                            type="button"
+                            onClick={() => setQuery('')}
+                            className="rounded-full p-1 text-stone-500 transition hover:bg-white/10 hover:text-stone-100"
+                            aria-label={copy.category.clearSearch}
+                        >
+                            <X className="size-3.5" />
+                        </button>
+                    )}
+                </label>
                 {activeFilters.length > 0 && (
                     <div className="mt-4 flex flex-wrap gap-2">
                         {activeFilters.map(({ group, value }) => (
@@ -236,12 +268,18 @@ function FilterPanel({
                 )}
             </div>
 
-            <div className="grid gap-7 py-7">
-                {filters.map((group) => (
+            <div className="grid gap-3 py-5">
+                {filteredGroups.length === 0 && (
+                    <p className="rounded-lg border border-white/10 px-4 py-5 text-sm text-stone-400">
+                        {copy.category.noFilterResults}
+                    </p>
+                )}
+                {filteredGroups.map((group) => (
                     <FilterGroup
                         key={group.code}
                         categoryHref={categoryHref}
                         copy={copy}
+                        forceOpen={searchableQuery !== ''}
                         group={group}
                         selectedFilters={selectedFilters}
                     />
@@ -254,37 +292,62 @@ function FilterPanel({
 function FilterGroup({
     categoryHref,
     copy,
+    forceOpen,
     group,
     selectedFilters,
 }: {
     categoryHref: string;
     copy: PublicCopy;
+    forceOpen: boolean;
     group: PublicFilterGroup;
     selectedFilters: PublicCategoryPageProps['selected_filters'];
 }) {
+    const hasSelectedValues = group.values.some((value) => value.selected);
+    const [isOpen, setIsOpen] = useState(hasSelectedValues);
+    const isExpanded = forceOpen || isOpen;
+
     return (
-        <section className="grid gap-3">
-            <div>
-                <h3 className="text-sm font-medium text-stone-100">
-                    {group.name}
-                </h3>
-                <p className="mt-1 text-xs text-stone-500">
-                    {group.is_multiple
-                        ? copy.category.filterModeMultiple
-                        : copy.category.filterModeSingle}
-                </p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-                {group.values.map((value) => (
-                    <FilterChip
-                        key={value.slug}
-                        categoryHref={categoryHref}
-                        group={group}
-                        selectedFilters={selectedFilters}
-                        value={value}
-                    />
-                ))}
-            </div>
+        <section className="overflow-hidden rounded-lg border border-white/10 bg-white/[0.03]">
+            <button
+                type="button"
+                onClick={() => setIsOpen((open) => !open)}
+                className="flex min-h-14 w-full items-center justify-between gap-3 px-4 py-3 text-left transition hover:bg-white/[0.04]"
+                aria-expanded={isExpanded}
+            >
+                <span className="min-w-0">
+                    <span className="block truncate text-sm font-medium text-stone-100">
+                        {group.name}
+                    </span>
+                    <span className="mt-1 block text-xs text-stone-500">
+                        {group.is_multiple
+                            ? copy.category.filterModeMultiple
+                            : copy.category.filterModeSingle}
+                        {' · '}
+                        {group.values.length}
+                    </span>
+                </span>
+                <ChevronDown
+                    className={cn(
+                        'size-4 shrink-0 text-stone-500 transition',
+                        isExpanded && 'rotate-180 text-[#e7c889]',
+                    )}
+                />
+            </button>
+            {isExpanded && (
+                <div className="border-t border-white/10 px-4 py-4">
+                    <div className="flex flex-wrap gap-2">
+                        {group.values.map((value) => (
+                            <FilterChip
+                                key={value.slug}
+                                categoryHref={categoryHref}
+                                group={group}
+                                selectedFilters={selectedFilters}
+                                value={value}
+                            />
+                        ))}
+                    </div>
+                </div>
+            )}
         </section>
     );
 }
@@ -310,6 +373,7 @@ function FilterChip({
                 !value.selected,
                 group.is_multiple,
             )}
+            preserveScroll
             className={cn(
                 'rounded-full border px-3 py-2 text-sm transition',
                 value.selected

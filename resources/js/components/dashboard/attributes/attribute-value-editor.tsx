@@ -42,8 +42,16 @@ type FormData = {
     _method?: 'PUT';
 };
 
-const blankForm = (): FormData => ({
-    sort_order: 0,
+// The next free sort order within this attribute — used as the create default
+// so the per-attribute unique rule is not tripped on the common case.
+const nextSortOrderOf = (values: AttributeValueRow[]): number => {
+    const orders = values.map((value) => value.sort_order);
+
+    return orders.length > 0 ? Math.max(...orders) + 1 : 0;
+};
+
+const blankForm = (values: AttributeValueRow[]): FormData => ({
+    sort_order: nextSortOrderOf(values),
     is_active: true,
     translations: emptyTranslations(FIELDS),
 });
@@ -51,7 +59,7 @@ const blankForm = (): FormData => ({
 export default function AttributeValueEditor({ attributeId, values }: Props) {
     const [editing, setEditing] = useState<AttributeValueRow | null>(null);
     const { data, setData, post, processing, errors, reset, clearErrors } =
-        useForm<FormData>(blankForm());
+        useForm<FormData>(blankForm(values));
 
     const selectForEdit = (value: AttributeValueRow) => {
         clearErrors();
@@ -64,11 +72,11 @@ export default function AttributeValueEditor({ attributeId, values }: Props) {
         });
     };
 
-    const resetToCreate = () => {
+    const resetToCreate = (nextValues: AttributeValueRow[] = values) => {
         clearErrors();
         setEditing(null);
         reset();
-        setData(blankForm());
+        setData(blankForm(nextValues));
     };
 
     const submit = (e: FormEvent) => {
@@ -83,7 +91,18 @@ export default function AttributeValueEditor({ attributeId, values }: Props) {
 
         post(url, {
             preserveScroll: true,
-            onSuccess: () => resetToCreate(),
+            onSuccess: (page) => {
+                // Read the fresh values from the reloaded page so the next
+                // create default reflects the value just added.
+                const freshValues =
+                    (
+                        page.props as {
+                            attribute?: { values?: AttributeValueRow[] };
+                        }
+                    ).attribute?.values ?? values;
+
+                resetToCreate(freshValues);
+            },
         });
     };
 
@@ -125,7 +144,11 @@ export default function AttributeValueEditor({ attributeId, values }: Props) {
                         Werte werden direkt diesem Attribut zugeordnet.
                     </p>
                 </div>
-                <Button type="button" variant="outline" onClick={resetToCreate}>
+                <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => resetToCreate()}
+                >
                     <Plus className="mr-1 h-4 w-4" /> Neuer Wert
                 </Button>
             </div>
@@ -243,7 +266,7 @@ export default function AttributeValueEditor({ attributeId, values }: Props) {
                             <Button
                                 type="button"
                                 variant="ghost"
-                                onClick={resetToCreate}
+                                onClick={() => resetToCreate()}
                             >
                                 Abbrechen
                             </Button>

@@ -1,5 +1,5 @@
 import { Link, useForm } from '@inertiajs/react';
-import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import type { FormEvent } from 'react';
 import MediaUploader from '@/components/dashboard/media-uploader';
 import TranslationTabs from '@/components/dashboard/translation-tabs';
@@ -32,7 +32,7 @@ const TEXT_FIELDS: TranslationField[] = [
     { name: 'body', label: 'Text', type: 'textarea', rows: 6 },
 ];
 
-export type PageSectionKey = 'hero' | 'about' | 'why_us' | 'featured_products';
+export type PageSectionKey = 'hero' | 'about' | 'why_us';
 
 export type PageSectionTranslations = Record<
     TranslationLocale,
@@ -44,12 +44,6 @@ export type PageSectionTranslations = Record<
     }
 >;
 
-type ProductOption = {
-    id: number;
-    name: string;
-    brand: string | null;
-};
-
 type Props = {
     section: {
         id: number;
@@ -58,7 +52,6 @@ type Props = {
         payload: {
             image_path?: string | null;
             video_path?: string | null;
-            product_ids?: number[];
         };
         image_url: string | null;
         video_url: string | null;
@@ -66,7 +59,6 @@ type Props = {
         is_active: boolean;
         translations: PageSectionTranslations;
     };
-    products: ProductOption[];
 };
 
 type FormData = {
@@ -76,14 +68,11 @@ type FormData = {
     remove_hero_video: boolean;
     sort_order: number;
     is_active: boolean;
-    payload: {
-        product_ids: number[];
-    };
     translations: PageSectionTranslations;
     _method: 'PUT';
 };
 
-export default function PageSectionForm({ section, products }: Props) {
+export default function PageSectionForm({ section }: Props) {
     const { data, setData, post, processing, errors } = useForm<FormData>({
         hero_image: null,
         hero_video: null,
@@ -91,9 +80,6 @@ export default function PageSectionForm({ section, products }: Props) {
         remove_hero_video: false,
         sort_order: section.sort_order,
         is_active: section.is_active,
-        payload: {
-            product_ids: section.payload.product_ids ?? [],
-        },
         translations: withDefaultTranslations(section.translations),
         _method: 'PUT',
     });
@@ -160,38 +146,6 @@ export default function PageSectionForm({ section, products }: Props) {
         });
     };
 
-    const toggleProduct = (productId: number, checked: boolean) => {
-        const productIds = checked
-            ? [...data.payload.product_ids, productId]
-            : data.payload.product_ids.filter((id) => id !== productId);
-
-        setData('payload', { product_ids: productIds });
-    };
-
-    const moveProduct = (productId: number, direction: -1 | 1) => {
-        const index = data.payload.product_ids.indexOf(productId);
-        const target = index + direction;
-
-        if (
-            index < 0 ||
-            target < 0 ||
-            target >= data.payload.product_ids.length
-        ) {
-            return;
-        }
-
-        const productIds = [...data.payload.product_ids];
-        [productIds[index], productIds[target]] = [
-            productIds[target],
-            productIds[index],
-        ];
-        setData('payload', { product_ids: productIds });
-    };
-
-    const selectedProducts = data.payload.product_ids
-        .map((id) => products.find((product) => product.id === id))
-        .filter((product): product is ProductOption => product !== undefined);
-
     return (
         <form
             onSubmit={submit}
@@ -251,7 +205,10 @@ export default function PageSectionForm({ section, products }: Props) {
                             setData('hero_image', file);
 
                             if (file) {
+                                // Image and video are mutually exclusive.
                                 setData('remove_hero_image', false);
+                                setData('hero_video', null);
+                                setData('remove_hero_video', true);
                             }
                         }}
                         onRemove={() => setData('remove_hero_image', true)}
@@ -270,15 +227,18 @@ export default function PageSectionForm({ section, products }: Props) {
                             setData('hero_video', file);
 
                             if (file) {
+                                // Image and video are mutually exclusive.
                                 setData('remove_hero_video', false);
+                                setData('hero_image', null);
+                                setData('remove_hero_image', true);
                             }
                         }}
                         onRemove={() => setData('remove_hero_video', true)}
                         error={errors.hero_video}
                     />
                     <p className="text-sm text-muted-foreground">
-                        MP4 oder WebM, maximal 20 MB. Das Hero-Bild wird als
-                        Poster und Fallback verwendet.
+                        Bild oder Video – es wird nur eines angezeigt. Video:
+                        MP4 oder WebM, maximal 20 MB.
                     </p>
                 </section>
             )}
@@ -410,96 +370,6 @@ export default function PageSectionForm({ section, products }: Props) {
                             </TabsContent>
                         ))}
                     </Tabs>
-                </section>
-            )}
-
-            {section.key === 'featured_products' && (
-                <section className="grid gap-6 rounded-lg border border-sidebar-border/70 p-6 dark:border-sidebar-border">
-                    <div>
-                        <h3 className="text-sm font-medium">
-                            Ausgewählte Produkte
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                            {selectedProducts.length} Produkte ausgewählt.
-                        </p>
-                    </div>
-                    <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
-                        <div className="grid gap-2">
-                            {products.map((product) => (
-                                <label
-                                    key={product.id}
-                                    className="flex items-center gap-3 rounded-md border border-sidebar-border/70 px-3 py-2 text-sm dark:border-sidebar-border"
-                                >
-                                    <Checkbox
-                                        checked={data.payload.product_ids.includes(
-                                            product.id,
-                                        )}
-                                        onCheckedChange={(checked) =>
-                                            toggleProduct(
-                                                product.id,
-                                                checked === true,
-                                            )
-                                        }
-                                    />
-                                    <span className="grid">
-                                        <span>{product.name}</span>
-                                        {product.brand && (
-                                            <span className="text-xs text-muted-foreground">
-                                                {product.brand}
-                                            </span>
-                                        )}
-                                    </span>
-                                </label>
-                            ))}
-                            <InputError
-                                message={flatErrors['payload.product_ids']}
-                            />
-                        </div>
-                        <div className="grid content-start gap-2">
-                            <Label>Sortierung</Label>
-                            {selectedProducts.length === 0 ? (
-                                <div className="rounded-md border border-dashed border-input p-4 text-sm text-muted-foreground">
-                                    Keine Produkte ausgewählt.
-                                </div>
-                            ) : (
-                                selectedProducts.map((product, index) => (
-                                    <div
-                                        key={product.id}
-                                        className="flex items-center justify-between gap-2 rounded-md border border-sidebar-border/70 px-3 py-2 text-sm dark:border-sidebar-border"
-                                    >
-                                        <span>{product.name}</span>
-                                        <div className="flex gap-1">
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="icon"
-                                                disabled={index === 0}
-                                                onClick={() =>
-                                                    moveProduct(product.id, -1)
-                                                }
-                                            >
-                                                <ArrowUp className="h-4 w-4" />
-                                            </Button>
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="icon"
-                                                disabled={
-                                                    index ===
-                                                    selectedProducts.length - 1
-                                                }
-                                                onClick={() =>
-                                                    moveProduct(product.id, 1)
-                                                }
-                                            >
-                                                <ArrowDown className="h-4 w-4" />
-                                            </Button>
-                                        </div>
-                                    </div>
-                                ))
-                            )}
-                        </div>
-                    </div>
                 </section>
             )}
 

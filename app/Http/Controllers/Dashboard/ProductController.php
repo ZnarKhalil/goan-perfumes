@@ -12,10 +12,14 @@ use App\Models\Media;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Services\MediaService;
+use App\Support\Price;
+use App\Support\PublicLocale;
+use App\Support\StorageUrl;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -23,7 +27,7 @@ class ProductController extends Controller
 {
     private const MAX_FEATURED_PRODUCTS = 4;
 
-    private const LOCALES = ['de', 'ar', 'en'];
+    private const PRODUCTS_PER_PAGE = 25;
 
     private const TRANSLATABLE_FIELDS = [
         'name',
@@ -43,29 +47,39 @@ class ProductController extends Controller
             ->withMax('variants', 'price')
             ->withCount('variants')
             ->orderByDesc('id')
-            ->get()
-            ->map(fn (Product $product) => [
-                'id' => $product->id,
-                'slug' => $product->slug,
-                'name' => $product->translate('de', 'name') ?? $product->slug,
-                'brand' => $product->brand,
-                'categories' => $product->categories
-                    ->map(fn (Category $category) => $category->translate('de', 'name') ?? $category->slug)
-                    ->values()
-                    ->all(),
-                'min_price' => $this->decimal($product->variants_min_price),
-                'max_price' => $this->decimal($product->variants_max_price),
-                'variants_count' => $product->variants_count,
-                'is_active' => $product->is_active,
-                'is_featured' => $product->is_featured,
-                'image_url' => $product->primaryMedia?->path
-                    ? Storage::url($product->primaryMedia->path)
-                    : null,
-            ])
-            ->values();
+            ->paginate(self::PRODUCTS_PER_PAGE)
+            ->withQueryString();
 
         return Inertia::render('dashboard/products/index', [
-            'products' => $products,
+            'products' => $products
+                ->getCollection()
+                ->map(fn (Product $product) => [
+                    'id' => $product->id,
+                    'slug' => $product->slug,
+                    'name' => $product->translate('de', 'name') ?? $product->slug,
+                    'brand' => $product->brand,
+                    'categories' => $product->categories
+                        ->map(fn (Category $category) => $category->translate('de', 'name') ?? $category->slug)
+                        ->values()
+                        ->all(),
+                    'min_price' => Price::decimal($product->variants_min_price),
+                    'max_price' => Price::decimal($product->variants_max_price),
+                    'variants_count' => $product->variants_count,
+                    'is_active' => $product->is_active,
+                    'is_featured' => $product->is_featured,
+                    'image_url' => StorageUrl::for($product->primaryMedia?->path),
+                ])
+                ->values()
+                ->all(),
+            'pagination' => [
+                'current_page' => $products->currentPage(),
+                'last_page' => $products->lastPage(),
+                'per_page' => $products->perPage(),
+                'total' => $products->total(),
+                'from' => $products->firstItem(),
+                'to' => $products->lastItem(),
+                'links' => $products->linkCollection()->all(),
+            ],
         ]);
     }
 
@@ -83,6 +97,10 @@ class ProductController extends Controller
         $data = $request->validated();
 
         DB::transaction(function () use ($data, $request): void {
+            if ((bool) $data['is_featured']) {
+                $this->assertFeaturedSlotAvailable();
+            }
+
             $product = new Product([
                 'slug' => '',
                 'brand' => $data['brand'] ?? null,
@@ -145,7 +163,7 @@ class ProductController extends Controller
                 'media' => $product->media
                     ->map(fn (Media $media) => [
                         'id' => $media->id,
-                        'url' => Storage::url($media->path),
+                        'url' => StorageUrl::for($media->path),
                         'sort_order' => $media->sort_order,
                         'is_primary' => $media->is_primary,
                         'alt_text' => $media->translate('de', 'alt_text') ?? $media->alt_text ?? '',
@@ -169,14 +187,15 @@ class ProductController extends Controller
         $data = $request->validated();
 
         DB::transaction(function () use ($product, $data, $request): void {
+            if ((bool) $data['is_featured']) {
+                $this->assertFeaturedSlotAvailable($product);
+            }
+
             $product->fill([
                 'brand' => $data['brand'] ?? null,
                 'is_active' => (bool) $data['is_active'],
                 'is_featured' => (bool) $data['is_featured'],
             ]);
-
-            $product->slug = '';
-            $product->setSlugSource($data['translations']['de']['name']);
 
             $product->save();
 
@@ -199,15 +218,17 @@ class ProductController extends Controller
     {
         DB::transaction(function () use ($product): void {
             $product->load('media.translations');
+            $mediaPaths = $product->media->pluck('path')->all();
 
             foreach ($product->media as $media) {
-                Storage::disk('public')->delete($media->path);
                 $media->translations()->delete();
                 $media->delete();
             }
 
             $product->translations()->delete();
             $product->delete();
+
+            DB::afterCommit(fn () => Storage::disk('public')->delete($mediaPaths));
         });
 
         return to_route('dashboard.products.index')
@@ -231,6 +252,31 @@ class ProductController extends Controller
             ])
             ->values()
             ->all();
+    }
+
+    /**
+     * Guard the homepage highlight limit inside the write transaction. The
+     * locked count keeps two concurrent saves from both claiming the last
+     * free slot.
+     *
+     * @throws ValidationException
+     */
+    private function assertFeaturedSlotAvailable(?Product $product = null): void
+    {
+        $used = Product::query()
+            ->where('is_featured', true)
+            ->when(
+                $product instanceof Product,
+                fn ($query) => $query->whereKeyNot($product->id),
+            )
+            ->lockForUpdate()
+            ->count();
+
+        if ($used >= self::MAX_FEATURED_PRODUCTS) {
+            throw ValidationException::withMessages([
+                'is_featured' => 'Es sind bereits 4 Highlights ausgewählt. Entferne zuerst ein Highlight, um ein neues hinzuzufügen.',
+            ]);
+        }
     }
 
     /**
@@ -295,22 +341,12 @@ class ProductController extends Controller
      */
     private function syncTranslations(Product $product, array $translations): void
     {
-        foreach (self::LOCALES as $locale) {
-            $payload = $this->withDerivedSeoTranslations($translations[$locale] ?? []);
-            foreach (self::TRANSLATABLE_FIELDS as $field) {
-                $value = $payload[$field] ?? null;
-                if ($value === null || $value === '') {
-                    $product->translations()
-                        ->where('locale', $locale)
-                        ->where('field', $field)
-                        ->delete();
-
-                    continue;
-                }
-
-                $product->setTranslation($locale, $field, $value);
-            }
+        $payloads = [];
+        foreach (PublicLocale::codes() as $locale) {
+            $payloads[$locale] = $this->withDerivedSeoTranslations($translations[$locale] ?? []);
         }
+
+        $product->syncTranslations($payloads, self::TRANSLATABLE_FIELDS);
     }
 
     /**
@@ -339,7 +375,7 @@ class ProductController extends Controller
     private function translationsAsTabs(Product $product): array
     {
         $shape = [];
-        foreach (self::LOCALES as $locale) {
+        foreach (PublicLocale::codes() as $locale) {
             $shape[$locale] = [];
             foreach (self::TRANSLATABLE_FIELDS as $field) {
                 $shape[$locale][$field] = $product->translate($locale, $field) ?? '';
@@ -361,15 +397,6 @@ class ProductController extends Controller
             ->unique()
             ->values()
             ->all();
-    }
-
-    private function decimal(mixed $value): ?string
-    {
-        if ($value === null) {
-            return null;
-        }
-
-        return number_format((float) $value, 2, '.', '');
     }
 
     /**

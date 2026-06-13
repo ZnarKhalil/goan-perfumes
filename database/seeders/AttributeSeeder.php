@@ -3,23 +3,22 @@
 namespace Database\Seeders;
 
 use App\Models\Attribute;
+use App\Models\AttributeValue;
 use Illuminate\Database\Seeder;
 
 class AttributeSeeder extends Seeder
 {
-    /**
-     * @var list<array{code: string, translations: array{de: string, en: string, ar: string}, is_multiple: bool}>
-     */
-    private const ATTRIBUTES = [
-        ['code' => 'art', 'translations' => ['de' => 'Art', 'en' => 'Type', 'ar' => 'النوع'], 'is_multiple' => false],
-        ['code' => 'familie', 'translations' => ['de' => 'Familie', 'en' => 'Family', 'ar' => 'العائلة'], 'is_multiple' => true],
-        ['code' => 'stimmung', 'translations' => ['de' => 'Stimmung', 'en' => 'Mood', 'ar' => 'الإحساس'], 'is_multiple' => true],
-        ['code' => 'noten', 'translations' => ['de' => 'Noten', 'en' => 'Notes', 'ar' => 'النوتات'], 'is_multiple' => true],
-    ];
-
     public function run(): void
     {
-        foreach (self::ATTRIBUTES as $index => $attribute) {
+        $attributes = PerfumeCatalog::attributes();
+        $codes = collect($attributes)->pluck('code')->all();
+
+        Attribute::query()
+            ->whereNotIn('code', $codes)
+            ->with('values.translations', 'translations')
+            ->each(fn (Attribute $attribute) => $this->deleteAttribute($attribute));
+
+        foreach ($attributes as $index => $attribute) {
             $model = Attribute::query()->updateOrCreate(
                 ['code' => $attribute['code']],
                 [
@@ -29,9 +28,24 @@ class AttributeSeeder extends Seeder
                 ],
             );
 
-            foreach ($attribute['translations'] as $locale => $name) {
-                $model->setTranslation($locale, 'name', $name);
+            foreach (['de', 'en', 'ar'] as $locale) {
+                $model->setTranslation($locale, 'name', $attribute['name']);
             }
+
+            $model->translations()
+                ->whereNotIn('field', ['name'])
+                ->delete();
         }
+    }
+
+    private function deleteAttribute(Attribute $attribute): void
+    {
+        $attribute->values->each(function (AttributeValue $value): void {
+            $value->translations()->delete();
+            $value->delete();
+        });
+
+        $attribute->translations()->delete();
+        $attribute->delete();
     }
 }

@@ -25,6 +25,9 @@ export type PublicCopy = {
             total: number,
         ) => string;
         reset: string;
+        search: string;
+        clearSearch: string;
+        noFilterResults: string;
     };
     contact: {
         directExchangeBody: string;
@@ -44,6 +47,9 @@ export type PublicCopy = {
     footer: {
         brand: string;
         summary: string;
+        collectionsTitle: string;
+        contactTitle: string;
+        contactPage: string;
     };
     home: {
         aboutEyebrow: string;
@@ -55,6 +61,7 @@ export type PublicCopy = {
         featuredEyebrow: string;
         featuredTitle: string;
         heroCta: string;
+        heroSecondary: string;
         luxuryLink: string;
         offersEyebrow: string;
         offersTitle: string;
@@ -110,6 +117,9 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             results: (from, to, total) =>
                 `Ergebnisse ${from ?? 0}-${to ?? 0} von ${total}`,
             reset: 'Zurücksetzen',
+            search: 'Filter suchen',
+            clearSearch: 'Suche löschen',
+            noFilterResults: 'Keine Filter gefunden.',
         },
         contact: {
             directExchangeBody:
@@ -131,6 +141,9 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             brand: 'Goan Perfume',
             summary:
                 'Produkt-Showcase ohne Online-Shop. Kontakt direkt per WhatsApp, Telefon oder E-Mail.',
+            collectionsTitle: 'Kollektionen',
+            contactTitle: 'Kontakt',
+            contactPage: 'Kontaktseite',
         },
         home: {
             aboutEyebrow: 'Über uns',
@@ -143,6 +156,7 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             featuredTitle:
                 'Signaturen mit Präsenz, Tiefe und sauberer Projektion.',
             heroCta: 'Kollektion entdecken',
+            heroSecondary: 'Persönliche Beratung',
             luxuryLink: 'Alle Luxusparfums',
             offersEyebrow: 'Aktionen',
             offersTitle: 'Aktuelle Angebote mit besonderem Duftmoment.',
@@ -196,6 +210,9 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             results: (from, to, total) =>
                 `Results ${from ?? 0}-${to ?? 0} of ${total}`,
             reset: 'Reset',
+            search: 'Search filters',
+            clearSearch: 'Clear search',
+            noFilterResults: 'No filters found.',
         },
         contact: {
             directExchangeBody:
@@ -217,6 +234,9 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             brand: 'Goan Perfume',
             summary:
                 'Product showcase without online checkout. Contact us directly by WhatsApp, phone, or email.',
+            collectionsTitle: 'Collections',
+            contactTitle: 'Contact',
+            contactPage: 'Contact page',
         },
         home: {
             aboutEyebrow: 'About us',
@@ -230,6 +250,7 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             featuredTitle:
                 'Signatures with presence, depth, and clean projection.',
             heroCta: 'Explore the collection',
+            heroSecondary: 'Personal advice',
             luxuryLink: 'All luxury perfumes',
             offersEyebrow: 'Offers',
             offersTitle: 'Current offers with a special fragrance moment.',
@@ -283,6 +304,9 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             results: (from, to, total) =>
                 `النتائج ${from ?? 0}-${to ?? 0} من ${total}`,
             reset: 'إعادة ضبط',
+            search: 'بحث في الفلاتر',
+            clearSearch: 'مسح البحث',
+            noFilterResults: 'لم يتم العثور على فلاتر.',
         },
         contact: {
             directExchangeBody:
@@ -304,6 +328,9 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             brand: 'Goan Perfume',
             summary:
                 'عرض منتجات بدون متجر إلكتروني. تواصل مباشر عبر واتساب أو الهاتف أو البريد الإلكتروني.',
+            collectionsTitle: 'المجموعات',
+            contactTitle: 'التواصل',
+            contactPage: 'صفحة التواصل',
         },
         home: {
             aboutEyebrow: 'من نحن',
@@ -315,6 +342,7 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             featuredEyebrow: 'مختارات فاخرة',
             featuredTitle: 'تواقيع عطرية بحضور وعمق وانتشار نقي.',
             heroCta: 'استكشف المجموعة',
+            heroSecondary: 'استشارة شخصية',
             luxuryLink: 'كل العطور الفاخرة',
             offersEyebrow: 'العروض',
             offersTitle: 'عروض حالية مع لحظة عطرية خاصة.',

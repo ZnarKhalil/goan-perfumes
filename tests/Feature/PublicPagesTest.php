@@ -66,8 +66,24 @@ test('public navigation uses all active root database categories for the current
             ->has('navigation', 2)
             ->where('navigation.0.slug', 'second-category')
             ->where('navigation.0.name', 'Second Category')
+            ->where('navigation.0.href', '/en/second-category')
             ->where('navigation.1.slug', 'first-category')
             ->where('navigation.1.name', 'First Category'),
+        );
+});
+
+test('cached navigation links are host-relative so they survive a host change', function () {
+    publicCategory('luxusparfums', 'Luxusparfums');
+
+    // Warm the navigation cache from a request on one host, then assert the
+    // cached href still works when the app is served from a different host
+    // (e.g. `php artisan serve --host=0.0.0.0`).
+    $this->get('/de')->assertOk();
+
+    $this->get('http://192.168.0.10:8000/de')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('navigation.0.href', '/de/luxusparfums'),
         );
 });
 
@@ -220,6 +236,35 @@ test('category page renders filters products and pagination', function () {
         );
 });
 
+test('category pagination links use href and products are sorted by catalog number', function () {
+    $category = publicCategory('damenparfums', 'Damenparfums');
+
+    collect(['LU1', 'D12', 'D1', 'D2', 'D10', 'D3', 'D4', 'D5', 'D6', 'D7', 'D8', 'D9', 'D11', 'LU2'])
+        ->each(fn (string $name) => publicProduct(strtolower($name), $name, $category));
+
+    $this->get('/de/damenparfums')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('public/category')
+            ->has('products', 12)
+            ->where('products.0.name', 'D1')
+            ->where('products.1.name', 'D2')
+            ->where('products.9.name', 'D10')
+            ->where('products.11.name', 'D12')
+            ->where('pagination.last_page', 2)
+            ->where('pagination.links.2.href', fn (string $href) => str_contains($href, '/de/damenparfums?page=2')),
+        );
+
+    $this->get('/de/damenparfums?page=2')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('public/category')
+            ->has('products', 2)
+            ->where('products.0.name', 'LU1')
+            ->where('products.1.name', 'LU2'),
+        );
+});
+
 test('category filters use OR within a group and AND across groups', function () {
     $category = publicCategory('damenparfums', 'Damenparfums');
     $familie = Attribute::factory()->multiple()->create(['code' => 'familie']);
@@ -297,7 +342,7 @@ test('public payloads use active locale with German fallback', function () {
         );
 });
 
-test('seeded public navigation and filters use english and arabic translations', function () {
+test('seeded public navigation and filters use catalog names in every locale', function () {
     $this->seed([
         CategorySeeder::class,
         AttributeSeeder::class,
@@ -308,10 +353,10 @@ test('seeded public navigation and filters use english and arabic translations',
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('public/category')
-            ->where('navigation.0.name', 'Luxury Perfumes')
-            ->where('category.name', "Women's Perfumes")
-            ->where('filters.0.name', 'Type')
-            ->where('filters.0.values.0.name', 'Niche'),
+            ->where('navigation.0.name', 'Damenparfums')
+            ->where('category.name', 'Damenparfums')
+            ->where('filters.0.name', 'Art')
+            ->where('filters.0.values.0.name', 'Designer'),
         );
 
     $this->get('/ar/damenparfums')
@@ -319,10 +364,10 @@ test('seeded public navigation and filters use english and arabic translations',
         ->assertInertia(fn (Assert $page) => $page
             ->component('public/category')
             ->where('locale.dir', 'rtl')
-            ->where('navigation.0.name', 'عطور فاخرة')
-            ->where('category.name', 'عطور نسائية')
-            ->where('filters.0.name', 'النوع')
-            ->where('filters.0.values.0.name', 'نيش'),
+            ->where('navigation.0.name', 'Damenparfums')
+            ->where('category.name', 'Damenparfums')
+            ->where('filters.0.name', 'Art')
+            ->where('filters.0.values.0.name', 'Designer'),
         );
 });
 
@@ -403,10 +448,12 @@ test('database seeder provides complete public demo content', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('public/home')
-            ->has('navigation', 7)
-            ->has('promotions', 2)
+            ->has('navigation', 4)
+            ->has('promotions', 0)
             ->has('featured_products', 4)
             ->where('contact.whatsapp_url', 'https://wa.me/491701234567')
+            ->where('page_sections.hero.title', 'Parfums gezielt entdecken, persönlich beraten lassen.')
+            ->where('page_sections.hero.cta_text', 'Kollektion ansehen')
             ->where('page_sections.hero.image_url', null)
             ->where('page_sections.hero.video_url', null),
         );
@@ -415,9 +462,9 @@ test('database seeder provides complete public demo content', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('public/category')
-            ->where('category.image_url', fn (string $url) => str_starts_with($url, 'https://images.unsplash.com/'))
-            ->has('products', 5)
-            ->where('pagination.total', 5)
+            ->where('category.image_url', null)
+            ->has('products', 12)
+            ->where('pagination.total', 15)
             ->has('filters', 4),
         );
 });

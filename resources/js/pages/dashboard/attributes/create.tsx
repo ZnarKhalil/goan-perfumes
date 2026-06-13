@@ -7,7 +7,11 @@ import Heading from '@/components/heading';
 import { adminTitle, dashboardLabels } from '@/lib/de';
 import attributesRoutes from '@/routes/dashboard/attributes';
 
-export default function AttributesCreate() {
+type Props = {
+    next_sort_order: number;
+};
+
+export default function AttributesCreate({ next_sort_order }: Props) {
     return (
         <>
             <Head title={adminTitle('Neues Attribut')} />
@@ -20,7 +24,7 @@ export default function AttributesCreate() {
                     mode="create"
                     initial={{
                         code: '',
-                        sort_order: 0,
+                        sort_order: next_sort_order,
                         is_filterable: true,
                         is_multiple: true,
                         translations: emptyTranslations(

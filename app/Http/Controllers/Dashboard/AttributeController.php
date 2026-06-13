@@ -7,6 +7,7 @@ use App\Http\Requests\Dashboard\StoreAttributeRequest;
 use App\Http\Requests\Dashboard\UpdateAttributeRequest;
 use App\Models\Attribute;
 use App\Models\AttributeValue;
+use App\Support\PublicLocale;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -14,8 +15,6 @@ use Inertia\Response;
 
 class AttributeController extends Controller
 {
-    private const LOCALES = ['de', 'ar', 'en'];
-
     public function index(): Response
     {
         $attributes = Attribute::query()
@@ -42,7 +41,9 @@ class AttributeController extends Controller
 
     public function create(): Response
     {
-        return Inertia::render('dashboard/attributes/create');
+        return Inertia::render('dashboard/attributes/create', [
+            'next_sort_order' => $this->nextSortOrder(),
+        ]);
     }
 
     public function store(StoreAttributeRequest $request): RedirectResponse
@@ -57,7 +58,7 @@ class AttributeController extends Controller
                 'is_multiple' => (bool) $data['is_multiple'],
             ]);
 
-            $this->syncTranslations($attribute, $data['translations'] ?? []);
+            $attribute->syncTranslations($data['translations'] ?? [], ['name']);
         });
 
         return to_route('dashboard.attributes.index')
@@ -109,7 +110,7 @@ class AttributeController extends Controller
                 'is_multiple' => (bool) $data['is_multiple'],
             ]);
 
-            $this->syncTranslations($attribute, $data['translations'] ?? []);
+            $attribute->syncTranslations($data['translations'] ?? [], ['name']);
         });
 
         return to_route('dashboard.attributes.edit', $attribute)
@@ -134,24 +135,14 @@ class AttributeController extends Controller
     }
 
     /**
-     * @param  array<string, array<string, ?string>>  $translations
+     * The next free sort order, suggested as the default when creating an
+     * attribute so the unique rule is not tripped on the common case.
      */
-    private function syncTranslations(Attribute|AttributeValue $model, array $translations): void
+    private function nextSortOrder(): int
     {
-        foreach (self::LOCALES as $locale) {
-            $value = $translations[$locale]['name'] ?? null;
+        $max = Attribute::query()->max('sort_order');
 
-            if ($value === null || $value === '') {
-                $model->translations()
-                    ->where('locale', $locale)
-                    ->where('field', 'name')
-                    ->delete();
-
-                continue;
-            }
-
-            $model->setTranslation($locale, 'name', $value);
-        }
+        return $max === null ? 0 : ((int) $max + 1);
     }
 
     /**
@@ -161,7 +152,7 @@ class AttributeController extends Controller
     {
         $shape = [];
 
-        foreach (self::LOCALES as $locale) {
+        foreach (PublicLocale::codes() as $locale) {
             $shape[$locale] = [
                 'name' => $model->translate($locale, 'name') ?? '',
             ];

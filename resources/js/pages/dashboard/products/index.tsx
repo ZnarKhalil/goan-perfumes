@@ -22,8 +22,25 @@ type ProductRow = {
     image_url: string | null;
 };
 
+type PaginationLink = {
+    url: string | null;
+    label: string;
+    active: boolean;
+};
+
+type Pagination = {
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    from: number | null;
+    to: number | null;
+    links: PaginationLink[];
+};
+
 type Props = {
     products: ProductRow[];
+    pagination: Pagination;
 };
 
 const euro = new Intl.NumberFormat('de-DE', {
@@ -31,7 +48,7 @@ const euro = new Intl.NumberFormat('de-DE', {
     currency: 'EUR',
 });
 
-export default function ProductsIndex({ products }: Props) {
+export default function ProductsIndex({ products, pagination }: Props) {
     const remove = (row: ProductRow) => {
         if (
             !confirm(
@@ -157,9 +174,60 @@ export default function ProductsIndex({ products }: Props) {
                         </>
                     )}
                 />
+
+                {pagination.last_page > 1 && (
+                    <nav
+                        aria-label="Seitennavigation"
+                        className="flex flex-wrap items-center justify-between gap-3"
+                    >
+                        <p className="text-sm text-muted-foreground">
+                            {pagination.from}–{pagination.to} von{' '}
+                            {pagination.total} Produkten
+                        </p>
+                        <div className="flex flex-wrap gap-1">
+                            {pagination.links.map((link, index) =>
+                                link.url ? (
+                                    <Button
+                                        key={index}
+                                        asChild
+                                        variant={
+                                            link.active ? 'default' : 'outline'
+                                        }
+                                        size="sm"
+                                    >
+                                        <Link href={link.url} preserveScroll>
+                                            {paginationLabel(link.label)}
+                                        </Link>
+                                    </Button>
+                                ) : (
+                                    <Button
+                                        key={index}
+                                        variant="outline"
+                                        size="sm"
+                                        disabled
+                                    >
+                                        {paginationLabel(link.label)}
+                                    </Button>
+                                ),
+                            )}
+                        </div>
+                    </nav>
+                )}
             </div>
         </>
     );
+}
+
+function paginationLabel(label: string): string {
+    if (label.includes('Previous')) {
+        return '‹ Zurück';
+    }
+
+    if (label.includes('Next')) {
+        return 'Weiter ›';
+    }
+
+    return label;
 }
 
 function formatPriceRange(row: ProductRow): string {
