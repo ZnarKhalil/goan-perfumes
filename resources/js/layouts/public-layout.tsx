@@ -1,5 +1,6 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { Facebook, Instagram, Music2 } from 'lucide-react';
+import { useEffect } from 'react';
 import CookieConsent from '@/components/public/cookie-consent';
 import FloatingContactSidebar from '@/components/public/floating-contact-sidebar';
 import SiteHeader from '@/components/public/site-header';
@@ -15,6 +16,7 @@ export default function PublicLayout({
     theme = 'light',
     children,
 }: PublicLayoutProps) {
+    const { url } = usePage();
     const copy = getPublicCopy(locale);
     const direction = locale?.dir ?? 'ltr';
     const isDark = theme === 'dark';
@@ -41,6 +43,17 @@ export default function PublicLayout({
         (link): link is (typeof footerSocialLinks)[number] & { href: string } =>
             link.href !== null,
     );
+
+    useEffect(() => {
+        document.body.style.pointerEvents = '';
+        document.body.style.overflow = '';
+        document.body.removeAttribute('data-scroll-locked');
+        document
+            .querySelectorAll(
+                '[data-slot="sheet-overlay"], [data-slot="dropdown-menu-content"]',
+            )
+            .forEach((element) => element.remove());
+    }, [url]);
 
     return (
         <div

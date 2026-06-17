@@ -1,5 +1,6 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { ChevronDown, Menu, Search, X } from 'lucide-react';
+import type { MouseEvent } from 'react';
 import { useMemo, useState } from 'react';
 import ProductGrid from '@/components/public/product-grid';
 import {
@@ -70,31 +71,37 @@ export default function Category(page: PublicCategoryPageProps) {
             <section className="px-4 py-12 md:px-8 md:py-16">
                 <div className="mx-auto max-w-7xl">
                     <div className="grid gap-8">
-                        <div className="flex flex-col justify-between gap-3 border-b border-white/10 pb-5 md:flex-row md:items-end">
-                            <div>
-                                <p className="text-sm text-stone-400">
-                                    {copy.category.results(
-                                        page.pagination.from,
-                                        page.pagination.to,
-                                        page.pagination.total,
-                                    )}
-                                </p>
-                                <h2 className="mt-2 font-display text-3xl font-light text-stone-50">
-                                    {copy.category.filteredSelection}
-                                </h2>
-                            </div>
-                            <div className="flex flex-col gap-3 md:items-end">
-                                <p className="max-w-sm text-sm leading-6 text-stone-400">
-                                    {copy.category.filterHelp}
-                                </p>
-                                <FilterSheet
-                                    activeFilters={activeFilters}
-                                    categoryHref={page.category.href}
-                                    copy={copy}
-                                    filters={page.filters}
-                                    isRtl={isRtl}
-                                    selectedFilters={page.selected_filters}
-                                />
+                        <div
+                            id="product-results"
+                            tabIndex={-1}
+                            className="scroll-mt-24 focus:outline-none"
+                        >
+                            <div className="flex flex-col justify-between gap-3 border-b border-white/10 pb-5 md:flex-row md:items-end">
+                                <div>
+                                    <p className="text-sm text-stone-400">
+                                        {copy.category.results(
+                                            page.pagination.from,
+                                            page.pagination.to,
+                                            page.pagination.total,
+                                        )}
+                                    </p>
+                                    <h2 className="mt-2 font-display text-3xl font-light text-stone-50">
+                                        {copy.category.filteredSelection}
+                                    </h2>
+                                </div>
+                                <div className="flex flex-col gap-3 md:items-end">
+                                    <p className="max-w-sm text-sm leading-6 text-stone-400">
+                                        {copy.category.filterHelp}
+                                    </p>
+                                    <FilterSheet
+                                        activeFilters={activeFilters}
+                                        categoryHref={page.category.href}
+                                        copy={copy}
+                                        filters={page.filters}
+                                        isRtl={isRtl}
+                                        selectedFilters={page.selected_filters}
+                                    />
+                                </div>
                             </div>
                         </div>
 
@@ -433,6 +440,34 @@ function Pagination({
     copy: PublicCopy;
     links: PublicCategoryPageProps['pagination']['links'];
 }) {
+    function visitPage(
+        event: MouseEvent<HTMLAnchorElement>,
+        href: string | null,
+    ): void {
+        if (!href) {
+            event.preventDefault();
+
+            return;
+        }
+
+        event.preventDefault();
+
+        router.visit(href, {
+            preserveScroll: true,
+            onSuccess: () => {
+                window.requestAnimationFrame(() => {
+                    const productResults =
+                        document.getElementById('product-results');
+
+                    productResults?.scrollIntoView({
+                        block: 'start',
+                    });
+                    productResults?.focus({ preventScroll: true });
+                });
+            },
+        });
+    }
+
     return (
         <nav
             aria-label={copy.pagination.label}
@@ -442,6 +477,7 @@ function Pagination({
                 <Link
                     key={link.label}
                     href={link.href ?? '#'}
+                    onClick={(event) => visitPage(event, link.href)}
                     className={cn(
                         'min-w-10 rounded-full border px-3 py-2 text-center text-sm transition',
                         link.active

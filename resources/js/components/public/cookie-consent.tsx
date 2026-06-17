@@ -77,6 +77,20 @@ export default function CookieConsent({
         setShowSettings(false);
     }
 
+    function openSettings(): void {
+        setAnalyticsEnabled(choice?.analytics ?? false);
+        setShowBanner(false);
+        setShowSettings(true);
+    }
+
+    function setSettingsOpen(open: boolean): void {
+        setShowSettings(open);
+
+        if (!open && choice === null) {
+            setShowBanner(true);
+        }
+    }
+
     return (
         <>
             {showBanner && (
@@ -130,7 +144,7 @@ export default function CookieConsent({
                             <Button
                                 type="button"
                                 variant="outline"
-                                onClick={() => setShowSettings(true)}
+                                onClick={openSettings}
                                 className={cn(
                                     isDark &&
                                         'border-white/15 bg-transparent text-stone-100 hover:bg-white/10 hover:text-stone-100',
@@ -151,7 +165,7 @@ export default function CookieConsent({
                 </section>
             )}
 
-            <Dialog open={showSettings} onOpenChange={setShowSettings}>
+            <Dialog open={showSettings} onOpenChange={setSettingsOpen}>
                 <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-2xl">
                     <DialogHeader>
                         <DialogTitle>{copy.cookies.settingsTitle}</DialogTitle>
@@ -216,15 +230,12 @@ export default function CookieConsent({
                 </DialogContent>
             </Dialog>
 
-            {hasLoadedChoice && !showBanner && (
+            {hasLoadedChoice && (
                 <button
                     type="button"
-                    onClick={() => {
-                        setAnalyticsEnabled(choice?.analytics ?? false);
-                        setShowSettings(true);
-                    }}
+                    onClick={openSettings}
                     className={cn(
-                        'text-left text-xs transition-colors duration-300',
+                        'text-left text-xs underline-offset-4 transition-colors duration-300 hover:underline',
                         isDark
                             ? 'text-stone-400 hover:text-[#e7c889]'
                             : 'text-stone-500 hover:text-stone-900',

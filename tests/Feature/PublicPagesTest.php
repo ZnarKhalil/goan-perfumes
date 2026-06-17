@@ -438,6 +438,22 @@ test('privacy policy page renders public layout props', function () {
             ->where('meta.description', fn (string $value) => str_contains($value, 'Google Analytics'))
             ->has('navigation', 1),
         );
+
+    $this->get('/en/datenschutz')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('public/privacy-policy')
+            ->where('meta.title', 'Privacy policy')
+            ->where('meta.description', fn (string $value) => str_contains($value, 'Google Analytics')),
+        );
+
+    $this->get('/ar/datenschutz')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('public/privacy-policy')
+            ->where('meta.title', 'سياسة الخصوصية')
+            ->where('meta.description', fn (string $value) => str_contains($value, 'Google Analytics')),
+        );
 });
 
 test('root privacy policy URL redirects to the active public locale', function () {
