@@ -67,7 +67,7 @@ export default function Contact(page: PublicContactPageProps) {
                                         <Icon className="size-5 text-stone-500 transition group-hover:text-[#e7c889]" />
                                     </div>
                                     <p className="mt-auto text-sm text-stone-400">
-                                        {copy.contact.open}
+                                        {copy.contact.openMethod(link.label)}
                                     </p>
                                 </a>
                             );

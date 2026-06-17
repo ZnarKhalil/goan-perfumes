@@ -456,9 +456,43 @@ test('privacy policy page renders public layout props', function () {
         );
 });
 
+test('impressum page renders public layout props', function () {
+    publicCategory('arabische-parfums', 'Arabische Parfums');
+
+    $this->get('/de/impressum')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('public/impressum')
+            ->where('meta.title', 'Impressum')
+            ->where('meta.description', fn (string $value) => str_contains($value, 'Anbieterkennzeichnung'))
+            ->has('navigation', 1),
+        );
+
+    $this->get('/en/impressum')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('public/impressum')
+            ->where('meta.title', 'Legal notice')
+            ->where('meta.description', fn (string $value) => str_contains($value, 'Legal provider information')),
+        );
+
+    $this->get('/ar/impressum')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('public/impressum')
+            ->where('meta.title', 'البيانات القانونية')
+            ->where('meta.description', fn (string $value) => str_contains($value, 'معلومات المزوّد')),
+        );
+});
+
 test('root privacy policy URL redirects to the active public locale', function () {
     $this->get('/datenschutz')
         ->assertRedirect('/de/datenschutz');
+});
+
+test('root impressum URL redirects to the active public locale', function () {
+    $this->get('/impressum')
+        ->assertRedirect('/de/impressum');
 });
 
 test('empty contact settings are returned as null urls', function () {

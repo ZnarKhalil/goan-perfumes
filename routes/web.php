@@ -4,6 +4,7 @@ use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\Public\CategoryController;
 use App\Http\Controllers\Public\ContactController;
 use App\Http\Controllers\Public\HomeController;
+use App\Http\Controllers\Public\ImpressumController;
 use App\Http\Controllers\Public\PrivacyPolicyController;
 use App\Http\Controllers\Public\ProductController;
 use App\Support\PublicLocale;
@@ -23,6 +24,7 @@ Route::prefix('{locale}')
     ->group(function () {
         Route::get('/', HomeController::class)->name('home');
         Route::get('/kontakt', ContactController::class)->name('contact');
+        Route::get('/impressum', ImpressumController::class)->name('impressum');
         Route::get('/datenschutz', PrivacyPolicyController::class)->name('privacy');
         Route::get('/produkt/{slug}', [ProductController::class, 'show'])->name('products.show');
         Route::get('/{slug}', [CategoryController::class, 'show'])->name('categories.show');
@@ -33,6 +35,10 @@ Route::get('/', fn (Request $request) => redirect()->route('home', [
     ...$request->query(),
 ]));
 Route::get('/kontakt', fn (Request $request) => redirect()->route('contact', [
+    'locale' => PublicLocale::normalize($request->cookie(PublicLocale::CookieName)),
+    ...$request->query(),
+]));
+Route::get('/impressum', fn (Request $request) => redirect()->route('impressum', [
     'locale' => PublicLocale::normalize($request->cookie(PublicLocale::CookieName)),
     ...$request->query(),
 ]));

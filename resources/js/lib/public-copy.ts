@@ -36,6 +36,7 @@ export type PublicCopy = {
         eyebrow: string;
         intro: string;
         open: string;
+        openMethod: (method: string) => string;
         pageTitle: string;
         title: string;
         methods: {
@@ -67,6 +68,7 @@ export type PublicCopy = {
         collectionsTitle: string;
         contactTitle: string;
         contactPage: string;
+        impressumLink: string;
     };
     home: {
         aboutEyebrow: string;
@@ -146,6 +148,7 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             eyebrow: 'Kontakt',
             intro: 'Schreiben Sie uns für Produktfragen, verfügbare Größen, aktuelle Angebote oder eine persönliche Empfehlung.',
             open: 'Öffnen',
+            openMethod: (method) => `${method} öffnen`,
             pageTitle: 'Kontakt',
             title: 'Direkter Kontakt für Duftberatung.',
             methods: {
@@ -182,6 +185,7 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             collectionsTitle: 'Kollektionen',
             contactTitle: 'Kontakt',
             contactPage: 'Kontaktseite',
+            impressumLink: 'Impressum',
         },
         home: {
             aboutEyebrow: 'Über uns',
@@ -260,6 +264,7 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             eyebrow: 'Contact',
             intro: 'Write to us about product questions, available sizes, current offers, or a personal recommendation.',
             open: 'Open',
+            openMethod: (method) => `Open ${method}`,
             pageTitle: 'Contact',
             title: 'Direct contact for fragrance advice.',
             methods: {
@@ -296,6 +301,7 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             collectionsTitle: 'Collections',
             contactTitle: 'Contact',
             contactPage: 'Contact page',
+            impressumLink: 'Legal notice',
         },
         home: {
             aboutEyebrow: 'About us',
@@ -375,6 +381,7 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             eyebrow: 'التواصل',
             intro: 'راسلنا بخصوص أسئلة المنتجات أو المقاسات المتوفرة أو العروض الحالية أو للحصول على توصية شخصية.',
             open: 'فتح',
+            openMethod: (method) => `فتح ${method}`,
             pageTitle: 'التواصل',
             title: 'تواصل مباشر لاستشارة العطور.',
             methods: {
@@ -411,6 +418,7 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             collectionsTitle: 'المجموعات',
             contactTitle: 'التواصل',
             contactPage: 'صفحة التواصل',
+            impressumLink: 'البيانات القانونية',
         },
         home: {
             aboutEyebrow: 'من نحن',

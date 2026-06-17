@@ -228,3 +228,11 @@ export type PublicPrivacyPolicyPageProps = {
     locale?: PublicLocaleProps;
     meta: PublicMeta;
 };
+
+export type PublicImpressumPageProps = {
+    navigation: PublicCategoryNavItem[];
+    contact: PublicContactSettings;
+    logo_url: string | null;
+    locale?: PublicLocaleProps;
+    meta: PublicMeta;
+};
