@@ -32,7 +32,6 @@ export default function CategoriesCreate({ parents, next_sort_order }: Props) {
                         parent_id: null,
                         sort_order: next_sort_order,
                         is_active: true,
-                        image_url: null,
                         translations: emptyTranslations(FIELDS),
                     }}
                 />

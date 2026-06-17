@@ -3,8 +3,6 @@
 use App\Models\Category;
 use App\Models\Translation;
 use App\Models\User;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
     $this->admin = User::factory()->admin()->create();
@@ -41,18 +39,13 @@ test('category show route is not registered', function () {
         ->assertMethodNotAllowed();
 });
 
-test('admin can create a category with translations and a banner image', function () {
-    Storage::fake('public');
-
-    $banner = UploadedFile::fake()->image('banner.jpg', 800, 200);
-
+test('admin can create a category with translations', function () {
     $response = $this->actingAs($this->admin)
         ->post('/dashboard/categories', [
             'slug' => '',
             'parent_id' => null,
             'sort_order' => 5,
             'is_active' => true,
-            'image' => $banner,
             'translations' => [
                 'de' => ['name' => 'Maiglöckchen', 'description' => 'Frühlingshaft.'],
                 'ar' => ['name' => 'زنبق الوادي'],
@@ -71,8 +64,6 @@ test('admin can create a category with translations and a banner image', functio
     expect($category->translate('ar', 'name'))->toBe('زنبق الوادي');
     expect($category->translate('en', 'name'))->toBe('Lily of the valley');
     expect($category->translate('de', 'description'))->toBe('Frühlingshaft.');
-    expect($category->image_path)->not->toBeNull();
-    Storage::disk('public')->assertExists($category->image_path);
 });
 
 test('store rejects a sort order already used by another category', function () {
@@ -191,16 +182,9 @@ test('category SEO meta is derived from the name and description', function () {
     expect($category->translate('ar', 'meta_title'))->toBe('عطور رجالية');
 });
 
-test('admin can update an existing category and replace its banner', function () {
-    Storage::fake('public');
-
+test('admin can update an existing category', function () {
     $category = Category::factory()->create(['slug' => 'old-slug']);
     $category->setTranslation('de', 'name', 'Alt');
-    $category->image_path = UploadedFile::fake()
-        ->image('old.jpg')
-        ->store('categories/banners', 'public');
-    $category->save();
-    $oldPath = $category->image_path;
 
     $this->actingAs($this->admin)
         ->put("/dashboard/categories/{$category->id}", [
@@ -208,7 +192,6 @@ test('admin can update an existing category and replace its banner', function ()
             'parent_id' => null,
             'sort_order' => 9,
             'is_active' => false,
-            'image' => UploadedFile::fake()->image('new.jpg', 800, 200),
             'translations' => [
                 'de' => ['name' => 'Neu'],
                 'ar' => ['name' => ''],
@@ -223,9 +206,6 @@ test('admin can update an existing category and replace its banner', function ()
     expect($category->is_active)->toBeFalse();
     expect($category->sort_order)->toBe(9);
     expect($category->translate('de', 'name'))->toBe('Neu');
-    expect($category->image_path)->not->toBe($oldPath);
-    Storage::disk('public')->assertMissing($oldPath);
-    Storage::disk('public')->assertExists($category->image_path);
 });
 
 test('update accepts the "none" parent sentinel sent by the form', function () {
@@ -273,16 +253,9 @@ test('clearing a translation removes its row', function () {
     expect($category->translate('de', 'name'))->toBe('Kategorie');
 });
 
-test('admin can delete a category and its translations + banner are cleaned up', function () {
-    Storage::fake('public');
-
+test('admin can delete a category and its translations are cleaned up', function () {
     $category = Category::factory()->create(['slug' => 'goes-away']);
     $category->setTranslation('de', 'name', 'Vergänglich');
-    $category->image_path = UploadedFile::fake()
-        ->image('x.jpg')
-        ->store('categories/banners', 'public');
-    $category->save();
-    $path = $category->image_path;
 
     $this->actingAs($this->admin)
         ->delete("/dashboard/categories/{$category->id}")
@@ -294,7 +267,6 @@ test('admin can delete a category and its translations + banner are cleaned up',
         ->where('translatable_id', $category->id)
         ->count(),
     )->toBe(0);
-    Storage::disk('public')->assertMissing($path);
 });
 
 test('parent select on edit excludes the current category and its descendants', function () {

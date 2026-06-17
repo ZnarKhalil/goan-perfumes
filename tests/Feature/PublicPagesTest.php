@@ -496,7 +496,8 @@ test('database seeder provides complete public demo content', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('public/category')
-            ->where('category.image_url', null)
+            ->missing('category.image_url')
+            ->missing('category.banner_url')
             ->has('products', 12)
             ->where('pagination.total', 15)
             ->has('filters', 4),

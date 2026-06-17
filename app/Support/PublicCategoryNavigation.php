@@ -10,7 +10,7 @@ final class PublicCategoryNavigation
     private const CacheKeyPrefix = 'public-category-navigation';
 
     /**
-     * @return array<int, array{id: int, slug: string, name: string, href: string, image_url: ?string}>
+     * @return array<int, array{id: int, slug: string, name: string, href: string}>
      */
     public static function forLocale(string $locale): array
     {
@@ -41,7 +41,7 @@ final class PublicCategoryNavigation
     }
 
     /**
-     * @return array{id: int, slug: string, name: string, href: string, image_url: ?string}
+     * @return array{id: int, slug: string, name: string, href: string}
      */
     private static function item(Category $category, string $locale): array
     {
@@ -53,7 +53,6 @@ final class PublicCategoryNavigation
                 'locale' => $locale,
                 'slug' => $category->slug,
             ], absolute: false),
-            'image_url' => StorageUrl::for($category->image_path),
         ];
     }
 }

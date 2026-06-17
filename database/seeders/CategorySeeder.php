@@ -23,7 +23,6 @@ class CategorySeeder extends Seeder
                 [
                     'sort_order' => $index,
                     'is_active' => true,
-                    'image_path' => null,
                 ],
             );
 

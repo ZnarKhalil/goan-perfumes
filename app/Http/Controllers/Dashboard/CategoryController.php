@@ -8,10 +8,8 @@ use App\Http\Requests\Dashboard\UpdateCategoryRequest;
 use App\Models\Category;
 use App\Support\PublicCategoryNavigation;
 use App\Support\PublicLocale;
-use App\Support\StorageUrl;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -39,7 +37,6 @@ class CategoryController extends Controller
                 'parent_name' => $category->parent?->translate('de', 'name'),
                 'sort_order' => $category->sort_order,
                 'is_active' => $category->is_active,
-                'image_url' => StorageUrl::for($category->image_path),
             ])
             ->values();
 
@@ -61,13 +58,12 @@ class CategoryController extends Controller
         $data = $request->validated();
         $parentId = $this->normalizeParentId($data['parent_id'] ?? null);
 
-        $category = DB::transaction(function () use ($data, $request, $parentId) {
+        $category = DB::transaction(function () use ($data, $parentId) {
             $category = new Category([
                 'slug' => '',
                 'parent_id' => $parentId,
                 'sort_order' => $data['sort_order'] ?? 0,
                 'is_active' => (bool) $data['is_active'],
-                'image_path' => null,
             ]);
 
             $category->setSlugSource($data['translations']['de']['name']);
@@ -75,14 +71,6 @@ class CategoryController extends Controller
             $category->save();
 
             $this->syncTranslations($category, $data['translations'] ?? []);
-
-            if ($request->hasFile('image')) {
-                $category->image_path = $request->file('image')->store(
-                    'categories/banners',
-                    'public',
-                );
-                $category->save();
-            }
 
             return $category;
         });
@@ -104,7 +92,6 @@ class CategoryController extends Controller
                 'parent_id' => $category->parent_id,
                 'sort_order' => $category->sort_order,
                 'is_active' => $category->is_active,
-                'image_url' => StorageUrl::for($category->image_path),
                 'translations' => $this->translationsAsTabs($category),
                 'name' => $category->translate('de', 'name') ?? $category->slug,
             ],
@@ -117,7 +104,7 @@ class CategoryController extends Controller
         $data = $request->validated();
         $parentId = $this->normalizeParentId($data['parent_id'] ?? null);
 
-        DB::transaction(function () use ($category, $data, $request, $parentId) {
+        DB::transaction(function () use ($category, $data, $parentId) {
             $category->fill([
                 'parent_id' => $parentId,
                 'sort_order' => $data['sort_order'] ?? 0,
@@ -127,23 +114,6 @@ class CategoryController extends Controller
             $category->save();
 
             $this->syncTranslations($category, $data['translations'] ?? []);
-
-            if ($request->boolean('remove_image') && $category->image_path) {
-                $this->deleteFileAfterCommit($category->image_path);
-                $category->image_path = null;
-                $category->save();
-            }
-
-            if ($request->hasFile('image')) {
-                if ($category->image_path) {
-                    $this->deleteFileAfterCommit($category->image_path);
-                }
-                $category->image_path = $request->file('image')->store(
-                    'categories/banners',
-                    'public',
-                );
-                $category->save();
-            }
         });
 
         PublicCategoryNavigation::flush();
@@ -155,9 +125,6 @@ class CategoryController extends Controller
     public function destroy(Category $category): RedirectResponse
     {
         DB::transaction(function () use ($category): void {
-            if ($category->image_path) {
-                $this->deleteFileAfterCommit($category->image_path);
-            }
             $category->translations()->delete();
             $category->delete();
         });
@@ -213,15 +180,6 @@ class CategoryController extends Controller
         }
 
         return $ids;
-    }
-
-    /**
-     * Remove the file only once the surrounding transaction has committed so
-     * a rollback never leaves a row pointing at a deleted file.
-     */
-    private function deleteFileAfterCommit(string $path): void
-    {
-        DB::afterCommit(fn () => Storage::disk('public')->delete($path));
     }
 
     private function normalizeParentId(int|string|null $value): ?int

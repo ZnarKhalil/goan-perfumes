@@ -26,7 +26,6 @@ export type PublicCategoryNavItem = {
     slug: string;
     name: string;
     href: string;
-    image_url: string | null;
 };
 
 export type PublicContactSettings = {
@@ -198,7 +197,6 @@ export type PublicCategoryPageProps = {
     meta: PublicMeta;
     category: PublicCategoryNavItem & {
         description: string;
-        banner_url: string | null;
     };
     filters: PublicFilterGroup[];
     selected_filters: Record<string, string[]>;

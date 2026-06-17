@@ -41,16 +41,9 @@ export default function Collections({ categories, eyebrow, title }: Props) {
                                 href={category.href}
                                 className="group relative block aspect-[3/4] overflow-hidden rounded-[1.4rem] border border-white/10"
                             >
-                                {category.image_url ? (
-                                    <img
-                                        src={category.image_url}
-                                        alt={category.name}
-                                        loading="lazy"
-                                        className="absolute inset-0 h-full w-full scale-105 object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-115"
-                                    />
-                                ) : (
-                                    <div className="absolute inset-0 bg-[radial-gradient(120%_100%_at_50%_0%,#2a1c0c,#0c0907)]" />
-                                )}
+                                <div className="category-animated-field absolute inset-0 scale-125 transition-transform duration-[1200ms] ease-out group-hover:scale-140" />
+                                <div className="category-ribbon absolute top-1/2 left-[-38%] h-16 w-[110%] -translate-y-1/2" />
+                                <div className="category-light-sweep absolute inset-y-0 -left-1/2 w-2/3 opacity-70" />
 
                                 <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,5,4,0.15)_0%,rgba(7,5,4,0.2)_45%,rgba(7,5,4,0.86)_100%)] transition-opacity duration-700 group-hover:opacity-90" />
                                 <div className="absolute inset-3 rounded-[1.05rem] border border-white/10 transition-colors duration-700 group-hover:border-[#e7c889]/45" />

@@ -1,6 +1,5 @@
 import { Link, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
-import MediaUploader from '@/components/dashboard/media-uploader';
 import TranslationTabs, {
     emptyTranslations,
 } from '@/components/dashboard/translation-tabs';
@@ -40,7 +39,6 @@ export type CategoryFormProps = {
         parent_id: number | null;
         sort_order: number;
         is_active: boolean;
-        image_url: string | null;
         translations: TranslationsShape;
     };
     parents: CategoryParentOption[];
@@ -50,8 +48,6 @@ type FormData = {
     parent_id: string;
     sort_order: number;
     is_active: boolean;
-    image: File | null;
-    remove_image: boolean;
     translations: TranslationsShape;
     _method?: 'PUT';
 };
@@ -66,8 +62,6 @@ export default function CategoryForm({
         parent_id: initial.parent_id ? String(initial.parent_id) : 'none',
         sort_order: initial.sort_order,
         is_active: initial.is_active,
-        image: null,
-        remove_image: false,
         translations: initial.translations ?? emptyTranslations(FIELDS),
         ...(mode === 'edit' ? { _method: 'PUT' as const } : {}),
     });
@@ -80,7 +74,7 @@ export default function CategoryForm({
                 : categoriesRoutes.update({
                       category: categoriesRoute(categoryId),
                   }).url;
-        post(url, { forceFormData: true });
+        post(url);
     };
 
     const setTranslation = (
@@ -95,11 +89,7 @@ export default function CategoryForm({
     };
 
     return (
-        <form
-            onSubmit={submit}
-            className="grid gap-8"
-            encType="multipart/form-data"
-        >
+        <form onSubmit={submit} className="grid gap-8">
             <section className="grid gap-4 rounded-lg border border-sidebar-border/70 p-6 dark:border-sidebar-border">
                 <h3 className="text-sm font-medium">Inhalte (mehrsprachig)</h3>
                 <TranslationTabs
@@ -165,25 +155,6 @@ export default function CategoryForm({
                         </Label>
                     </div>
                 </div>
-            </section>
-
-            <section className="grid gap-4 rounded-lg border border-sidebar-border/70 p-6 dark:border-sidebar-border">
-                <h3 className="text-sm font-medium">Banner</h3>
-                <MediaUploader
-                    mode="single"
-                    value={data.image}
-                    existingUrl={data.remove_image ? null : initial.image_url}
-                    onChange={(file) => {
-                        setData('image', file);
-
-                        if (file) {
-                            setData('remove_image', false);
-                        }
-                    }}
-                    onRemove={() => setData('remove_image', true)}
-                    error={errors.image}
-                    label="Header-Banner (optional)"
-                />
             </section>
 
             <div className="flex items-center justify-end gap-3">

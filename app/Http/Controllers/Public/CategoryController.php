@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Public;
 
 use App\Models\Category;
 use App\Models\Product;
-use App\Support\StorageUrl;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -33,7 +32,6 @@ class CategoryController extends PublicController
             'category' => [
                 ...$this->categoryNavItem($category),
                 'description' => $this->translation($category, 'description') ?? '',
-                'banner_url' => StorageUrl::for($category->image_path),
             ],
             'filters' => $this->filterGroups($selectedFilters, $category->slug),
             'selected_filters' => $selectedFilters,

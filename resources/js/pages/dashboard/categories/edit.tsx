@@ -13,7 +13,6 @@ type Props = {
         parent_id: number | null;
         sort_order: number;
         is_active: boolean;
-        image_url: string | null;
         translations: TranslationsShape;
         name: string;
     };
@@ -39,7 +38,6 @@ export default function CategoriesEdit({ category, parents }: Props) {
                         parent_id: category.parent_id,
                         sort_order: category.sort_order,
                         is_active: category.is_active,
-                        image_url: category.image_url,
                         translations: category.translations,
                     }}
                 />

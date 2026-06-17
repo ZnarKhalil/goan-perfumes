@@ -50,7 +50,6 @@ abstract class PublicController extends Controller
                 'locale' => $this->locale(),
                 'slug' => $category->slug,
             ]),
-            'image_url' => StorageUrl::for($category->image_path),
         ];
     }
 

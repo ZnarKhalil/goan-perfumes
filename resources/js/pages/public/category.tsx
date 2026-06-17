@@ -40,28 +40,25 @@ export default function Category(page: PublicCategoryPageProps) {
             <Head title={page.meta.title}>
                 <meta name="description" content={page.meta.description} />
             </Head>
-            <section className="relative min-h-[58svh] overflow-hidden">
-                {page.category.banner_url ? (
-                    <img
-                        src={page.category.banner_url}
-                        alt=""
-                        className="absolute inset-0 h-full w-full object-cover"
-                    />
-                ) : (
-                    <div className="absolute inset-0 bg-[radial-gradient(120%_120%_at_30%_10%,#241708,#0b0907)]" />
-                )}
-                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,5,4,0.5)_0%,rgba(7,5,4,0.35)_45%,rgba(11,9,7,0.96)_100%)]" />
-                <div className="absolute inset-0 grain-layer opacity-[0.1] mix-blend-overlay" />
-                <div className="relative flex min-h-[58svh] items-end px-4 pt-28 pb-12 md:px-8 md:pt-32 md:pb-16">
-                    <div className="max-w-4xl">
-                        <p className="mb-5 flex items-center gap-3 text-[0.7rem] font-semibold tracking-[0.38em] text-[#e7c889] uppercase">
-                            <span className="vitrine-pulse inline-block size-2 rounded-full bg-[#e7c889]" />
-                            {copy.category.eyebrow}
-                        </p>
-                        <h1 className="font-display text-5xl leading-[1.02] font-light text-stone-50 md:text-7xl">
-                            {page.category.name}
-                        </h1>
-                        <p className="mt-5 max-w-2xl text-base leading-7 text-stone-300 md:text-lg">
+            <section className="relative overflow-hidden border-b border-white/10">
+                <div className="category-animated-field absolute inset-0" />
+                <div className="category-ribbon absolute top-1/2 left-[-18%] h-14 w-[76%] -translate-y-1/2" />
+                <div className="category-ribbon category-ribbon-reverse absolute top-1/2 right-[-24%] h-10 w-[70%] -translate-y-1/2" />
+                <div className="category-light-sweep absolute inset-y-0 -left-1/3 w-1/2" />
+                <div className="absolute inset-0 grain-layer opacity-[0.12] mix-blend-overlay" />
+                <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,5,4,0.82)_0%,rgba(7,5,4,0.55)_48%,rgba(11,9,7,0.88)_100%)]" />
+                <div className="relative px-4 py-6 md:px-8 md:py-7">
+                    <div className="mx-auto flex max-w-7xl flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                        <div>
+                            <p className="mb-2 flex items-center gap-3 text-[0.65rem] font-semibold tracking-[0.32em] text-[#e7c889] uppercase">
+                                <span className="vitrine-pulse inline-block size-1.5 rounded-full bg-[#e7c889]" />
+                                {copy.category.eyebrow}
+                            </p>
+                            <h1 className="font-display text-3xl leading-tight font-light text-stone-50 md:text-5xl">
+                                {page.category.name}
+                            </h1>
+                        </div>
+                        <p className="max-w-xl text-sm leading-6 text-stone-300 md:text-right">
                             {page.category.description}
                         </p>
                     </div>

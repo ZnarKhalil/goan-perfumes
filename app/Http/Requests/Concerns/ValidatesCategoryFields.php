@@ -61,8 +61,6 @@ trait ValidatesCategoryFields
                     Rule::unique('categories', 'sort_order')->ignore($ignoreCategoryId),
                 ],
                 'is_active' => ['required', 'boolean'],
-                'image' => ['nullable', 'image', 'max:5120'],
-                'remove_image' => ['nullable', 'boolean'],
             ],
             $this->translationRules(
                 requiredLocale: 'de',
