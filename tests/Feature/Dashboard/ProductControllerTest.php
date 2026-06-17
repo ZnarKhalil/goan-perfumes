@@ -298,6 +298,65 @@ test('update rejects exceeding the homepage highlight limit', function () {
     expect(Product::where('is_featured', true)->count())->toBe(4);
 });
 
+test('admin can update an existing homepage highlight with new media', function () {
+    Storage::fake('public');
+
+    Product::factory()->count(3)->featured()->create();
+    $category = Category::factory()->create();
+    $product = Product::factory()->featured()->create(['slug' => 'featured']);
+    $product->setTranslation('de', 'name', 'Featured');
+    $product->categories()->attach($category);
+    $variant = ProductVariant::factory()->for($product)->create([
+        'size_ml' => 50,
+        'price' => '50.00',
+        'is_default' => true,
+    ]);
+
+    $this->actingAs($this->admin)
+        ->post("/dashboard/products/{$product->id}", [
+            '_method' => 'PUT',
+            'brand' => 'Goan',
+            'is_active' => true,
+            'is_featured' => true,
+            'translations' => [
+                'de' => ['name' => 'Featured', 'short_description' => '', 'description' => ''],
+                'ar' => ['name' => ''],
+                'en' => ['name' => ''],
+            ],
+            'categories' => [$category->id],
+            'attribute_values' => [],
+            'variants' => [
+                [
+                    'id' => $variant->id,
+                    'size_ml' => 50,
+                    'price' => '50.00',
+                    'compare_at_price' => null,
+                    'is_default' => true,
+                    'is_active' => true,
+                ],
+            ],
+            'media_uploads' => [
+                UploadedFile::fake()->image('front.jpg', 1600, 2000),
+            ],
+            'media_meta' => [
+                'new' => [
+                    [
+                        'sort_order' => 0,
+                        'is_primary' => true,
+                        'alt_text' => ['de' => 'Front'],
+                    ],
+                ],
+            ],
+        ])
+        ->assertRedirect('/dashboard/products');
+
+    expect($product->refresh()->is_featured)->toBeTrue();
+    expect(Product::where('is_featured', true)->count())->toBe(4);
+    expect($product->media()->primary()->sole()->translate('de', 'alt_text'))->toBe('Front');
+
+    Storage::disk('public')->assertExists($product->media()->primary()->sole()->path);
+});
+
 test('admin can update product graph variants and media', function () {
     Storage::fake('public');
 

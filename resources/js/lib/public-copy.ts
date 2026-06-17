@@ -44,6 +44,23 @@ export type PublicCopy = {
             whatsapp: string;
         };
     };
+    cookies: {
+        accept: string;
+        analyticsDescription: string;
+        analyticsTitle: string;
+        bannerLabel: string;
+        description: string;
+        footerSettings: string;
+        necessaryDescription: string;
+        necessaryTitle: string;
+        privacyLink: string;
+        reject: string;
+        save: string;
+        settings: string;
+        settingsDescription: string;
+        settingsTitle: string;
+        title: string;
+    };
     footer: {
         brand: string;
         summary: string;
@@ -136,6 +153,27 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
                 phone: 'Telefon',
                 whatsapp: 'WhatsApp',
             },
+        },
+        cookies: {
+            accept: 'Alle akzeptieren',
+            analyticsDescription:
+                'Hilft uns zu verstehen, welche Seiten und Produkte besucht werden. Google Analytics wird erst nach Ihrer Zustimmung geladen.',
+            analyticsTitle: 'Analytics',
+            bannerLabel: 'Cookie-Hinweis',
+            description:
+                'Wir verwenden notwendige Cookies für die Website und optionale Analytics-Cookies, um die Nutzung der Website zu messen.',
+            footerSettings: 'Cookie-Einstellungen',
+            necessaryDescription:
+                'Erforderlich für Grundfunktionen wie Spracheinstellung und gespeicherte Cookie-Auswahl.',
+            necessaryTitle: 'Notwendige Cookies',
+            privacyLink: 'Datenschutzerklärung',
+            reject: 'Alle ablehnen',
+            save: 'Auswahl speichern',
+            settings: 'Einstellungen',
+            settingsDescription:
+                'Sie können Analytics jederzeit aktivieren oder deaktivieren. Notwendige Cookies bleiben immer aktiv.',
+            settingsTitle: 'Cookie-Einstellungen',
+            title: 'Cookies und Datenschutz',
         },
         footer: {
             brand: 'Goan Perfume',
@@ -230,6 +268,27 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
                 whatsapp: 'WhatsApp',
             },
         },
+        cookies: {
+            accept: 'Accept all',
+            analyticsDescription:
+                'Helps us understand which pages and products are visited. Google Analytics only loads after your consent.',
+            analyticsTitle: 'Analytics',
+            bannerLabel: 'Cookie notice',
+            description:
+                'We use necessary cookies for the website and optional analytics cookies to measure website usage.',
+            footerSettings: 'Cookie settings',
+            necessaryDescription:
+                'Required for basic features such as language preference and saved cookie choice.',
+            necessaryTitle: 'Necessary cookies',
+            privacyLink: 'Privacy policy',
+            reject: 'Reject all',
+            save: 'Save selection',
+            settings: 'Settings',
+            settingsDescription:
+                'You can enable or disable analytics at any time. Necessary cookies always remain active.',
+            settingsTitle: 'Cookie settings',
+            title: 'Cookies and privacy',
+        },
         footer: {
             brand: 'Goan Perfume',
             summary:
@@ -323,6 +382,27 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
                 phone: 'الهاتف',
                 whatsapp: 'واتساب',
             },
+        },
+        cookies: {
+            accept: 'قبول الكل',
+            analyticsDescription:
+                'يساعدنا على فهم الصفحات والمنتجات التي تتم زيارتها. لا يتم تحميل Google Analytics إلا بعد موافقتك.',
+            analyticsTitle: 'التحليلات',
+            bannerLabel: 'إشعار ملفات تعريف الارتباط',
+            description:
+                'نستخدم ملفات تعريف ارتباط ضرورية للموقع وملفات اختيارية للتحليلات لقياس استخدام الموقع.',
+            footerSettings: 'إعدادات ملفات تعريف الارتباط',
+            necessaryDescription:
+                'ضرورية للوظائف الأساسية مثل تفضيل اللغة وحفظ اختيار ملفات تعريف الارتباط.',
+            necessaryTitle: 'ملفات تعريف الارتباط الضرورية',
+            privacyLink: 'سياسة الخصوصية',
+            reject: 'رفض الكل',
+            save: 'حفظ الاختيار',
+            settings: 'الإعدادات',
+            settingsDescription:
+                'يمكنك تفعيل التحليلات أو إيقافها في أي وقت. تبقى الملفات الضرورية مفعلة دائمًا.',
+            settingsTitle: 'إعدادات ملفات تعريف الارتباط',
+            title: 'ملفات تعريف الارتباط والخصوصية',
         },
         footer: {
             brand: 'Goan Perfume',

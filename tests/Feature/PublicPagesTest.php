@@ -427,6 +427,24 @@ test('contact page renders public layout props', function () {
         );
 });
 
+test('privacy policy page renders public layout props', function () {
+    publicCategory('arabische-parfums', 'Arabische Parfums');
+
+    $this->get('/de/datenschutz')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('public/privacy-policy')
+            ->where('meta.title', 'Datenschutzerklärung')
+            ->where('meta.description', fn (string $value) => str_contains($value, 'Google Analytics'))
+            ->has('navigation', 1),
+        );
+});
+
+test('root privacy policy URL redirects to the active public locale', function () {
+    $this->get('/datenschutz')
+        ->assertRedirect('/de/datenschutz');
+});
+
 test('empty contact settings are returned as null urls', function () {
     $this->get('/de/kontakt')
         ->assertOk()

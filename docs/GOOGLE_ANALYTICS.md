@@ -20,7 +20,9 @@ Implement:
 
 - Create a Google Analytics 4 property.
 - Add the GA4 Measurement ID to environment config, for example:
-  - `GOOGLE_ANALYTICS_MEASUREMENT_ID=G-XXXXXXXXXX`
+  - `VITE_GOOGLE_ANALYTICS_MEASUREMENT_ID=G-XXXXXXXXXX`
+- Use the `VITE_` prefix if React reads the value through `import.meta.env`, because Laravel Vite only exposes frontend environment variables with this prefix.
+- If the measurement ID should not be baked into the compiled JavaScript bundle, share it from Laravel through Inertia props instead.
 - Load Google Analytics only on the public website, not inside the admin dashboard unless admin usage should also be tracked.
 - Track normal page views.
 - Track Inertia client-side navigation as page views, because this is not a traditional full-page-load website.
@@ -106,6 +108,21 @@ What it is: Google Cloud and GA4 credentials.
 
 Implement:
 
+- Create the GA4 property and web data stream first:
+  - Go to https://analytics.google.com/.
+  - Sign in with the Google account that should own the analytics property.
+  - Go to `Admin`.
+  - Click `Create` > `Property`.
+  - Property name: `Goan Perfume Website`.
+  - Reporting time zone: `Germany`.
+  - Currency: `Euro (EUR)`.
+  - Choose the business category, business size, and business objectives.
+  - Click `Create` and accept the Analytics terms and data processing terms if prompted.
+  - Create a `Web` data stream.
+  - Website URL: use the production website URL.
+  - Stream name: `Goan Perfume Web`.
+  - Keep `Enhanced measurement` enabled for the first version.
+  - Copy the `Measurement ID`, which looks like `G-XXXXXXXXXX`.
 - Create or use a Google Cloud project.
 - Enable the Google Analytics Data API.
 - Create a service account.
@@ -155,11 +172,11 @@ Where to get each value:
 Environment variables:
 
 ```env
-GOOGLE_ANALYTICS_MEASUREMENT_ID=G-XXXXXXXXXX
-GOOGLE_ANALYTICS_PROPERTY_ID=123456789
-GOOGLE_ANALYTICS_CREDENTIALS_PATH=/absolute/path/to/google-analytics-service-account.json
+VITE_GOOGLE_ANALYTICS_MEASUREMENT_ID=G-XXXXXXXXXX
 ANALYTICS_PROPERTY_ID=123456789
 ```
+
+If the dashboard is implemented with `spatie/laravel-analytics`, use `ANALYTICS_PROPERTY_ID` for the numeric GA4 Property ID to match the package config. Do not duplicate the same value in `GOOGLE_ANALYTICS_PROPERTY_ID` unless custom code intentionally needs a separate config key.
 
 Do not commit the credentials JSON file to Git.
 

@@ -1,15 +1,17 @@
 <?php
 
+use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\Public\CategoryController;
 use App\Http\Controllers\Public\ContactController;
 use App\Http\Controllers\Public\HomeController;
+use App\Http\Controllers\Public\PrivacyPolicyController;
 use App\Http\Controllers\Public\ProductController;
 use App\Support\PublicLocale;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified', 'admin'])->group(function () {
-    Route::inertia('dashboard', 'dashboard')->name('dashboard');
+    Route::get('dashboard', DashboardController::class)->name('dashboard');
 });
 
 require __DIR__.'/settings.php';
@@ -21,6 +23,7 @@ Route::prefix('{locale}')
     ->group(function () {
         Route::get('/', HomeController::class)->name('home');
         Route::get('/kontakt', ContactController::class)->name('contact');
+        Route::get('/datenschutz', PrivacyPolicyController::class)->name('privacy');
         Route::get('/produkt/{slug}', [ProductController::class, 'show'])->name('products.show');
         Route::get('/{slug}', [CategoryController::class, 'show'])->name('categories.show');
     });
@@ -30,6 +33,10 @@ Route::get('/', fn (Request $request) => redirect()->route('home', [
     ...$request->query(),
 ]));
 Route::get('/kontakt', fn (Request $request) => redirect()->route('contact', [
+    'locale' => PublicLocale::normalize($request->cookie(PublicLocale::CookieName)),
+    ...$request->query(),
+]));
+Route::get('/datenschutz', fn (Request $request) => redirect()->route('privacy', [
     'locale' => PublicLocale::normalize($request->cookie(PublicLocale::CookieName)),
     ...$request->query(),
 ]));

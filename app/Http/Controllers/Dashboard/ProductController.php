@@ -270,6 +270,7 @@ class ProductController extends Controller
                 fn ($query) => $query->whereKeyNot($product->id),
             )
             ->lockForUpdate()
+            ->pluck('id')
             ->count();
 
         if ($used >= self::MAX_FEATURED_PRODUCTS) {
