@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
-import { type ReactNode, useState } from 'react';
+import { useState } from 'react';
+import type { ReactNode } from 'react';
 import LocaleSwitcher from '@/components/public/locale-switcher';
 import {
     Sheet,

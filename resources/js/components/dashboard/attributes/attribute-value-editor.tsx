@@ -222,58 +222,60 @@ export default function AttributeValueEditor({
                                 ? 'Keine Werte gefunden.'
                                 : 'Noch keine Werte angelegt.'
                         }
-                    columns={[
-                        {
-                            key: 'name',
-                            label: 'Name',
-                            render: (row) => (
-                                <div>
-                                    <div className="font-medium">
-                                        {row.name}
+                        columns={[
+                            {
+                                key: 'name',
+                                label: 'Name',
+                                render: (row) => (
+                                    <div>
+                                        <div className="font-medium">
+                                            {row.name}
+                                        </div>
+                                        <div className="text-xs text-muted-foreground">
+                                            {row.slug}
+                                        </div>
                                     </div>
-                                    <div className="text-xs text-muted-foreground">
-                                        {row.slug}
-                                    </div>
-                                </div>
-                            ),
-                        },
-                        {
-                            key: 'sort_order',
-                            label: 'Reihenfolge',
-                            className: 'w-28',
-                        },
-                        {
-                            key: 'status',
-                            label: 'Status',
-                            className: 'w-24',
-                            render: (row) =>
-                                row.is_active ? (
-                                    <Badge variant="outline">Aktiv</Badge>
-                                ) : (
-                                    <Badge variant="secondary">Inaktiv</Badge>
                                 ),
-                        },
-                    ]}
-                    actions={(row) => (
-                        <>
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => selectForEdit(row)}
-                            >
-                                <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => remove(row)}
-                            >
-                                <Trash2 className="h-4 w-4" />
-                            </Button>
-                        </>
-                    )}
+                            },
+                            {
+                                key: 'sort_order',
+                                label: 'Reihenfolge',
+                                className: 'w-28',
+                            },
+                            {
+                                key: 'status',
+                                label: 'Status',
+                                className: 'w-24',
+                                render: (row) =>
+                                    row.is_active ? (
+                                        <Badge variant="outline">Aktiv</Badge>
+                                    ) : (
+                                        <Badge variant="secondary">
+                                            Inaktiv
+                                        </Badge>
+                                    ),
+                            },
+                        ]}
+                        actions={(row) => (
+                            <>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => selectForEdit(row)}
+                                >
+                                    <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => remove(row)}
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            </>
+                        )}
                     />
 
                     {pagination.last_page > 1 && (

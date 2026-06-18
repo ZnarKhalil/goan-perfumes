@@ -9,8 +9,8 @@ import {
     MousePointerClick,
     Radio,
     Users,
-    type LucideIcon,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
@@ -57,6 +57,8 @@ type DailyRow = {
     active_users: number;
     page_views: number;
 };
+
+type ChartTextAnchor = 'start' | 'middle' | 'end';
 
 type AnalyticsDashboard = {
     range_days: number;
@@ -191,10 +193,7 @@ export default function Dashboard({ analytics, filters }: Props) {
                 </div>
 
                 <div className="grid gap-4 xl:grid-cols-[1.4fr_1fr]">
-                    <ReportPanel
-                        title="Top-Seiten"
-                        icon={ChartNoAxesCombined}
-                    >
+                    <ReportPanel title="Top-Seiten" icon={ChartNoAxesCombined}>
                         <PageTable
                             rows={analytics.top_pages}
                             empty="Noch keine Seitendaten vorhanden."
@@ -445,7 +444,9 @@ function chartPoints({
         .join(' ');
 }
 
-function chartDateLabels(rows: DailyRow[]) {
+function chartDateLabels(
+    rows: DailyRow[],
+): Array<{ date: string; x: number; anchor: ChartTextAnchor }> {
     if (rows.length === 1) {
         return [
             {
@@ -456,19 +457,25 @@ function chartDateLabels(rows: DailyRow[]) {
         ];
     }
 
-    const labels = [
+    const labels: Array<{ index: number; anchor: ChartTextAnchor }> = [
         { index: 0, anchor: 'start' },
         { index: rows.length - 1, anchor: 'end' },
-    ] as const;
+    ];
 
     if (rows.length > 3) {
-        return [
-            labels[0],
-            { index: Math.floor(rows.length / 2), anchor: 'middle' },
-            labels[1],
-        ].map((label) => ({
+        const middleLabel: { index: number; anchor: ChartTextAnchor } = {
+            index: Math.floor(rows.length / 2),
+            anchor: 'middle',
+        };
+
+        return [labels[0], middleLabel, labels[1]].map((label) => ({
             date: rows[label.index].date,
-            x: label.index === 0 ? 32 : label.index === rows.length - 1 ? 608 : 320,
+            x:
+                label.index === 0
+                    ? 32
+                    : label.index === rows.length - 1
+                      ? 608
+                      : 320,
             anchor: label.anchor,
         }));
     }

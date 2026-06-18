@@ -67,10 +67,7 @@ export default function Home(page: PublicHomePageProps) {
                 copy={copy}
             />
 
-            <Advice
-                copy={copy}
-                whatsappUrl={page.contact.whatsapp_url}
-            />
+            <Advice copy={copy} whatsappUrl={page.contact.whatsapp_url} />
         </PublicLayout>
     );
 }

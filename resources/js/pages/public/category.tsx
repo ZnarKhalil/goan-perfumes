@@ -41,10 +41,10 @@ export default function Category(page: PublicCategoryPageProps) {
                 <meta name="description" content={page.meta.description} />
             </Head>
             <section className="relative overflow-hidden border-b border-white/10">
-                <div className="category-animated-field absolute inset-0" />
-                <div className="category-ribbon absolute top-1/2 left-[-18%] h-14 w-[76%] -translate-y-1/2" />
-                <div className="category-ribbon category-ribbon-reverse absolute top-1/2 right-[-24%] h-10 w-[70%] -translate-y-1/2" />
-                <div className="category-light-sweep absolute inset-y-0 -left-1/3 w-1/2" />
+                <div className="absolute inset-0 category-animated-field" />
+                <div className="absolute top-1/2 left-[-18%] h-14 w-[76%] -translate-y-1/2 category-ribbon" />
+                <div className="absolute top-1/2 right-[-24%] h-10 w-[70%] -translate-y-1/2 category-ribbon category-ribbon-reverse" />
+                <div className="absolute inset-y-0 -left-1/3 w-1/2 category-light-sweep" />
                 <div className="absolute inset-0 grain-layer opacity-[0.12] mix-blend-overlay" />
                 <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,5,4,0.82)_0%,rgba(7,5,4,0.55)_48%,rgba(11,9,7,0.88)_100%)]" />
                 <div className="relative px-4 py-6 md:px-8 md:py-7">
@@ -437,10 +437,7 @@ function Pagination({
     copy: PublicCopy;
     links: PublicCategoryPageProps['pagination']['links'];
 }) {
-    function visitPage(
-        event: MouseEvent<HTMLAnchorElement>,
-        href: string | null,
-    ): void {
+    function visitPage(event: MouseEvent<Element>, href: string | null): void {
         if (!href) {
             event.preventDefault();
 

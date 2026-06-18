@@ -1,8 +1,8 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/react-starter-kit",
+    "name": "goan/perfume",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
+    "description": "Product showcase website and admin dashboard for Goan Perfume.",
     "keywords": [
         "laravel",
         "framework"

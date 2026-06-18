@@ -21,8 +21,12 @@ export default function PublicLayout({
     const direction = locale?.dir ?? 'ltr';
     const isDark = theme === 'dark';
     const isArabic = locale?.current === 'ar';
-    const privacyHref = locale ? `/${locale.current}/datenschutz` : '/datenschutz';
-    const impressumHref = locale ? `/${locale.current}/impressum` : '/impressum';
+    const privacyHref = locale
+        ? `/${locale.current}/datenschutz`
+        : '/datenschutz';
+    const impressumHref = locale
+        ? `/${locale.current}/impressum`
+        : '/impressum';
     const footerSocialLinks = [
         {
             label: 'Instagram',
@@ -240,7 +244,9 @@ export default function PublicLayout({
                         isDark ? 'border-white/10' : 'border-stone-200',
                     )}
                 >
-                    <p>© {new Date().getFullYear()} {copy.footer.brand}</p>
+                    <p>
+                        © {new Date().getFullYear()} {copy.footer.brand}
+                    </p>
                     <div className="flex flex-wrap items-center gap-4">
                         <Link
                             href={impressumHref}

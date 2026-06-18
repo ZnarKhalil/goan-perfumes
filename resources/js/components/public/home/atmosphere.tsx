@@ -17,7 +17,7 @@ export default function Atmosphere() {
                 style={{ animationDelay: '-13s', animationDuration: '32s' }}
             />
 
-            <div className="grain-layer absolute inset-0 opacity-[0.12] mix-blend-overlay" />
+            <div className="absolute inset-0 grain-layer opacity-[0.12] mix-blend-overlay" />
 
             <div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-[#e7c889]/30 to-transparent" />
         </div>

@@ -24,7 +24,8 @@ const content: Record<PublicLocaleCode, ImpressumContent> = {
         eyebrow: 'Rechtliches',
         title: 'Impressum',
         intro: 'Angaben gemäß § 5 DDG.',
-        placeholderNote: 'Bitte die E-Mail-Adresse vor Veröffentlichung ergänzen.',
+        placeholderNote:
+            'Bitte die E-Mail-Adresse vor Veröffentlichung ergänzen.',
         sections: [
             {
                 title: 'Anbieter',

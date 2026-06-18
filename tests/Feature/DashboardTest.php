@@ -2,6 +2,8 @@
 
 use App\Models\User;
 use App\Services\GoogleAnalyticsService;
+use Database\Seeders\AdminUserSeeder;
+use Illuminate\Support\Facades\Hash;
 use Inertia\Testing\AssertableInertia as Assert;
 
 test('guests are redirected to the login page', function () {
@@ -34,6 +36,18 @@ test('admin users can visit the dashboard', function () {
             ->where('analytics.daily.0.page_views', 18)
             ->where('analytics.top_pages.0.title', 'Startseite'),
         );
+});
+
+test('seeded admin uses the configured strong password', function () {
+    config(['auth.admin_password' => 'Correct-Horse-Battery-Staple!48']);
+
+    $this->seed(AdminUserSeeder::class);
+
+    $admin = User::query()->where('email', 'admin@goanperfume.de')->sole();
+
+    expect($admin->is_admin)->toBeTrue()
+        ->and(Hash::check('Correct-Horse-Battery-Staple!48', $admin->password))->toBeTrue()
+        ->and(Hash::check('password', $admin->password))->toBeFalse();
 });
 
 test('shared auth user only exposes whitelisted fields', function () {

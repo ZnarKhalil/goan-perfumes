@@ -37,21 +37,16 @@ export default function CookieConsent({
     privacyHref,
     theme = 'light',
 }: Props) {
-    const [choice, setChoice] = useState<ConsentChoice | null>(null);
-    const [hasLoadedChoice, setHasLoadedChoice] = useState(false);
-    const [showBanner, setShowBanner] = useState(false);
+    const [choice, setChoice] = useState<ConsentChoice | null>(() =>
+        readStoredChoice(),
+    );
+    const [hasLoadedChoice] = useState(true);
+    const [showBanner, setShowBanner] = useState(() => choice === null);
     const [showSettings, setShowSettings] = useState(false);
-    const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
+    const [analyticsEnabled, setAnalyticsEnabled] = useState(
+        () => choice?.analytics ?? false,
+    );
     const isDark = theme === 'dark';
-
-    useEffect(() => {
-        const storedChoice = readStoredChoice();
-
-        setChoice(storedChoice);
-        setAnalyticsEnabled(storedChoice?.analytics ?? false);
-        setShowBanner(storedChoice === null);
-        setHasLoadedChoice(true);
-    }, []);
 
     useEffect(() => {
         if (choice?.analytics) {
@@ -111,7 +106,9 @@ export default function CookieConsent({
                             <p
                                 className={cn(
                                     'text-sm leading-6',
-                                    isDark ? 'text-stone-300' : 'text-stone-600',
+                                    isDark
+                                        ? 'text-stone-300'
+                                        : 'text-stone-600',
                                 )}
                             >
                                 {copy.cookies.description}{' '}

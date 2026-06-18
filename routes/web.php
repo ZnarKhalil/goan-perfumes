@@ -31,28 +31,28 @@ Route::prefix('{locale}')
     });
 
 Route::get('/', fn (Request $request) => redirect()->route('home', [
-    'locale' => PublicLocale::normalize($request->cookie(PublicLocale::CookieName)),
     ...$request->query(),
+    'locale' => PublicLocale::normalize($request->cookie(PublicLocale::CookieName)),
 ]));
 Route::get('/kontakt', fn (Request $request) => redirect()->route('contact', [
-    'locale' => PublicLocale::normalize($request->cookie(PublicLocale::CookieName)),
     ...$request->query(),
+    'locale' => PublicLocale::normalize($request->cookie(PublicLocale::CookieName)),
 ]));
 Route::get('/impressum', fn (Request $request) => redirect()->route('impressum', [
-    'locale' => PublicLocale::normalize($request->cookie(PublicLocale::CookieName)),
     ...$request->query(),
+    'locale' => PublicLocale::normalize($request->cookie(PublicLocale::CookieName)),
 ]));
 Route::get('/datenschutz', fn (Request $request) => redirect()->route('privacy', [
-    'locale' => PublicLocale::normalize($request->cookie(PublicLocale::CookieName)),
     ...$request->query(),
+    'locale' => PublicLocale::normalize($request->cookie(PublicLocale::CookieName)),
 ]));
 Route::get('/produkt/{slug}', fn (Request $request, string $slug) => redirect()->route('products.show', [
+    ...$request->query(),
     'locale' => PublicLocale::normalize($request->cookie(PublicLocale::CookieName)),
     'slug' => $slug,
-    ...$request->query(),
 ]));
 Route::get('/{slug}', fn (Request $request, string $slug) => redirect()->route('categories.show', [
+    ...$request->query(),
     'locale' => PublicLocale::normalize($request->cookie(PublicLocale::CookieName)),
     'slug' => $slug,
-    ...$request->query(),
 ]));

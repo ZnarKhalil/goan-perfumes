@@ -5,7 +5,7 @@ Product showcase website for **Goan Perfume**, a German-based perfume shop. The 
 ## Stack
 
 - **PHP** 8.4
-- **Laravel** 13 with the **React Starter Kit** (Inertia v3 + React 19)
+- **Laravel** 13 with **Inertia** v3 + **React** 19
 - **PostgreSQL**
 - **Tailwind CSS** v4
 - **Vite** + **Wayfinder** (typed route helpers)
@@ -57,9 +57,9 @@ The seeder creates a single admin account:
 | Field    | Value                       |
 |----------|-----------------------------|
 | Email    | `admin@goanperfume.de`      |
-| Password | `password`                  |
+| Password | `ADMIN_PASSWORD` from `.env`, falling back to `config/auth.php` |
 
-> **Change this password on first login.** It's only intended for local development and initial production setup.
+> Configure `ADMIN_PASSWORD` before seeding production data, or change the admin password immediately after first login.
 
 The dashboard is at `/dashboard` and is gated by the `admin` middleware — non-admin users are redirected back to `/`.
 
