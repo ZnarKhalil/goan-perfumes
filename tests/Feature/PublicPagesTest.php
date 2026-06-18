@@ -353,9 +353,9 @@ test('seeded public navigation and filters use catalog names in every locale', f
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('public/category')
-            ->where('navigation.0.name', 'Damenparfums')
-            ->where('category.name', 'Damenparfums')
-            ->where('filters.0.name', 'Art')
+            ->where('navigation.0.name', "Women's Perfumes")
+            ->where('category.name', "Women's Perfumes")
+            ->where('filters.0.name', 'Type')
             ->where('filters.0.values.0.name', 'Designer'),
         );
 
@@ -364,10 +364,10 @@ test('seeded public navigation and filters use catalog names in every locale', f
         ->assertInertia(fn (Assert $page) => $page
             ->component('public/category')
             ->where('locale.dir', 'rtl')
-            ->where('navigation.0.name', 'Damenparfums')
-            ->where('category.name', 'Damenparfums')
-            ->where('filters.0.name', 'Art')
-            ->where('filters.0.values.0.name', 'Designer'),
+            ->where('navigation.0.name', 'عطور نسائية')
+            ->where('category.name', 'عطور نسائية')
+            ->where('filters.0.name', 'النوع')
+            ->where('filters.0.values.0.name', 'ديزاينر'),
         );
 });
 

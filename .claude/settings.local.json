@@ -44,7 +44,10 @@
       "Bash(vendor/bin/pint app/Http/Controllers/Dashboard/ProductController.php tests/Feature/Dashboard/ProductControllerTest.php --format agent)",
       "Bash(vendor/bin/pint app/Http/Controllers/Dashboard/AttributeController.php tests/Feature/Dashboard/AttributeControllerTest.php --format agent)",
       "Bash(echo \"eslint-exit=$?\")",
-      "Bash(echo \"tsc-done-exit=$?\")"
+      "Bash(echo \"tsc-done-exit=$?\")",
+      "Bash(php -l database/seeders/PerfumeCatalog.php)",
+      "Bash(php -r ' *)",
+      "Bash(vendor/bin/pint database/seeders/ --dirty --format agent)"
     ]
   },
   "enableAllProjectMcpServers": true,

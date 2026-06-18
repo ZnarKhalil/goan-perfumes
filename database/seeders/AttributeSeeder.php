@@ -12,6 +12,7 @@ class AttributeSeeder extends Seeder
     {
         $attributes = PerfumeCatalog::attributes();
         $codes = collect($attributes)->pluck('code')->all();
+        $translations = PerfumeCatalog::attributeTranslations();
 
         Attribute::query()
             ->whereNotIn('code', $codes)
@@ -28,8 +29,13 @@ class AttributeSeeder extends Seeder
                 ],
             );
 
-            foreach (['de', 'en', 'ar'] as $locale) {
-                $model->setTranslation($locale, 'name', $attribute['name']);
+            $names = PerfumeCatalog::localized(
+                $attribute['name'],
+                $translations[$attribute['code']] ?? [],
+            );
+
+            foreach ($names as $locale => $name) {
+                $model->setTranslation($locale, 'name', $name);
             }
 
             $model->translations()
