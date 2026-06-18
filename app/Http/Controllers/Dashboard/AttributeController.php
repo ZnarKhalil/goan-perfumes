@@ -9,12 +9,16 @@ use App\Models\Attribute;
 use App\Models\AttributeValue;
 use App\Support\PublicLocale;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class AttributeController extends Controller
 {
+    private const VALUES_PER_PAGE = 10;
+
     public function index(): Response
     {
         $attributes = Attribute::query()
@@ -65,15 +69,22 @@ class AttributeController extends Controller
             ->with('toast', ['type' => 'success', 'message' => 'Attribut angelegt.']);
     }
 
-    public function edit(Attribute $attribute): Response
+    public function edit(Request $request, Attribute $attribute): Response
     {
-        $attribute->load([
-            'translations',
-            'values' => fn ($query) => $query
-                ->with('translations')
-                ->orderBy('sort_order')
-                ->orderBy('id'),
-        ]);
+        $attribute->load('translations');
+
+        $search = $request->string('value_search')->trim()->toString();
+
+        $values = $attribute->values()
+            ->with('translations')
+            ->when(filled($search), fn ($query) => $query
+                ->whereHas('translations', fn ($translation) => $translation
+                    ->where('field', 'name')
+                    ->whereRaw('LOWER(value) LIKE ?', ['%'.Str::lower($search).'%'])))
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->paginate(self::VALUES_PER_PAGE)
+            ->withQueryString();
 
         return Inertia::render('dashboard/attributes/edit', [
             'attribute' => [
@@ -84,7 +95,10 @@ class AttributeController extends Controller
                 'is_multiple' => $attribute->is_multiple,
                 'translations' => $this->translationsAsTabs($attribute),
                 'name' => $attribute->translate('de', 'name') ?? $attribute->code,
-                'values' => $attribute->values
+                'next_value_sort_order' => $this->nextValueSortOrder($attribute),
+                'value_search' => $search,
+                'values' => $values
+                    ->getCollection()
                     ->map(fn (AttributeValue $value) => [
                         'id' => $value->id,
                         'slug' => $value->slug,
@@ -94,8 +108,29 @@ class AttributeController extends Controller
                         'translations' => $this->translationsAsTabs($value),
                     ])
                     ->values(),
+                'values_pagination' => [
+                    'current_page' => $values->currentPage(),
+                    'last_page' => $values->lastPage(),
+                    'per_page' => $values->perPage(),
+                    'total' => $values->total(),
+                    'from' => $values->firstItem(),
+                    'to' => $values->lastItem(),
+                    'links' => $values->linkCollection()->all(),
+                ],
             ],
         ]);
+    }
+
+    /**
+     * The next free sort order within this attribute, used as the create
+     * default so the per-attribute unique rule is not tripped on the common
+     * case even while the values table is paginated.
+     */
+    private function nextValueSortOrder(Attribute $attribute): int
+    {
+        $max = $attribute->values()->max('sort_order');
+
+        return $max === null ? 0 : ((int) $max + 1);
     }
 
     public function update(UpdateAttributeRequest $request, Attribute $attribute): RedirectResponse

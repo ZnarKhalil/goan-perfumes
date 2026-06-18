@@ -79,6 +79,120 @@ test('the product index is paginated', function () {
         );
 });
 
+test('the product index exposes filters and category options', function () {
+    Category::factory()->create()->setTranslation('de', 'name', 'Damenparfums');
+
+    $this->actingAs($this->admin)
+        ->get('/dashboard/products')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('filters.name', '')
+            ->where('filters.brand', '')
+            ->where('filters.category', null)
+            ->where('filters.status', null)
+            ->where('filters.featured', null)
+            ->where('filters.sort', 'created')
+            ->where('filters.direction', 'desc')
+            ->has('categories', 1)
+            ->where('categories.0.name', 'Damenparfums'),
+        );
+});
+
+test('the product index filters by German name', function () {
+    Product::factory()->create()->setTranslation('de', 'name', 'Rose Oud');
+    Product::factory()->create()->setTranslation('de', 'name', 'Citrus Splash');
+
+    $this->actingAs($this->admin)
+        ->get('/dashboard/products?name=rose')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('products', 1)
+            ->where('products.0.name', 'Rose Oud'),
+        );
+});
+
+test('the product index filters by brand', function () {
+    Product::factory()->create(['brand' => 'Dior']);
+    Product::factory()->create(['brand' => 'Chanel']);
+
+    $this->actingAs($this->admin)
+        ->get('/dashboard/products?brand=dio')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('products', 1)
+            ->where('products.0.brand', 'Dior'),
+        );
+});
+
+test('the product index filters by category', function () {
+    $category = Category::factory()->create();
+    $matching = Product::factory()->create();
+    $matching->categories()->attach($category);
+    Product::factory()->create();
+
+    $this->actingAs($this->admin)
+        ->get("/dashboard/products?category={$category->id}")
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('products', 1)
+            ->where('products.0.id', $matching->id),
+        );
+});
+
+test('the product index filters by status and highlight', function () {
+    Product::factory()->create(['is_active' => true, 'is_featured' => false]);
+    Product::factory()->create(['is_active' => false, 'is_featured' => false]);
+    Product::factory()->featured()->create(['is_active' => true]);
+
+    $this->actingAs($this->admin)
+        ->get('/dashboard/products?status=inactive')
+        ->assertInertia(fn ($page) => $page
+            ->has('products', 1)
+            ->where('products.0.is_active', false),
+        );
+
+    $this->actingAs($this->admin)
+        ->get('/dashboard/products?featured=yes')
+        ->assertInertia(fn ($page) => $page
+            ->has('products', 1)
+            ->where('products.0.is_featured', true),
+        );
+});
+
+test('the product index sorts by German name', function () {
+    Product::factory()->create()->setTranslation('de', 'name', 'Zephyr');
+    Product::factory()->create()->setTranslation('de', 'name', 'Amber');
+
+    $this->actingAs($this->admin)
+        ->get('/dashboard/products?sort=name&direction=asc')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('products.0.name', 'Amber')
+            ->where('products.1.name', 'Zephyr'),
+        );
+
+    $this->actingAs($this->admin)
+        ->get('/dashboard/products?sort=name&direction=desc')
+        ->assertInertia(fn ($page) => $page
+            ->where('products.0.name', 'Zephyr')
+            ->where('products.1.name', 'Amber'),
+        );
+});
+
+test('the product index sorts by price', function () {
+    $cheap = Product::factory()->create();
+    ProductVariant::factory()->for($cheap)->create(['price' => '10.00', 'is_default' => true]);
+    $pricey = Product::factory()->create();
+    ProductVariant::factory()->for($pricey)->create(['price' => '90.00', 'is_default' => true]);
+
+    $this->actingAs($this->admin)
+        ->get('/dashboard/products?sort=price&direction=asc')
+        ->assertInertia(fn ($page) => $page
+            ->where('products.0.id', $cheap->id)
+            ->where('products.1.id', $pricey->id),
+        );
+});
+
 test('admin can create a product with translations categories attributes variants and media', function () {
     Storage::fake('public');
 
