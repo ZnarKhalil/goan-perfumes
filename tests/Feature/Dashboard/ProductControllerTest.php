@@ -245,12 +245,10 @@ test('admin can create a product with translations categories attributes variant
                     [
                         'sort_order' => 0,
                         'is_primary' => true,
-                        'alt_text' => ['de' => 'Flakon vorne'],
                     ],
                     [
                         'sort_order' => 1,
                         'is_primary' => false,
-                        'alt_text' => ['de' => 'Verpackung'],
                     ],
                 ],
             ],
@@ -278,9 +276,10 @@ test('admin can create a product with translations categories attributes variant
     expect($product->variants)->toHaveCount(2);
     expect($product->variants()->where('is_default', true)->sole()->size_ml)->toBe(50);
     expect($product->media)->toHaveCount(2);
-    expect($product->media()->primary()->sole()->translate('de', 'alt_text'))->toBe('Flakon vorne');
+    expect($product->media()->primary()->sole()->translate('de', 'alt_text'))->toBe('Sommer Oud Parfum von Maison Test');
+    expect($product->media()->primary()->sole()->translate('en', 'alt_text'))->toBe('Summer Oud perfume by Maison Test');
     expect($product->media()->primary()->sole()->path)
-        ->toContain('sommer-oud-flakon-vorne')
+        ->toContain('sommer-oud-sommer-oud-parfum-von-maison-test')
         ->toEndWith('.webp');
 
     $product->media->each(fn (Media $media) => Storage::disk('public')->assertExists($media->path));
@@ -320,7 +319,7 @@ test('store rejects multiple values for a single-select attribute and missing de
     expect(Product::count())->toBe(0);
 });
 
-test('store rejects product images without German alt text', function () {
+test('store generates product image alt text when none is provided', function () {
     Storage::fake('public');
 
     $category = Category::factory()->create();
@@ -356,12 +355,15 @@ test('store rejects product images without German alt text', function () {
                     [
                         'sort_order' => 0,
                         'is_primary' => true,
-                        'alt_text' => ['de' => ''],
                     ],
                 ],
             ],
         ])
-        ->assertSessionHasErrors('media_meta.new.0.alt_text.de');
+        ->assertRedirect('/dashboard/products');
+
+    $media = Product::query()->sole()->media()->sole();
+
+    expect($media->translate('de', 'alt_text'))->toBe('Sommer Oud Parfum von Maison Test');
 });
 
 test('create and edit expose remaining homepage highlight slots', function () {
@@ -504,7 +506,6 @@ test('admin can update an existing homepage highlight with new media', function 
                     [
                         'sort_order' => 0,
                         'is_primary' => true,
-                        'alt_text' => ['de' => 'Front'],
                     ],
                 ],
             ],
@@ -513,7 +514,7 @@ test('admin can update an existing homepage highlight with new media', function 
 
     expect($product->refresh()->is_featured)->toBeTrue();
     expect(Product::where('is_featured', true)->count())->toBe(4);
-    expect($product->media()->primary()->sole()->translate('de', 'alt_text'))->toBe('Front');
+    expect($product->media()->primary()->sole()->translate('de', 'alt_text'))->toBe('Featured Parfum von Goan');
 
     Storage::disk('public')->assertExists($product->media()->primary()->sole()->path);
 });
@@ -597,14 +598,12 @@ test('admin can update product graph variants and media', function () {
                         'id' => $keptMedia->id,
                         'sort_order' => 1,
                         'is_primary' => false,
-                        'alt_text' => ['de' => 'Behalten'],
                     ],
                 ],
                 'new' => [
                     [
                         'sort_order' => 0,
                         'is_primary' => true,
-                        'alt_text' => ['de' => 'Neu'],
                     ],
                 ],
                 'removed' => [$removedMedia->id],
@@ -628,7 +627,7 @@ test('admin can update product graph variants and media', function () {
     expect(Media::find($removedMedia->id))->toBeNull();
     Storage::disk('public')->assertMissing($removedMedia->path);
     expect($keptMedia->refresh()->sort_order)->toBe(1);
-    expect($product->media()->primary()->sole()->translate('de', 'alt_text'))->toBe('Neu');
+    expect($product->media()->primary()->sole()->translate('de', 'alt_text'))->toBe('Neu Parfum von Neu');
 });
 
 test('admin can delete a product and clean up media translations variants and pivots', function () {

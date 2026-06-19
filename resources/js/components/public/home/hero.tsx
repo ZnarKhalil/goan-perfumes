@@ -1,13 +1,10 @@
 import { Link } from '@inertiajs/react';
 import {
     motion,
-    useMotionValue,
     useReducedMotion,
     useScroll,
-    useSpring,
     useTransform,
 } from 'motion/react';
-import type { PointerEvent } from 'react';
 import { useRef } from 'react';
 import CtaLink from '@/components/public/home/cta-link';
 import type { PublicCopy } from '@/lib/public-copy';
@@ -44,38 +41,12 @@ export default function Hero({ hero, copy, ctaHref, contactHref }: Props) {
     const contentY = useTransform(scrollYProgress, [0, 1], ['0%', '40%']);
     const contentOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
 
-    // Subtle cursor parallax on the background for a sense of depth.
-    const pointerX = useMotionValue(0);
-    const pointerY = useMotionValue(0);
-    const spring = { stiffness: 80, damping: 20, mass: 0.6 };
-    const mediaX = useSpring(
-        useTransform(pointerX, [-0.5, 0.5], [20, -20]),
-        spring,
-    );
-
-    const handlePointer = (event: PointerEvent<HTMLElement>) => {
-        if (reduceMotion || event.pointerType === 'touch') {
-            return;
-        }
-
-        const rect = event.currentTarget.getBoundingClientRect();
-        pointerX.set((event.clientX - rect.left) / rect.width - 0.5);
-        pointerY.set((event.clientY - rect.top) / rect.height - 0.5);
-    };
-
-    const resetPointer = () => {
-        pointerX.set(0);
-        pointerY.set(0);
-    };
-
     const words = hero.title.trim().split(/\s+/);
     const eyebrow = hero.eyebrow ?? copy.home.featuredEyebrow;
 
     return (
         <section
             ref={sectionRef}
-            onPointerMove={handlePointer}
-            onPointerLeave={resetPointer}
             className="relative isolate flex flex-col overflow-hidden sm:min-h-svh sm:items-end"
         >
             {/* full-bleed background media — always covers the viewport */}
@@ -88,7 +59,6 @@ export default function Hero({ hero, copy, ctaHref, contactHref }: Props) {
                         : {
                               y: mediaY,
                               scale: mediaScale,
-                              x: mediaX,
                           }
                 }
             >

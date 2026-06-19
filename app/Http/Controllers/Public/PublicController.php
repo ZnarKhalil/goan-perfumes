@@ -11,6 +11,7 @@ use App\Models\PageSection;
 use App\Models\Product;
 use App\Models\Promotion;
 use App\Models\Setting;
+use App\Support\CategoryFallbackImages;
 use App\Support\Price;
 use App\Support\PublicCategoryNavigation;
 use App\Support\PublicLocale;
@@ -50,6 +51,7 @@ abstract class PublicController extends Controller
                 'locale' => $this->locale(),
                 'slug' => $category->slug,
             ]),
+            'image_url' => CategoryFallbackImages::urlFor($category),
         ];
     }
 
@@ -72,11 +74,14 @@ abstract class PublicController extends Controller
         ];
     }
 
-    protected function productCard(Product $product): array
+    protected function productCard(Product $product, ?Category $fallbackCategory = null): array
     {
         /** @var Media|null $primaryMedia */
         $primaryMedia = $product->primaryMedia;
         $name = $this->translation($product, 'name') ?? $product->slug;
+        $categoryFallbackImageUrl = $primaryMedia === null
+            ? $this->categoryFallbackImageUrl($fallbackCategory ?? $product->categories->first())
+            : null;
 
         return [
             'id' => $product->id,
@@ -87,7 +92,7 @@ abstract class PublicController extends Controller
             ]),
             'name' => $name,
             'brand' => $product->brand,
-            'image_url' => StorageUrl::for($primaryMedia?->path),
+            'image_url' => StorageUrl::for($primaryMedia?->path) ?? $categoryFallbackImageUrl,
             'image_alt' => $primaryMedia ? ($this->translation($primaryMedia, 'alt_text') ?? $primaryMedia->alt_text ?? $name) : $name,
             'min_price' => Price::decimal($product->variants_min_price),
             'max_price' => Price::decimal($product->variants_max_price),
@@ -97,6 +102,11 @@ abstract class PublicController extends Controller
                 ->all(),
             'is_featured' => $product->is_featured,
         ];
+    }
+
+    protected function categoryFallbackImageUrl(?Category $category): ?string
+    {
+        return CategoryFallbackImages::urlFor($category);
     }
 
     protected function productCardQuery(): Builder
@@ -268,7 +278,7 @@ abstract class PublicController extends Controller
      *
      * @param  array<string, string>  $alternates
      * @param  array<int, array<string, mixed>>  $structuredData
-     * @return array{title: string, description: string, canonical: string, alternates: array<string, string>, structured_data: array<int, array<string, mixed>>, robots: string|null, preload_image_url: string|null}
+     * @return array{title: string, description: string, canonical: string, alternates: array<string, string>, structured_data: array<int, array<string, mixed>>, robots: string|null, preload_image_url: string|null, image_url: string|null, og_type: string, og_locale: string}
      */
     protected function meta(
         ?string $title,
@@ -278,6 +288,8 @@ abstract class PublicController extends Controller
         array $structuredData = [],
         ?string $robots = null,
         ?string $preloadImageUrl = null,
+        ?string $imageUrl = null,
+        string $ogType = 'website',
     ): array {
         $title = $this->cleanMetaText($title) ?? '';
 
@@ -299,6 +311,9 @@ abstract class PublicController extends Controller
             'structured_data' => $structuredData,
             'robots' => $robots,
             'preload_image_url' => $preloadImageUrl,
+            'image_url' => $this->absolutePublicUrl($imageUrl ?? $preloadImageUrl),
+            'og_type' => $ogType,
+            'og_locale' => str_replace('-', '_', PublicLocale::formatterLocale($this->locale())),
         ];
     }
 
@@ -308,7 +323,7 @@ abstract class PublicController extends Controller
      *
      * @param  array<string, string>  $alternates
      * @param  array<int, array<string, mixed>>  $structuredData
-     * @return array{title: string, description: string, canonical: string, alternates: array<string, string>, structured_data: array<int, array<string, mixed>>, robots: string|null, preload_image_url: string|null}
+     * @return array{title: string, description: string, canonical: string, alternates: array<string, string>, structured_data: array<int, array<string, mixed>>, robots: string|null, preload_image_url: string|null, image_url: string|null, og_type: string, og_locale: string}
      */
     protected function modelMeta(
         object $model,
@@ -318,6 +333,8 @@ abstract class PublicController extends Controller
         array $structuredData = [],
         ?string $robots = null,
         ?string $preloadImageUrl = null,
+        ?string $imageUrl = null,
+        string $ogType = 'website',
     ): array {
         $title = $this->cleanMetaText($this->translation($model, 'meta_title'))
             ?? $this->cleanMetaText($this->translation($model, 'name'))
@@ -329,12 +346,12 @@ abstract class PublicController extends Controller
                 : null)
             ?? $this->modelFallbackDescription($title);
 
-        return $this->meta($title, $description, $canonical, $alternates, $structuredData, $robots, $preloadImageUrl);
+        return $this->meta($title, $description, $canonical, $alternates, $structuredData, $robots, $preloadImageUrl, $imageUrl, $ogType);
     }
 
     /**
      * @param  array<int, array<string, mixed>>  $structuredData
-     * @return array{title: string, description: string, canonical: string, alternates: array<string, string>, structured_data: array<int, array<string, mixed>>, robots: string|null, preload_image_url: string|null}
+     * @return array{title: string, description: string, canonical: string, alternates: array<string, string>, structured_data: array<int, array<string, mixed>>, robots: string|null, preload_image_url: string|null, image_url: string|null, og_type: string, og_locale: string}
      */
     protected function localizedMeta(
         ?string $title,
@@ -344,6 +361,8 @@ abstract class PublicController extends Controller
         array $structuredData = [],
         ?string $robots = null,
         ?string $preloadImageUrl = null,
+        ?string $imageUrl = null,
+        string $ogType = 'website',
     ): array {
         $urls = $this->localizedRouteUrls($routeName, $parameters);
 
@@ -355,6 +374,8 @@ abstract class PublicController extends Controller
             $structuredData,
             $robots,
             $preloadImageUrl,
+            $imageUrl,
+            $ogType,
         );
     }
 

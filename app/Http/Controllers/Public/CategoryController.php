@@ -60,7 +60,7 @@ class CategoryController extends PublicController
             'selected_filters' => $selectedFilters,
             'products' => $products
                 ->getCollection()
-                ->map(fn (Product $product) => $this->productCard($product))
+                ->map(fn (Product $product) => $this->productCard($product, $category))
                 ->values()
                 ->all(),
             'pagination' => [

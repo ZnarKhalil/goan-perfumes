@@ -22,10 +22,10 @@ class MediaService
      * Expected $meta shape:
      * [
      *   'existing' => [
-     *     ['id' => 1, 'sort_order' => 0, 'is_primary' => true, 'alt_text' => ['de' => '...']],
+     *     ['id' => 1, 'sort_order' => 0, 'is_primary' => true],
      *   ],
      *   'new' => [
-     *     ['sort_order' => 1, 'is_primary' => false, 'alt_text' => ['de' => '...']],
+     *     ['sort_order' => 1, 'is_primary' => false],
      *   ],
      *   'removed' => [2, 3],
      * ]
@@ -69,10 +69,10 @@ class MediaService
                 $media->update([
                     'sort_order' => (int) ($item['sort_order'] ?? $media->sort_order),
                     'is_primary' => $isPrimary,
-                    'alt_text' => $this->altTextFallback($item['alt_text'] ?? null),
+                    'alt_text' => $this->altTextFor($model, $item['alt_text'] ?? null),
                 ]);
 
-                $this->syncAltTextTranslations($media, $item['alt_text'] ?? []);
+                $this->syncAltTextTranslations($media, $model, $item['alt_text'] ?? []);
             }
 
             foreach ($uploads as $index => $upload) {
@@ -87,10 +87,10 @@ class MediaService
                     'path' => $path,
                     'sort_order' => (int) ($item['sort_order'] ?? $index),
                     'is_primary' => $isPrimary,
-                    'alt_text' => $this->altTextFallback($item['alt_text'] ?? null),
+                    'alt_text' => $this->altTextFor($model, $item['alt_text'] ?? null),
                 ]);
 
-                $this->syncAltTextTranslations($media, $item['alt_text'] ?? []);
+                $this->syncAltTextTranslations($media, $model, $item['alt_text'] ?? []);
             }
 
             $this->ensurePrimary($model);
@@ -169,7 +169,7 @@ class MediaService
     {
         return collect([
             $product->slug,
-            $this->altTextFallback($item['alt_text'] ?? null),
+            $this->generatedProductAltText($product, PublicLocale::Default),
             (string) ($index + 1),
         ])
             ->filter(fn (?string $part): bool => filled($part))
@@ -212,8 +212,26 @@ class MediaService
     /**
      * @param  mixed  $altText
      */
-    private function syncAltTextTranslations(Media $media, $altText): void
+    private function altTextFor(Model $model, $altText): ?string
     {
+        if ($model instanceof Product) {
+            return $this->generatedProductAltText($model, PublicLocale::Default);
+        }
+
+        return $this->altTextFallback($altText);
+    }
+
+    /**
+     * @param  mixed  $altText
+     */
+    private function syncAltTextTranslations(Media $media, Model $model, $altText): void
+    {
+        if ($model instanceof Product) {
+            $media->syncTranslations($this->generatedProductAltTextPayloads($model), ['alt_text']);
+
+            return;
+        }
+
         if (! is_array($altText)) {
             if (filled($altText)) {
                 $media->setTranslation('de', 'alt_text', (string) $altText);
@@ -227,6 +245,32 @@ class MediaService
             ->all();
 
         $media->syncTranslations($payloads, ['alt_text']);
+    }
+
+    /**
+     * @return array<string, array{alt_text: string}>
+     */
+    private function generatedProductAltTextPayloads(Product $product): array
+    {
+        return collect(PublicLocale::codes())
+            ->mapWithKeys(fn (string $locale): array => [
+                $locale => ['alt_text' => $this->generatedProductAltText($product, $locale)],
+            ])
+            ->all();
+    }
+
+    private function generatedProductAltText(Product $product, string $locale): string
+    {
+        $name = $product->translate($locale, 'name', PublicLocale::Default) ?? $product->slug;
+        $brand = filled($product->brand) ? (string) $product->brand : null;
+
+        $text = match ($locale) {
+            'en' => $brand ? "{$name} perfume by {$brand}" : "{$name} perfume",
+            'ar' => $brand ? "عطر {$name} من {$brand}" : "عطر {$name}",
+            default => $brand ? "{$name} Parfum von {$brand}" : "{$name} Parfum",
+        };
+
+        return Str::limit(Str::squish(strip_tags($text)), 255, '');
     }
 
     private function ensurePrimary(Model $model): void

@@ -4,9 +4,12 @@ use App\Models\Category;
 use App\Models\PageSection;
 use App\Models\Product;
 use App\Models\ProductVariant;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Testing\AssertableInertia as Assert;
 
 test('sitemap lists localized public urls for active content only', function () {
+    Cache::forget('public.sitemap.xml');
+
     $absolute = fn (string $path): string => url($path);
 
     $activeCategory = Category::factory()->create([
@@ -36,6 +39,7 @@ test('sitemap lists localized public urls for active content only', function () 
     expect($xml)->not->toBeFalse();
 
     $xml->registerXPathNamespace('sitemap', 'http://www.sitemaps.org/schemas/sitemap/0.9');
+    $xml->registerXPathNamespace('xhtml', 'http://www.w3.org/1999/xhtml');
 
     $locations = collect($xml->xpath('//sitemap:url'))
         ->map(fn (SimpleXMLElement $url): string => (string) $url->loc)
@@ -62,9 +66,22 @@ test('sitemap lists localized public urls for active content only', function () 
         ->first(fn (SimpleXMLElement $url): bool => (string) $url->loc === $absolute('/de/luxusparfums'));
     $productUrl = collect($xml->xpath('//sitemap:url'))
         ->first(fn (SimpleXMLElement $url): bool => (string) $url->loc === $absolute('/de/produkt/iris-musk'));
+    $homeUrl = collect($xml->xpath('//sitemap:url'))
+        ->first(fn (SimpleXMLElement $url): bool => (string) $url->loc === $absolute('/de'));
+    $categoryAlternates = collect($categoryUrl->xpath('xhtml:link'))
+        ->mapWithKeys(fn (SimpleXMLElement $link): array => [
+            (string) $link['hreflang'] => (string) $link['href'],
+        ]);
 
     expect((string) $categoryUrl->lastmod)->toBe($activeCategory->updated_at->toDateString());
     expect((string) $productUrl->lastmod)->toBe($activeProduct->updated_at->toDateString());
+    expect((string) $homeUrl->lastmod)->not->toBe('')
+        ->and($categoryAlternates->all())->toMatchArray([
+            'de' => $absolute('/de/luxusparfums'),
+            'en' => $absolute('/en/luxusparfums'),
+            'ar' => $absolute('/ar/luxusparfums'),
+            'x-default' => $absolute('/de/luxusparfums'),
+        ]);
 });
 
 test('robots file references the sitemap', function () {
@@ -72,6 +89,7 @@ test('robots file references the sitemap', function () {
         ->assertOk()
         ->assertSee('Disallow: /dashboard', false)
         ->assertSee('Disallow: /settings', false)
+        ->assertSee('Disallow: /login', false)
         ->assertSee('Disallow: /two-factor-challenge', false)
         ->assertSee('Disallow: /user/confirm-password', false)
         ->assertSee('Allow: /build/', false)
@@ -147,6 +165,35 @@ test('public initial html includes canonical and hreflang fallback before hydrat
         ->assertSee('<link data-inertia="alternate-en" rel="alternate" hreflang="en" href="'.url('/en').'">', false)
         ->assertSee('<link data-inertia="alternate-ar" rel="alternate" hreflang="ar" href="'.url('/ar').'">', false)
         ->assertSee('<link data-inertia="alternate-x-default" rel="alternate" hreflang="x-default" href="'.url('/de').'">', false);
+});
+
+test('public initial html includes title description and social meta fallback before hydration', function () {
+    $product = Product::factory()->create([
+        'slug' => 'rose-oud',
+        'is_active' => true,
+    ]);
+    $product->setTranslation('de', 'name', 'Rose Oud');
+    $product->setTranslation('de', 'meta_title', 'Rose Oud');
+    $product->setTranslation('de', 'meta_description', 'Floraler Oud Duft aus der Goan Perfume Kollektion.');
+    $product->media()->create([
+        'path' => 'media/products/rose-oud.webp',
+        'sort_order' => 0,
+        'is_primary' => true,
+    ]);
+    ProductVariant::factory()->for($product)->default()->create();
+
+    $this->get('/de/produkt/rose-oud')
+        ->assertOk()
+        ->assertSee('<title>Rose Oud - Goan Perfume</title>', false)
+        ->assertSee('<meta data-inertia="description" name="description" content="Floraler Oud Duft aus der Goan Perfume Kollektion.">', false)
+        ->assertSee('<meta data-inertia="og-title" property="og:title" content="Rose Oud - Goan Perfume">', false)
+        ->assertSee('<meta data-inertia="og-description" property="og:description" content="Floraler Oud Duft aus der Goan Perfume Kollektion.">', false)
+        ->assertSee('<meta data-inertia="og-url" property="og:url" content="'.url('/de/produkt/rose-oud').'">', false)
+        ->assertSee('<meta data-inertia="og-type" property="og:type" content="product">', false)
+        ->assertSee('<meta data-inertia="og-locale" property="og:locale" content="de_DE">', false)
+        ->assertSee('<meta data-inertia="twitter-card" name="twitter:card" content="summary_large_image">', false)
+        ->assertSee('<meta data-inertia="og-image" property="og:image" content="'.url('/storage/media/products/rose-oud.webp').'">', false)
+        ->assertSee('<meta data-inertia="twitter-image" name="twitter:image" content="'.url('/storage/media/products/rose-oud.webp').'">', false);
 });
 
 test('public initial html includes lcp image preload fallback before hydration', function () {

@@ -65,6 +65,7 @@ export default function PublicLayout({
             dir={direction}
             className={cn(
                 'min-h-screen font-body antialiased',
+                'max-w-full overflow-x-clip',
                 isArabic && 'font-arabic',
                 isDark
                     ? 'bg-[#0b0907] text-stone-100'

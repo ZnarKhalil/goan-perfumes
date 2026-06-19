@@ -25,6 +25,7 @@ Route::get('/robots.txt', fn () => response(
         'User-agent: *',
         'Disallow: /dashboard',
         'Disallow: /settings',
+        'Disallow: /login',
         'Disallow: /two-factor-challenge',
         'Disallow: /user/confirm-password',
         'Allow: /build/',

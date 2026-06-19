@@ -108,11 +108,6 @@ type MediaMetaItem = {
     id?: number;
     sort_order: number;
     is_primary: boolean;
-    alt_text: {
-        de: string;
-        ar: string;
-        en: string;
-    };
 };
 
 export default function ProductForm({
@@ -422,6 +417,7 @@ export default function ProductForm({
                     items={mediaItems}
                     onItemsChange={updateMediaItems}
                     error={form.errors.media_uploads ?? form.errors.media_meta}
+                    showAltTextFields={false}
                 />
             </section>
 
@@ -438,17 +434,10 @@ export default function ProductForm({
 }
 
 function mediaMeta(item: MediaItem): MediaMetaItem {
-    const altText = {
-        de: item.alt_text_translations?.de ?? item.alt_text ?? '',
-        ar: item.alt_text_translations?.ar ?? '',
-        en: item.alt_text_translations?.en ?? '',
-    };
-
     return {
         ...(item.serverId ? { id: item.serverId } : {}),
         sort_order: item.sort_order,
         is_primary: item.is_primary,
-        alt_text: altText,
     };
 }
 

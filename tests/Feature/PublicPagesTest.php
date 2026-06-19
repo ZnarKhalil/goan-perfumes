@@ -39,6 +39,7 @@ test('home renders public props from stored content', function () {
             ->component('public/home')
             ->has('navigation', 1)
             ->where('navigation.0.slug', 'luxusparfums')
+            ->where('navigation.0.image_url', '/images/category-fallbacks/luxusparfums.webp')
             ->where('meta.preload_image_url', '/storage/page-sections/hero.jpg')
             ->has('promotions', 1)
             ->where('promotions.0.title', 'Aktion')
@@ -413,6 +414,29 @@ test('product detail page renders media variants attributes and contact settings
         );
 });
 
+test('products without media use category fallback images', function () {
+    $category = publicCategory('damenparfums', 'Damenparfums');
+    publicProduct('rose-oud', 'Rose Oud', $category);
+
+    $this->get('/de/damenparfums')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('public/category')
+            ->where('products.0.image_url', '/images/category-fallbacks/damenparfums.webp')
+            ->where('products.0.image_alt', 'Rose Oud'),
+        );
+
+    $this->get('/de/produkt/rose-oud')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('public/product')
+            ->where('meta.preload_image_url', '/images/category-fallbacks/damenparfums.webp')
+            ->where('product.media.0.url', '/images/category-fallbacks/damenparfums.webp')
+            ->where('product.media.0.alt', 'Rose Oud')
+            ->where('product.media.0.is_primary', true),
+        );
+});
+
 test('inactive product returns not found', function () {
     $category = publicCategory('nischenparfums', 'Nischenparfums');
     publicProduct('iris-musk', 'Iris Musk', $category)->update(['is_active' => false]);
@@ -536,7 +560,7 @@ test('database seeder provides complete public demo content', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('public/category')
-            ->missing('category.image_url')
+            ->where('category.image_url', '/images/category-fallbacks/luxusparfums.webp')
             ->missing('category.banner_url')
             ->has('products', 12)
             ->where('pagination.total', 15)

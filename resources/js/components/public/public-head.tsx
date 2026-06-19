@@ -6,6 +6,10 @@ type Props = {
 };
 
 export default function PublicHead({ meta }: Props) {
+    const appName = import.meta.env.VITE_APP_NAME || 'Goan Perfume';
+    const fullTitle = meta.title ? `${meta.title} - ${appName}` : appName;
+    const twitterCard = meta.image_url ? 'summary_large_image' : 'summary';
+
     return (
         <Head title={meta.title}>
             <meta
@@ -13,6 +17,56 @@ export default function PublicHead({ meta }: Props) {
                 name="description"
                 content={meta.description}
             />
+            <meta head-key="og-title" property="og:title" content={fullTitle} />
+            <meta
+                head-key="og-description"
+                property="og:description"
+                content={meta.description}
+            />
+            <meta
+                head-key="og-url"
+                property="og:url"
+                content={meta.canonical}
+            />
+            <meta
+                head-key="og-type"
+                property="og:type"
+                content={meta.og_type}
+            />
+            <meta
+                head-key="og-locale"
+                property="og:locale"
+                content={meta.og_locale}
+            />
+            <meta
+                head-key="twitter-card"
+                name="twitter:card"
+                content={twitterCard}
+            />
+            <meta
+                head-key="twitter-title"
+                name="twitter:title"
+                content={fullTitle}
+            />
+            <meta
+                head-key="twitter-description"
+                name="twitter:description"
+                content={meta.description}
+            />
+            {meta.image_url && (
+                <>
+                    <meta
+                        head-key="og-image"
+                        property="og:image"
+                        content={meta.image_url}
+                    />
+                    <meta
+                        head-key="twitter-image"
+                        name="twitter:image"
+                        content={meta.image_url}
+                    />
+                </>
+            )}
             <link head-key="canonical" rel="canonical" href={meta.canonical} />
             {meta.preload_image_url && (
                 <link

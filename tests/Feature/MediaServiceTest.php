@@ -7,10 +7,12 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
-test('media service creates uploaded media rows with metadata and translations', function () {
+test('media service creates product media rows with generated alt text', function () {
     Storage::fake('public');
 
-    $product = Product::factory()->create();
+    $product = Product::factory()->create(['brand' => 'Maison Test']);
+    $product->setTranslation('de', 'name', 'Sommer Oud');
+    $product->setTranslation('en', 'name', 'Summer Oud');
     $service = new MediaService;
 
     $service->syncFromRequest(
@@ -24,12 +26,10 @@ test('media service creates uploaded media rows with metadata and translations',
                 [
                     'sort_order' => 1,
                     'is_primary' => false,
-                    'alt_text' => ['de' => 'Vorderseite', 'en' => 'Front'],
                 ],
                 [
                     'sort_order' => 0,
                     'is_primary' => true,
-                    'alt_text' => ['de' => 'Seite'],
                 ],
             ],
         ],
@@ -39,24 +39,26 @@ test('media service creates uploaded media rows with metadata and translations',
 
     expect($media)->toHaveCount(2);
     expect($media[0]->is_primary)->toBeTrue();
-    expect($media[0]->alt_text)->toBe('Seite');
+    expect($media[0]->alt_text)->toBe('Sommer Oud Parfum von Maison Test');
+    expect($media[0]->translate('de', 'alt_text'))->toBe('Sommer Oud Parfum von Maison Test');
+    expect($media[0]->translate('en', 'alt_text'))->toBe('Summer Oud perfume by Maison Test');
+    expect($media[0]->translate('ar', 'alt_text'))->toBe('عطر Sommer Oud من Maison Test');
     expect($media[1]->is_primary)->toBeFalse();
-    expect($media[1]->translate('de', 'alt_text'))->toBe('Vorderseite');
-    expect($media[1]->translate('en', 'alt_text'))->toBe('Front');
 
     Storage::disk('public')->assertExists($media[0]->path);
     Storage::disk('public')->assertExists($media[1]->path);
     expect($media[0]->path)->toStartWith("media/products/{$product->id}/");
     expect($media[0]->path)
         ->toContain($product->slug)
-        ->toContain('seite')
+        ->toContain('sommer-oud-parfum-von-maison-test')
         ->toEndWith('.webp');
 });
 
 test('media service updates existing rows deletes removed rows and preserves files', function () {
     Storage::fake('public');
 
-    $product = Product::factory()->create();
+    $product = Product::factory()->create(['brand' => 'Creed']);
+    $product->setTranslation('de', 'name', 'Sommer Oud');
     $keepPath = UploadedFile::fake()
         ->image('keep.jpg')
         ->store('media/products/'.$product->id, 'public');
@@ -88,7 +90,6 @@ test('media service updates existing rows deletes removed rows and preserves fil
                     'id' => $keep->id,
                     'sort_order' => 5,
                     'is_primary' => false,
-                    'alt_text' => ['de' => 'Neu', 'ar' => 'جديد', 'en' => ''],
                 ],
             ],
             'removed' => [$remove->id],
@@ -100,10 +101,10 @@ test('media service updates existing rows deletes removed rows and preserves fil
     expect($product->media()->count())->toBe(1);
     expect($keep->sort_order)->toBe(5);
     expect($keep->is_primary)->toBeTrue();
-    expect($keep->alt_text)->toBe('Neu');
-    expect($keep->translate('de', 'alt_text'))->toBe('Neu');
-    expect($keep->translate('ar', 'alt_text'))->toBe('جديد');
-    expect($keep->translate('en', 'alt_text'))->toBeNull();
+    expect($keep->alt_text)->toBe('Sommer Oud Parfum von Creed');
+    expect($keep->translate('de', 'alt_text'))->toBe('Sommer Oud Parfum von Creed');
+    expect($keep->translate('ar', 'alt_text'))->toBe('عطر Sommer Oud من Creed');
+    expect($keep->translate('en', 'alt_text'))->toBe('Sommer Oud perfume by Creed');
     expect(Media::find($remove->id))->toBeNull();
 
     Storage::disk('public')->assertExists($keepPath);

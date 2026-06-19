@@ -5,9 +5,20 @@
     $canonical = $page['props']['meta']['canonical'] ?? null;
     $robots = $page['props']['meta']['robots'] ?? null;
     $preloadImageUrl = $page['props']['meta']['preload_image_url'] ?? null;
+    $metaTitle = $page['props']['meta']['title'] ?? null;
+    $metaDescription = $page['props']['meta']['description'] ?? null;
+    $metaImageUrl = $page['props']['meta']['image_url'] ?? null;
+    $ogType = $page['props']['meta']['og_type'] ?? 'website';
+    $ogLocale = $page['props']['meta']['og_locale'] ?? null;
     $alternates = $page['props']['meta']['alternates'] ?? [];
     $structuredData = $page['props']['meta']['structured_data'] ?? [];
     $pageLocale = $page['props']['locale']['current'] ?? app()->getLocale();
+    $siteName = (string) config('app.name', 'Goan Perfume');
+    $pageTitle = $siteName;
+    if ($isPublicPage && is_string($metaTitle) && trim($metaTitle) !== '') {
+        $pageTitle = trim($metaTitle).' - '.$siteName;
+    }
+    $twitterCard = $metaImageUrl ? 'summary_large_image' : 'summary';
     $fontAliases = $isPublicPage
         ? ($pageLocale === 'ar' ? ['fraunces', 'manrope', 'noto-kufi-arabic'] : ['fraunces', 'manrope'])
         : ['instrument-sans', 'fraunces', 'manrope', 'noto-kufi-arabic'];
@@ -52,7 +63,24 @@
         @viteReactRefresh
         @vite(['resources/css/app.css', 'resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
         <x-inertia::head>
-            <title>{{ config('app.name', 'Goan Perfume') }}</title>
+            <title>{{ $pageTitle }}</title>
+            @if ($isPublicPage && $metaDescription)
+                <meta data-inertia="description" name="description" content="{{ $metaDescription }}">
+                <meta data-inertia="og-title" property="og:title" content="{{ $pageTitle }}">
+                <meta data-inertia="og-description" property="og:description" content="{{ $metaDescription }}">
+                <meta data-inertia="og-url" property="og:url" content="{{ $canonical }}">
+                <meta data-inertia="og-type" property="og:type" content="{{ $ogType }}">
+                @if ($ogLocale)
+                    <meta data-inertia="og-locale" property="og:locale" content="{{ $ogLocale }}">
+                @endif
+                <meta data-inertia="twitter-card" name="twitter:card" content="{{ $twitterCard }}">
+                <meta data-inertia="twitter-title" name="twitter:title" content="{{ $pageTitle }}">
+                <meta data-inertia="twitter-description" name="twitter:description" content="{{ $metaDescription }}">
+                @if ($metaImageUrl)
+                    <meta data-inertia="og-image" property="og:image" content="{{ $metaImageUrl }}">
+                    <meta data-inertia="twitter-image" name="twitter:image" content="{{ $metaImageUrl }}">
+                @endif
+            @endif
             @if ($isPublicPage && $canonical)
                 <link data-inertia="canonical" rel="canonical" href="{{ $canonical }}">
             @endif

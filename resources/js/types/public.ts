@@ -26,6 +26,7 @@ export type PublicCategoryNavItem = {
     slug: string;
     name: string;
     href: string;
+    image_url: string | null;
 };
 
 export type PublicContactSettings = {
@@ -172,6 +173,9 @@ export type PublicMeta = {
     structured_data: Record<string, unknown>[];
     robots: string | null;
     preload_image_url: string | null;
+    image_url: string | null;
+    og_type: string;
+    og_locale: string;
 };
 
 export type PublicLayoutProps = {
