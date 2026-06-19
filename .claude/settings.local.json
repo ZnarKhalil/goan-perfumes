@@ -52,7 +52,8 @@
       "Read(//tmp/**)",
       "Bash(grep -o '<div id=\"app\".\\\\{0,120\\\\}' /tmp/home.html)",
       "Bash(curl -sL \"https://goan-perfumes.test/de/produkt/$\\(php artisan tinker --execute='echo \\\\App\\\\Models\\\\Product::where\\(\"is_active\",true\\)->value\\(\"slug\"\\);' \\)\" -o /tmp/prod.html -w \"HTTP %{http_code}\\\\n\")",
-      "Bash(grep -o 'name=\"description\"[^>]*content=\"[^\"]\\\\{0,80\\\\}' /tmp/prod.html)"
+      "Bash(grep -o 'name=\"description\"[^>]*content=\"[^\"]\\\\{0,80\\\\}' /tmp/prod.html)",
+      "Bash(echo \"=== exit: $? ===\")"
     ]
   },
   "enableAllProjectMcpServers": true,
