@@ -10,6 +10,7 @@ export default defineConfig({
     plugins: [
         laravel({
             input: ['resources/css/app.css', 'resources/js/app.tsx'],
+            ssr: 'resources/js/app.tsx',
             refresh: true,
             fonts: [
                 bunny('Instrument Sans', {
@@ -27,7 +28,12 @@ export default defineConfig({
                 }),
             ],
         }),
-        inertia(),
+        inertia({
+            ssr: {
+                entry: 'resources/js/app.tsx',
+                port: 13714,
+            },
+        }),
         react({
             babel: {
                 plugins: ['babel-plugin-react-compiler'],

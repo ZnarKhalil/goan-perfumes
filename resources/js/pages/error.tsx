@@ -2,6 +2,7 @@ import { Head, Link } from '@inertiajs/react';
 import { ArrowLeft, Home } from 'lucide-react';
 import { motion, useReducedMotion } from 'motion/react';
 import AppLogoIcon from '@/components/app-logo-icon';
+import NoindexHead from '@/components/noindex-head';
 import { Button } from '@/components/ui/button';
 
 type Props = {
@@ -68,6 +69,7 @@ export default function ErrorPage({ status }: Props) {
     return (
         <main className="relative isolate min-h-svh overflow-hidden bg-[#0b0907] text-stone-50">
             <Head title={`${status} - ${content.title}`} />
+            <NoindexHead />
 
             <div className="absolute inset-0 -z-30 category-animated-field" />
             <div className="absolute inset-0 -z-20 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(11,9,7,0.38)_44%,rgba(11,9,7,0.95)_100%)]" />
