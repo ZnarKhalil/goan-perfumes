@@ -47,7 +47,12 @@
       "Bash(echo \"tsc-done-exit=$?\")",
       "Bash(php -l database/seeders/PerfumeCatalog.php)",
       "Bash(php -r ' *)",
-      "Bash(vendor/bin/pint database/seeders/ --dirty --format agent)"
+      "Bash(vendor/bin/pint database/seeders/ --dirty --format agent)",
+      "Bash(curl -sL https://goan-perfumes.test/de -o /tmp/home.html -w \"HTTP %{http_code}\\\\n\")",
+      "Read(//tmp/**)",
+      "Bash(grep -o '<div id=\"app\".\\\\{0,120\\\\}' /tmp/home.html)",
+      "Bash(curl -sL \"https://goan-perfumes.test/de/produkt/$\\(php artisan tinker --execute='echo \\\\App\\\\Models\\\\Product::where\\(\"is_active\",true\\)->value\\(\"slug\"\\);' \\)\" -o /tmp/prod.html -w \"HTTP %{http_code}\\\\n\")",
+      "Bash(grep -o 'name=\"description\"[^>]*content=\"[^\"]\\\\{0,80\\\\}' /tmp/prod.html)"
     ]
   },
   "enableAllProjectMcpServers": true,

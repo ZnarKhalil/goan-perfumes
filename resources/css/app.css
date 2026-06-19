@@ -215,15 +215,6 @@
     }
 }
 
-@keyframes vitrine-shimmer {
-    0% {
-        background-position: -200% 0;
-    }
-    100% {
-        background-position: 200% 0;
-    }
-}
-
 @keyframes vitrine-pulse {
     0%,
     100% {
@@ -248,27 +239,6 @@
     }
     100% {
         transform: translate3d(0, 0, 0);
-    }
-}
-
-@keyframes category-field {
-    0% {
-        background-position:
-            0% 36%,
-            12% 50%,
-            0% 0%;
-    }
-    50% {
-        background-position:
-            92% 64%,
-            62% 40%,
-            0% 0%;
-    }
-    100% {
-        background-position:
-            28% 50%,
-            100% 54%,
-            0% 0%;
     }
 }
 
@@ -324,8 +294,6 @@
         220% 220%,
         190% 190%,
         100% 100%;
-    animation: category-field 10s ease-in-out infinite alternate;
-    will-change: background-position;
 }
 
 @utility category-ribbon {
@@ -405,7 +373,6 @@
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    animation: vitrine-shimmer 7s linear infinite;
 }
 
 .vitrine-group:hover .vitrine-marquee,
@@ -420,8 +387,6 @@
     .vitrine-marquee-fast,
     .vitrine-pulse,
     .vitrine-drift,
-    .vitrine-shimmer-text,
-    .category-animated-field,
     .category-ribbon,
     .category-light-sweep {
         animation: none !important;

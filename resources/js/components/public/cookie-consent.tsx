@@ -1,6 +1,6 @@
 import { Link } from '@inertiajs/react';
-import { Settings2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { Settings2 } from '@/components/public/icons';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {

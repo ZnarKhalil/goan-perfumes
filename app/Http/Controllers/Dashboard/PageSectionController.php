@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Dashboard;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Dashboard\UpdatePageSectionRequest;
 use App\Models\PageSection;
+use App\Support\ImageUpload;
 use App\Support\PublicLocale;
 use App\Support\StorageUrl;
 use Illuminate\Http\RedirectResponse;
@@ -94,9 +95,11 @@ class PageSectionController extends Controller
                 $this->deleteHeroImage($payload);
                 $this->deleteHeroVideo($payload);
                 $payload['video_path'] = null;
-                $payload['image_path'] = $request
-                    ->file('hero_image')
-                    ->store('page-sections/hero', 'public');
+                $payload['image_path'] = ImageUpload::storePublicImageAsWebp(
+                    $request->file('hero_image'),
+                    'page-sections/hero',
+                    'goan-perfume-hero',
+                );
             }
 
             if ($pageSection->key === 'hero' && $request->hasFile('hero_video')) {

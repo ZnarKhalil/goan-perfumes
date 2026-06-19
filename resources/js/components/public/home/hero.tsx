@@ -107,6 +107,9 @@ export default function Hero({ hero, copy, ctaHref, contactHref }: Props) {
                     <img
                         src={hero.image_url}
                         alt=""
+                        loading="eager"
+                        fetchPriority="high"
+                        decoding="sync"
                         className="h-auto w-full object-contain object-center sm:h-full sm:object-cover"
                     />
                 ) : (

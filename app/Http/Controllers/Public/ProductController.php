@@ -39,10 +39,42 @@ class ProductController extends PublicController
             ->where('slug', $slug)
             ->where('is_active', true)
             ->firstOrFail();
+        $canonical = route('products.show', [
+            'locale' => $this->locale(),
+            'slug' => $product->slug,
+        ]);
+        $primaryCategory = $product->categories->first();
+        $primaryMedia = $product->media->firstWhere('is_primary', true) ?? $product->media->first();
 
         return Inertia::render('public/product', [
             ...$this->layoutProps(),
-            'meta' => $this->modelMeta($product, 'short_description'),
+            'meta' => $this->modelMeta(
+                $product,
+                'short_description',
+                $canonical,
+                $this->localizedRouteUrls('products.show', ['slug' => $product->slug]),
+                [
+                    $this->productStructuredData($product, $canonical),
+                    $this->breadcrumbStructuredData([
+                        [
+                            'name' => 'Goan Perfume',
+                            'url' => route('home', ['locale' => $this->locale()]),
+                        ],
+                        ...($primaryCategory ? [[
+                            'name' => $this->translation($primaryCategory, 'name') ?? $primaryCategory->slug,
+                            'url' => route('categories.show', [
+                                'locale' => $this->locale(),
+                                'slug' => $primaryCategory->slug,
+                            ]),
+                        ]] : []),
+                        [
+                            'name' => $this->translation($product, 'name') ?? $product->slug,
+                            'url' => $canonical,
+                        ],
+                    ]),
+                ],
+                preloadImageUrl: StorageUrl::for($primaryMedia?->path),
+            ),
             'product' => $this->productDetail($product),
         ]);
     }

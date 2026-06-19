@@ -17,11 +17,10 @@ export default defineConfig({
                     weights: [400, 500, 600],
                 }),
                 bunny('Fraunces', {
-                    weights: [400, 500, 600, 700],
-                    italic: true,
+                    weights: [400, 500],
                 }),
                 bunny('Manrope', {
-                    weights: [400, 500, 600, 700],
+                    weights: [400, 500, 600],
                 }),
                 bunny('Noto Kufi Arabic', {
                     weights: [400, 500, 700],

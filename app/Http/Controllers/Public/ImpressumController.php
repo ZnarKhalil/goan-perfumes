@@ -26,7 +26,7 @@ class ImpressumController extends PublicController
 
         return Inertia::render('public/impressum', [
             ...$this->layoutProps(),
-            'meta' => $this->meta(...$meta),
+            'meta' => $this->localizedMeta(...$meta, routeName: 'impressum'),
         ]);
     }
 }

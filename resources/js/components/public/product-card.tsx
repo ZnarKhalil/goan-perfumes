@@ -24,7 +24,10 @@ export default function ProductCard({ product, copy, className }: Props) {
                     <img
                         src={product.image_url}
                         alt={product.image_alt}
+                        width={800}
+                        height={1000}
                         loading="lazy"
+                        decoding="async"
                         className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.05]"
                     />
                 ) : (

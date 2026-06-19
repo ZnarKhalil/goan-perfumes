@@ -25,14 +25,37 @@ class CategoryController extends PublicController
             ),
             $selectedFilters,
         )->paginate(12)->withQueryString();
+        $canonical = route('categories.show', [
+            'locale' => $this->locale(),
+            'slug' => $category->slug,
+        ]);
+        $hasQueryParameters = $request->query() !== [];
 
         return Inertia::render('public/category', [
             ...$this->layoutProps(),
-            'meta' => $this->modelMeta($category),
+            'meta' => $this->modelMeta(
+                $category,
+                canonical: $canonical,
+                alternates: $this->localizedRouteUrls('categories.show', ['slug' => $category->slug]),
+                structuredData: [
+                    $this->breadcrumbStructuredData([
+                        [
+                            'name' => 'Goan Perfume',
+                            'url' => route('home', ['locale' => $this->locale()]),
+                        ],
+                        [
+                            'name' => $this->translation($category, 'name') ?? $category->slug,
+                            'url' => $canonical,
+                        ],
+                    ]),
+                ],
+                robots: $hasQueryParameters ? 'noindex, follow' : null,
+            ),
             'category' => [
                 ...$this->categoryNavItem($category),
                 'description' => $this->translation($category, 'description') ?? '',
             ],
+            'related_categories' => $this->relatedCategoryNavItems($category),
             'filters' => $this->filterGroups($selectedFilters, $category->slug),
             'selected_filters' => $selectedFilters,
             'products' => $products

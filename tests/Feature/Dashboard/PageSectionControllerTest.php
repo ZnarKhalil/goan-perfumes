@@ -88,6 +88,9 @@ test('admin can update hero content and image', function () {
     expect($section->translate('de', 'title'))->toBe('GOAN Parfums');
     expect($section->translate('de', 'cta_text'))->toBe('Jetzt entdecken');
     expect($section->payload['image_path'])->not->toBe($oldPath);
+    expect($section->payload['image_path'])
+        ->toContain('goan-perfume-hero')
+        ->toEndWith('.webp');
     Storage::disk('public')->assertMissing($oldPath);
     Storage::disk('public')->assertExists($section->payload['image_path']);
 });

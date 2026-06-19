@@ -92,7 +92,10 @@ function VitrineCard({
                         <img
                             src={product.image_url}
                             alt={product.image_alt}
+                            width={800}
+                            height={1000}
                             loading="lazy"
+                            decoding="async"
                             className="vitrine-float absolute inset-0 m-auto h-[82%] w-auto object-contain drop-shadow-[0_24px_30px_rgba(0,0,0,0.55)] transition-transform duration-700 group-hover/tilt:scale-[1.06]"
                         />
                     ) : (

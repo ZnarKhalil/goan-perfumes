@@ -1,8 +1,9 @@
-import { Head, Link, router } from '@inertiajs/react';
-import { ChevronDown, Menu, Search, X } from 'lucide-react';
+import { Link, router } from '@inertiajs/react';
 import type { MouseEvent } from 'react';
 import { useMemo, useState } from 'react';
+import { ChevronDown, Menu, Search, X } from '@/components/public/icons';
 import ProductGrid from '@/components/public/product-grid';
+import PublicHead from '@/components/public/public-head';
 import {
     Sheet,
     SheetContent,
@@ -37,9 +38,7 @@ export default function Category(page: PublicCategoryPageProps) {
             locale={page.locale}
             theme="dark"
         >
-            <Head title={page.meta.title}>
-                <meta name="description" content={page.meta.description} />
-            </Head>
+            <PublicHead meta={page.meta} />
             <section className="relative overflow-hidden border-b border-white/10">
                 <div className="absolute inset-0 category-animated-field" />
                 <div className="absolute top-1/2 left-[-18%] h-14 w-[76%] -translate-y-1/2 category-ribbon" />
@@ -109,6 +108,25 @@ export default function Category(page: PublicCategoryPageProps) {
                         />
 
                         <Pagination copy={copy} links={page.pagination.links} />
+
+                        {page.related_categories.length > 0 && (
+                            <section className="border-t border-white/10 pt-8">
+                                <h2 className="font-display text-2xl font-light text-stone-50">
+                                    {copy.category.relatedTitle}
+                                </h2>
+                                <div className="mt-4 flex flex-wrap gap-2">
+                                    {page.related_categories.map((category) => (
+                                        <Link
+                                            key={category.id}
+                                            href={category.href}
+                                            className="rounded-full border border-white/15 px-4 py-2 text-sm text-stone-300 transition hover:border-[#e7c889]/60 hover:text-[#e7c889]"
+                                        >
+                                            {category.name}
+                                        </Link>
+                                    ))}
+                                </div>
+                            </section>
+                        )}
                     </div>
                 </div>
             </section>

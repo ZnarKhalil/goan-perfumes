@@ -1,8 +1,8 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Facebook, Instagram, Music2 } from 'lucide-react';
 import { useEffect } from 'react';
 import CookieConsent from '@/components/public/cookie-consent';
 import FloatingContactSidebar from '@/components/public/floating-contact-sidebar';
+import { Facebook, Instagram, Music2 } from '@/components/public/icons';
 import SiteHeader from '@/components/public/site-header';
 import { getPublicCopy } from '@/lib/public-copy';
 import { cn } from '@/lib/utils';
@@ -107,8 +107,8 @@ export default function PublicLayout({
                                 className={cn(
                                     'text-[0.65rem] font-semibold tracking-[0.3em] uppercase',
                                     isDark
-                                        ? 'text-stone-500'
-                                        : 'text-stone-400',
+                                        ? 'text-stone-300'
+                                        : 'text-stone-600',
                                 )}
                             >
                                 {copy.footer.collectionsTitle}
@@ -137,7 +137,7 @@ export default function PublicLayout({
                         <p
                             className={cn(
                                 'text-[0.65rem] font-semibold tracking-[0.3em] uppercase',
-                                isDark ? 'text-stone-500' : 'text-stone-400',
+                                isDark ? 'text-stone-300' : 'text-stone-600',
                             )}
                         >
                             {copy.footer.contactTitle}

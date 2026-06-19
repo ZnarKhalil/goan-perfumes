@@ -26,7 +26,7 @@ class PrivacyPolicyController extends PublicController
 
         return Inertia::render('public/privacy-policy', [
             ...$this->layoutProps(),
-            'meta' => $this->meta(...$meta),
+            'meta' => $this->localizedMeta(...$meta, routeName: 'privacy'),
         ]);
     }
 }

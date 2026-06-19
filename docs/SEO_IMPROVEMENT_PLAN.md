@@ -165,26 +165,6 @@ Acceptance criteria:
 - Only visible and accurate product information is included.
 - Price and availability are not added unless they are reliable.
 
-### LocalBusiness Or Store Schema
-
-Add business structured data on the home page and contact page.
-
-Useful fields:
-
-- Business name.
-- URL.
-- Logo.
-- Phone.
-- Email.
-- Address, if public and accurate.
-- Opening hours, if available.
-- Social profiles via `sameAs`.
-
-Acceptance criteria:
-
-- Business structured data matches visible contact/legal information.
-- No fake reviews, ratings, or claims are included.
-
 ### Breadcrumb Schema
 
 Add breadcrumb JSON-LD to category and product pages.
@@ -198,76 +178,6 @@ Acceptance criteria:
 
 - Breadcrumbs reflect the visible or logical site hierarchy.
 - Breadcrumb URLs are canonical URLs.
-
-## 7. Strengthen Product Page Content
-
-Product pages should target long-tail perfume search intent, not only display product cards.
-
-Recommended product details:
-
-- Brand.
-- Product name.
-- Size or volume.
-- Price or price-on-request status.
-- Scent family.
-- Top, middle, and base notes.
-- Occasion or season.
-- Longevity and sillage, only if accurate.
-- Gender positioning if relevant.
-- Short purchase/contact instruction.
-- Related products or categories.
-
-Acceptance criteria:
-
-- Product pages have enough unique content to stand alone in search.
-- Product descriptions are not duplicated across many products.
-- Content avoids unsupported claims.
-
-## 8. Strengthen Category Landing Pages
-
-Category pages should be useful landing pages, not just grids.
-
-Recommended content:
-
-- A short localized intro paragraph.
-- Explanation of the category or scent family.
-- Suggested use cases.
-- Internal links to related categories.
-- Clear contact or advice CTA.
-
-Examples of category content angles:
-
-- Luxury perfumes.
-- Women's perfumes.
-- Men's perfumes.
-- Oriental perfumes.
-- Gift fragrances.
-
-Acceptance criteria:
-
-- Each category has unique localized copy.
-- Category copy appears before or near the product grid.
-- Internal links help users and search engines discover related pages.
-
-## 9. Add Editorial Content
-
-Editorial pages can capture informational search intent and link users into the catalogue.
-
-Recommended topics:
-
-- How to choose a perfume.
-- Arabic perfumes in Germany.
-- Luxury perfume gift ideas.
-- Eau de parfum vs extrait de parfum.
-- Best evening perfumes.
-- How perfume notes work.
-- How to make perfume last longer.
-
-Acceptance criteria:
-
-- Articles link to relevant products and categories.
-- Articles answer real user questions.
-- Content is localized at least in German first, then English and Arabic where useful.
 
 ## 10. Optimize Images
 
@@ -322,7 +232,6 @@ Recommended actions:
 - Link from home sections to key categories.
 - Link from categories to related categories.
 - Link from products to their categories.
-- Link from editorial articles to relevant products and categories.
 - Add breadcrumbs or visible contextual navigation where useful.
 
 Acceptance criteria:
@@ -330,25 +239,6 @@ Acceptance criteria:
 - Important product and category pages are reachable within a few clicks from the home page.
 - No public product page is orphaned.
 - Anchor text is descriptive.
-
-## 13. Local SEO And Trust Signals
-
-Goan Perfume appears to serve customers through direct contact channels. Local trust signals can improve search confidence and conversions.
-
-Recommended actions:
-
-- Keep business name, phone, email, and address consistent across the site.
-- Create or optimize Google Business Profile if applicable.
-- Add social profile links consistently.
-- Add clear contact options on product and category pages.
-- Include service area or shop location if relevant.
-- Align website contact details with Impressum details.
-
-Acceptance criteria:
-
-- Contact details are consistent across home, contact, footer, and Impressum.
-- Google Business Profile points to the canonical website.
-- LocalBusiness structured data matches visible business details.
 
 ## 14. Robots And Indexing Controls
 

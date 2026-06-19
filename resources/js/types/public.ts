@@ -167,6 +167,11 @@ export type PublicPagination = {
 export type PublicMeta = {
     title: string;
     description: string;
+    canonical: string;
+    alternates: Record<PublicLocaleCode | 'x-default', string>;
+    structured_data: Record<string, unknown>[];
+    robots: string | null;
+    preload_image_url: string | null;
 };
 
 export type PublicLayoutProps = {
@@ -198,6 +203,7 @@ export type PublicCategoryPageProps = {
     category: PublicCategoryNavItem & {
         description: string;
     };
+    related_categories: PublicCategoryNavItem[];
     filters: PublicFilterGroup[];
     selected_filters: Record<string, string[]>;
     products: PublicProductCard[];

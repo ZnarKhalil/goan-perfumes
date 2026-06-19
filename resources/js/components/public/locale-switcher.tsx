@@ -1,7 +1,7 @@
 import { router } from '@inertiajs/react';
-import { Check, ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 import type { MouseEvent } from 'react';
+import { Check, ChevronDown } from '@/components/public/icons';
 import {
     DropdownMenu,
     DropdownMenuContent,

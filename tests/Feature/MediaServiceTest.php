@@ -47,6 +47,10 @@ test('media service creates uploaded media rows with metadata and translations',
     Storage::disk('public')->assertExists($media[0]->path);
     Storage::disk('public')->assertExists($media[1]->path);
     expect($media[0]->path)->toStartWith("media/products/{$product->id}/");
+    expect($media[0]->path)
+        ->toContain($product->slug)
+        ->toContain('seite')
+        ->toEndWith('.webp');
 });
 
 test('media service updates existing rows deletes removed rows and preserves files', function () {

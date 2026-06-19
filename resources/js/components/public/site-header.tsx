@@ -1,6 +1,6 @@
 import { Link } from '@inertiajs/react';
-import { Menu } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { Menu } from '@/components/public/icons';
 import LocaleSwitcher from '@/components/public/locale-switcher';
 import SiteDrawer from '@/components/public/site-drawer';
 import type { PublicCopy } from '@/lib/public-copy';

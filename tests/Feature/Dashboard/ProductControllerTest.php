@@ -279,6 +279,9 @@ test('admin can create a product with translations categories attributes variant
     expect($product->variants()->where('is_default', true)->sole()->size_ml)->toBe(50);
     expect($product->media)->toHaveCount(2);
     expect($product->media()->primary()->sole()->translate('de', 'alt_text'))->toBe('Flakon vorne');
+    expect($product->media()->primary()->sole()->path)
+        ->toContain('sommer-oud-flakon-vorne')
+        ->toEndWith('.webp');
 
     $product->media->each(fn (Media $media) => Storage::disk('public')->assertExists($media->path));
 });
@@ -315,6 +318,50 @@ test('store rejects multiple values for a single-select attribute and missing de
         ->assertSessionHasErrors(['attribute_values', 'variants']);
 
     expect(Product::count())->toBe(0);
+});
+
+test('store rejects product images without German alt text', function () {
+    Storage::fake('public');
+
+    $category = Category::factory()->create();
+
+    $this->actingAs($this->admin)
+        ->post('/dashboard/products', [
+            'translations' => [
+                'de' => [
+                    'name' => 'Sommer Oud',
+                    'short_description' => 'Kurz',
+                    'description' => 'Lange Beschreibung',
+                ],
+            ],
+            'brand' => 'Maison Test',
+            'is_active' => true,
+            'is_featured' => false,
+            'categories' => [$category->id],
+            'attribute_values' => [],
+            'variants' => [
+                [
+                    'size_ml' => 50,
+                    'price' => '59.90',
+                    'compare_at_price' => null,
+                    'is_default' => true,
+                    'is_active' => true,
+                ],
+            ],
+            'media_uploads' => [
+                UploadedFile::fake()->image('front.jpg', 800, 800),
+            ],
+            'media_meta' => [
+                'new' => [
+                    [
+                        'sort_order' => 0,
+                        'is_primary' => true,
+                        'alt_text' => ['de' => ''],
+                    ],
+                ],
+            ],
+        ])
+        ->assertSessionHasErrors('media_meta.new.0.alt_text.de');
 });
 
 test('create and edit expose remaining homepage highlight slots', function () {

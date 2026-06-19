@@ -5,7 +5,7 @@ import {
     MessageCircle,
     Music2,
     Phone,
-} from 'lucide-react';
+} from '@/components/public/icons';
 import type { PublicCopy } from '@/lib/public-copy';
 import { cn } from '@/lib/utils';
 import type { PublicContactSettings } from '@/types/public';

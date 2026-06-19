@@ -478,7 +478,7 @@ function SortableMedia({
             <div className="grid gap-1 border-t border-input p-2">
                 {(
                     [
-                        ['de', 'Alt-Text DE'],
+                        ['de', 'Alt-Text DE *'],
                         ['ar', 'Alt-Text AR'],
                         ['en', 'Alt-Text EN'],
                     ] as const
@@ -488,6 +488,7 @@ function SortableMedia({
                         type="text"
                         dir={locale === 'ar' ? 'rtl' : undefined}
                         placeholder={placeholder}
+                        required={locale === 'de'}
                         value={altText[locale]}
                         onChange={(e) =>
                             onAltChange(item.id, locale, e.target.value)

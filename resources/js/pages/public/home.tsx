@@ -1,4 +1,3 @@
-import { Head } from '@inertiajs/react';
 import Advice from '@/components/public/home/advice';
 import Atmosphere from '@/components/public/home/atmosphere';
 import Collections from '@/components/public/home/collections';
@@ -6,6 +5,7 @@ import Hero from '@/components/public/home/hero';
 import Offers from '@/components/public/home/offers';
 import ProductVitrine from '@/components/public/home/product-vitrine';
 import Story from '@/components/public/home/story';
+import PublicHead from '@/components/public/public-head';
 import PublicLayout from '@/layouts/public-layout';
 import { getPublicCopy } from '@/lib/public-copy';
 import type { PublicHomePageProps } from '@/types/public';
@@ -26,9 +26,7 @@ export default function Home(page: PublicHomePageProps) {
             locale={page.locale}
             theme="dark"
         >
-            <Head title={page.meta.title}>
-                <meta name="description" content={page.meta.description} />
-            </Head>
+            <PublicHead meta={page.meta} />
 
             <Atmosphere />
 

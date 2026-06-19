@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\Media;
+use App\Models\Product;
+use App\Support\ImageUpload;
 use App\Support\PublicLocale;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
@@ -78,7 +80,7 @@ class MediaService
                 $isPrimary = $this->boolean($item['is_primary'] ?? false) && ! $primaryAssigned;
                 $primaryAssigned = $primaryAssigned || $isPrimary;
 
-                $path = $this->storeUpload($model, $upload, $disk);
+                $path = $this->storeUpload($model, $upload, $disk, $item, $index);
                 $storedPaths[] = $path;
 
                 $media = $model->media()->create([
@@ -137,8 +139,20 @@ class MediaService
             });
     }
 
-    private function storeUpload(Model $model, UploadedFile $upload, string $disk): string
+    /**
+     * @param  array<string, mixed>  $item
+     */
+    private function storeUpload(Model $model, UploadedFile $upload, string $disk, array $item = [], int $index = 0): string
     {
+        if ($model instanceof Product) {
+            return ImageUpload::storePublicImageAsWebp(
+                $upload,
+                $this->directoryFor($model),
+                $this->descriptiveProductImageName($model, $item, $index),
+                $disk,
+            );
+        }
+
         $extension = $upload->extension() ?: $upload->guessExtension() ?: 'bin';
 
         return $upload->storeAs(
@@ -146,6 +160,20 @@ class MediaService
             Str::ulid()->toBase32().'.'.$extension,
             $disk,
         );
+    }
+
+    /**
+     * @param  array<string, mixed>  $item
+     */
+    private function descriptiveProductImageName(Product $product, array $item, int $index): string
+    {
+        return collect([
+            $product->slug,
+            $this->altTextFallback($item['alt_text'] ?? null),
+            (string) ($index + 1),
+        ])
+            ->filter(fn (?string $part): bool => filled($part))
+            ->implode(' ');
     }
 
     private function directoryFor(Model $model): string

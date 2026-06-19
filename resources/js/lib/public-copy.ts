@@ -28,6 +28,7 @@ export type PublicCopy = {
         search: string;
         clearSearch: string;
         noFilterResults: string;
+        relatedTitle: string;
     };
     contact: {
         directExchangeBody: string;
@@ -102,6 +103,7 @@ export type PublicCopy = {
         imageMissing: string;
         inquiry: string;
         priceOnRequest: string;
+        categoriesTitle: string;
         scentProfile: string;
         sizeHelp: string;
         sizeTitle: string;
@@ -139,6 +141,7 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             search: 'Filter suchen',
             clearSearch: 'Suche löschen',
             noFilterResults: 'Keine Filter gefunden.',
+            relatedTitle: 'Weitere Duftwelten',
         },
         contact: {
             directExchangeBody:
@@ -220,6 +223,7 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             imageMissing: 'Kein Bild',
             inquiry: 'Anfrage',
             priceOnRequest: 'Preis auf Anfrage',
+            categoriesTitle: 'Kategorien',
             scentProfile: 'Duftprofil',
             sizeHelp: 'Anfrage basiert auf der ausgewählten Größe.',
             sizeTitle: 'Größe wählen',
@@ -255,6 +259,7 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             search: 'Search filters',
             clearSearch: 'Clear search',
             noFilterResults: 'No filters found.',
+            relatedTitle: 'More scent worlds',
         },
         contact: {
             directExchangeBody:
@@ -337,6 +342,7 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             imageMissing: 'No image',
             inquiry: 'Inquiry',
             priceOnRequest: 'Price on request',
+            categoriesTitle: 'Categories',
             scentProfile: 'Scent profile',
             sizeHelp: 'The inquiry is based on the selected size.',
             sizeTitle: 'Choose size',
@@ -372,6 +378,7 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             search: 'بحث في الفلاتر',
             clearSearch: 'مسح البحث',
             noFilterResults: 'لم يتم العثور على فلاتر.',
+            relatedTitle: 'عوالم عطرية أخرى',
         },
         contact: {
             directExchangeBody:
@@ -452,6 +459,7 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             imageMissing: 'لا توجد صورة',
             inquiry: 'استفسار',
             priceOnRequest: 'السعر عند الطلب',
+            categoriesTitle: 'الفئات',
             scentProfile: 'طابع العطر',
             sizeHelp: 'يعتمد الاستفسار على المقاس المحدد.',
             sizeTitle: 'اختر المقاس',

@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import PublicHead from '@/components/public/public-head';
 import PublicLayout from '@/layouts/public-layout';
 import type {
     PublicImpressumPageProps,
@@ -136,9 +136,7 @@ export default function Impressum(page: PublicImpressumPageProps) {
             logo_url={page.logo_url}
             locale={page.locale}
         >
-            <Head title={page.meta.title}>
-                <meta name="description" content={page.meta.description} />
-            </Head>
+            <PublicHead meta={page.meta} />
 
             <section className="px-4 py-16 md:px-8 md:py-24">
                 <div className="mx-auto max-w-4xl">

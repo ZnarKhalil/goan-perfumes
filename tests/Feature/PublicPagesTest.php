@@ -39,6 +39,7 @@ test('home renders public props from stored content', function () {
             ->component('public/home')
             ->has('navigation', 1)
             ->where('navigation.0.slug', 'luxusparfums')
+            ->where('meta.preload_image_url', '/storage/page-sections/hero.jpg')
             ->has('promotions', 1)
             ->where('promotions.0.title', 'Aktion')
             ->where('page_sections.hero.title', 'Goan Perfume')
@@ -215,6 +216,7 @@ test('home falls back to hero section when there are no active promotions', func
 
 test('category page renders filters products and pagination', function () {
     $category = publicCategory('damenparfums', 'Damenparfums');
+    publicCategory('herrenparfums', 'Herrenparfums');
     $product = publicProduct('rose-oud', 'Rose Oud', $category);
     $attribute = Attribute::factory()->multiple()->create(['code' => 'familie']);
     $attribute->setTranslation('de', 'name', 'Familie');
@@ -230,6 +232,8 @@ test('category page renders filters products and pagination', function () {
             ->where('locale.switcher_urls.ar', fn (string $href) => str_contains($href, '/ar/damenparfums?familie=blumig'))
             ->where('filters.0.values.0.selected', true)
             ->where('selected_filters.familie.0', 'blumig')
+            ->where('related_categories.0.slug', 'herrenparfums')
+            ->where('related_categories.0.href', '/de/herrenparfums')
             ->has('products', 1)
             ->where('products.0.slug', 'rose-oud')
             ->where('pagination.total', 1),
@@ -400,9 +404,11 @@ test('product detail page renders media variants attributes and contact settings
             ->component('public/product')
             ->where('contact.whatsapp_url', 'https://wa.me/491701234567')
             ->where('product.name', 'Iris Musk')
+            ->where('meta.preload_image_url', '/storage/media/products/iris.jpg')
             ->has('product.media', 1)
             ->has('product.variants', 1)
             ->where('product.attribute_groups.0.name', 'Noten')
+            ->where('product.categories.0.href', url('/de/nischenparfums'))
             ->where('product.primary_category.slug', 'nischenparfums'),
         );
 });
