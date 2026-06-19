@@ -11,6 +11,8 @@ use Throwable;
 
 class GoogleAnalyticsService
 {
+    private const RealtimeLookbackMinutes = 29;
+
     /**
      * @return array{
      *     range_days: int,
@@ -100,7 +102,7 @@ class GoogleAnalyticsService
     private function realtime(): array
     {
         $period = Period::create(
-            CarbonImmutable::now()->subMinutes(30),
+            CarbonImmutable::now()->subMinutes(self::RealtimeLookbackMinutes),
             CarbonImmutable::now(),
         );
 
