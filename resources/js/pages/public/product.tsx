@@ -1,6 +1,7 @@
-import { Head, Link } from '@inertiajs/react';
-import { ArrowLeft, Mail, Phone, Send } from 'lucide-react';
+import { Link } from '@inertiajs/react';
 import { useState } from 'react';
+import { ArrowLeft, Mail, Phone, Send } from '@/components/public/icons';
+import PublicHead from '@/components/public/public-head';
 import PublicLayout from '@/layouts/public-layout';
 import { getPublicCopy } from '@/lib/public-copy';
 import type { PublicCopy } from '@/lib/public-copy';
@@ -38,13 +39,7 @@ export default function Product(page: PublicProductPageProps) {
             locale={page.locale}
             theme="dark"
         >
-            <Head title={page.meta.title}>
-                <meta
-                    head-key="description"
-                    name="description"
-                    content={page.meta.description}
-                />
-            </Head>
+            <PublicHead meta={page.meta} />
 
             <section className="px-4 pt-28 pb-12 md:px-8 md:pt-36 md:pb-16">
                 <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[minmax(0,1.12fr)_minmax(24rem,0.88fr)] lg:items-start">
@@ -54,6 +49,11 @@ export default function Product(page: PublicProductPageProps) {
                                 <img
                                     src={primaryMedia.url}
                                     alt={primaryMedia.alt}
+                                    width={1000}
+                                    height={1250}
+                                    loading="eager"
+                                    fetchPriority="high"
+                                    decoding="sync"
                                     className="h-full w-full object-cover"
                                 />
                             </div>
@@ -73,7 +73,10 @@ export default function Product(page: PublicProductPageProps) {
                                         <img
                                             src={media.url}
                                             alt={media.alt}
+                                            width={800}
+                                            height={800}
                                             loading="lazy"
+                                            decoding="async"
                                             className="h-full w-full object-cover transition duration-500 hover:scale-[1.05]"
                                         />
                                     </div>
@@ -83,6 +86,36 @@ export default function Product(page: PublicProductPageProps) {
                     </div>
 
                     <div className="lg:sticky lg:top-28">
+                        <nav
+                            aria-label="Breadcrumb"
+                            className="mb-6 flex flex-wrap items-center gap-2 text-sm text-stone-500"
+                        >
+                            <Link
+                                href={`/${page.locale?.current ?? 'de'}`}
+                                className="transition hover:text-[#e7c889]"
+                            >
+                                {copy.navigation.homepage}
+                            </Link>
+                            {product.primary_category && (
+                                <>
+                                    <span aria-hidden="true">/</span>
+                                    <Link
+                                        href={product.primary_category.href}
+                                        className="transition hover:text-[#e7c889]"
+                                    >
+                                        {product.primary_category.name}
+                                    </Link>
+                                </>
+                            )}
+                            <span aria-hidden="true">/</span>
+                            <span
+                                aria-current="page"
+                                className="text-stone-300"
+                            >
+                                {product.name}
+                            </span>
+                        </nav>
+
                         {product.primary_category && (
                             <Link
                                 href={product.primary_category.href}
@@ -143,6 +176,25 @@ export default function Product(page: PublicProductPageProps) {
                                 ))}
                             </div>
                         </div>
+
+                        {product.categories.length > 0 && (
+                            <section className="border-b border-white/10 py-7">
+                                <h2 className="text-sm font-semibold tracking-[0.18em] text-[#e7c889] uppercase">
+                                    {copy.product.categoriesTitle}
+                                </h2>
+                                <div className="mt-4 flex flex-wrap gap-2">
+                                    {product.categories.map((category) => (
+                                        <Link
+                                            key={category.id}
+                                            href={category.href}
+                                            className="rounded-full border border-white/15 px-3 py-1.5 text-sm text-stone-300 transition hover:border-[#e7c889]/60 hover:text-[#e7c889]"
+                                        >
+                                            {category.name}
+                                        </Link>
+                                    ))}
+                                </div>
+                            </section>
+                        )}
 
                         <div className="grid gap-5 py-7">
                             <h2 className="text-sm font-semibold tracking-[0.18em] text-[#e7c889] uppercase">

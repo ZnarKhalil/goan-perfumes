@@ -1,5 +1,7 @@
-import { Link } from '@inertiajs/react';
-import { Check, ChevronDown } from 'lucide-react';
+import { router } from '@inertiajs/react';
+import { useState } from 'react';
+import type { MouseEvent } from 'react';
+import { Check, ChevronDown } from '@/components/public/icons';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -14,13 +16,21 @@ type Props = {
     locale?: PublicLocaleProps;
     compact?: boolean;
     tone?: 'light' | 'dark';
+    onNavigate?: () => void;
+    reloadDocument?: boolean;
+    navigateDelayMs?: number;
 };
 
 export default function LocaleSwitcher({
     locale,
     compact = false,
     tone = 'light',
+    onNavigate,
+    reloadDocument = false,
+    navigateDelayMs = 0,
 }: Props) {
+    const [open, setOpen] = useState(false);
+
     if (!locale) {
         return null;
     }
@@ -32,8 +42,32 @@ export default function LocaleSwitcher({
         locale.supported.find((item) => item.code === locale.current) ??
         locale.supported[0];
 
+    const visitLocale = (
+        event: MouseEvent<HTMLButtonElement>,
+        href: string,
+        active: boolean,
+    ) => {
+        event.preventDefault();
+        setOpen(false);
+        onNavigate?.();
+
+        if (active || href === '#') {
+            return;
+        }
+
+        window.setTimeout(() => {
+            if (reloadDocument) {
+                window.location.assign(href);
+
+                return;
+            }
+
+            router.visit(href);
+        }, navigateDelayMs);
+    };
+
     return (
-        <DropdownMenu>
+        <DropdownMenu open={open} onOpenChange={setOpen}>
             <DropdownMenuTrigger asChild>
                 <button
                     type="button"
@@ -65,13 +99,17 @@ export default function LocaleSwitcher({
 
                     return (
                         <DropdownMenuItem key={item.code} asChild>
-                            <Link
-                                href={href}
+                            <button
+                                type="button"
                                 aria-label={copy.aria.showLocale(
                                     item.native_label,
                                 )}
                                 aria-current={active ? 'page' : undefined}
+                                onClick={(event) =>
+                                    visitLocale(event, href, active)
+                                }
                                 className={cn(
+                                    'w-full',
                                     'flex cursor-pointer items-center justify-between gap-3 rounded px-3 py-2 text-sm font-medium transition',
                                     isDark
                                         ? active
@@ -84,7 +122,7 @@ export default function LocaleSwitcher({
                             >
                                 <span>{item.native_label}</span>
                                 {active && <Check className="size-4" />}
-                            </Link>
+                            </button>
                         </DropdownMenuItem>
                     );
                 })}

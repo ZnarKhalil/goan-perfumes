@@ -184,7 +184,51 @@ test('admin can edit an attribute with its values', function () {
             ->component('dashboard/attributes/edit')
             ->where('attribute.name', 'Noten')
             ->where('attribute.values.0.name', 'Rose')
-            ->where('attribute.values.0.slug', 'rose'),
+            ->where('attribute.values.0.slug', 'rose')
+            ->where('attribute.value_search', '')
+            ->where('attribute.values_pagination.total', 1)
+            ->where('attribute.values_pagination.per_page', 10),
+        );
+});
+
+test('the attribute values table is paginated', function () {
+    $attribute = Attribute::factory()->create();
+
+    AttributeValue::factory()->for($attribute)->count(11)->create();
+
+    $this->actingAs($this->admin)
+        ->get("/dashboard/attributes/{$attribute->id}/edit")
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('attribute.values', 10)
+            ->where('attribute.values_pagination.total', 11)
+            ->where('attribute.values_pagination.last_page', 2),
+        );
+
+    $this->actingAs($this->admin)
+        ->get("/dashboard/attributes/{$attribute->id}/edit?page=2")
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('attribute.values', 1)
+            ->where('attribute.values_pagination.current_page', 2),
+        );
+});
+
+test('the attribute values table can be searched by name', function () {
+    $attribute = Attribute::factory()->create();
+
+    $rose = AttributeValue::factory()->for($attribute)->create(['slug' => 'rose']);
+    $rose->setTranslation('de', 'name', 'Rose');
+    $oud = AttributeValue::factory()->for($attribute)->create(['slug' => 'oud']);
+    $oud->setTranslation('de', 'name', 'Oud');
+
+    $this->actingAs($this->admin)
+        ->get("/dashboard/attributes/{$attribute->id}/edit?value_search=ros")
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('attribute.values', 1)
+            ->where('attribute.values.0.name', 'Rose')
+            ->where('attribute.value_search', 'ros'),
         );
 });
 

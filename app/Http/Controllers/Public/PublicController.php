@@ -11,6 +11,7 @@ use App\Models\PageSection;
 use App\Models\Product;
 use App\Models\Promotion;
 use App\Models\Setting;
+use App\Support\CategoryFallbackImages;
 use App\Support\Price;
 use App\Support\PublicCategoryNavigation;
 use App\Support\PublicLocale;
@@ -50,7 +51,7 @@ abstract class PublicController extends Controller
                 'locale' => $this->locale(),
                 'slug' => $category->slug,
             ]),
-            'image_url' => StorageUrl::for($category->image_path),
+            'image_url' => CategoryFallbackImages::urlFor($category),
         ];
     }
 
@@ -73,11 +74,14 @@ abstract class PublicController extends Controller
         ];
     }
 
-    protected function productCard(Product $product): array
+    protected function productCard(Product $product, ?Category $fallbackCategory = null): array
     {
         /** @var Media|null $primaryMedia */
         $primaryMedia = $product->primaryMedia;
         $name = $this->translation($product, 'name') ?? $product->slug;
+        $categoryFallbackImageUrl = $primaryMedia === null
+            ? $this->categoryFallbackImageUrl($fallbackCategory ?? $product->categories->first())
+            : null;
 
         return [
             'id' => $product->id,
@@ -88,7 +92,7 @@ abstract class PublicController extends Controller
             ]),
             'name' => $name,
             'brand' => $product->brand,
-            'image_url' => StorageUrl::for($primaryMedia?->path),
+            'image_url' => StorageUrl::for($primaryMedia?->path) ?? $categoryFallbackImageUrl,
             'image_alt' => $primaryMedia ? ($this->translation($primaryMedia, 'alt_text') ?? $primaryMedia->alt_text ?? $name) : $name,
             'min_price' => Price::decimal($product->variants_min_price),
             'max_price' => Price::decimal($product->variants_max_price),
@@ -98,6 +102,11 @@ abstract class PublicController extends Controller
                 ->all(),
             'is_featured' => $product->is_featured,
         ];
+    }
+
+    protected function categoryFallbackImageUrl(?Category $category): ?string
+    {
+        return CategoryFallbackImages::urlFor($category);
     }
 
     protected function productCardQuery(): Builder
@@ -267,28 +276,44 @@ abstract class PublicController extends Controller
      * chars. Meta is always generated on the server and never editable by
      * admins.
      *
-     * @return array{title: string, description: string}
+     * @param  array<string, string>  $alternates
+     * @param  array<int, array<string, mixed>>  $structuredData
+     * @return array{title: string, description: string, canonical: string, alternates: array<string, string>, structured_data: array<int, array<string, mixed>>, robots: string|null, preload_image_url: string|null, image_url: string|null, og_type: string, og_locale: string}
      */
-    protected function meta(?string $title, ?string $description): array
-    {
-        $title = trim((string) $title);
+    protected function meta(
+        ?string $title,
+        ?string $description,
+        ?string $canonical = null,
+        array $alternates = [],
+        array $structuredData = [],
+        ?string $robots = null,
+        ?string $preloadImageUrl = null,
+        ?string $imageUrl = null,
+        string $ogType = 'website',
+    ): array {
+        $title = $this->cleanMetaText($title) ?? '';
 
-        // For the home page (or when the title already equals the brand) we
-        // emit an empty title so the Inertia callback falls back to the brand
-        // name alone instead of producing "Goan Perfume - Goan Perfume".
+        // For the home page we emit an empty title so the Inertia callback
+        // falls back to the brand name alone instead of producing
+        // "Goan Perfume - Goan Perfume".
         if ($title === self::SITE_NAME) {
             $title = '';
         }
 
-        $description = Str::squish(strip_tags((string) $description));
-
-        if ($description === '') {
-            $description = 'Ausgewählte Luxus-, Nischen- und arabische Parfums, kuratiert von '.self::SITE_NAME.'.';
-        }
+        $description = $this->cleanMetaText($description)
+            ?? $this->defaultMetaDescription();
 
         return [
             'title' => $title,
             'description' => Str::limit($description, 160, ''),
+            'canonical' => $canonical ?? url()->current(),
+            'alternates' => $alternates,
+            'structured_data' => $structuredData,
+            'robots' => $robots,
+            'preload_image_url' => $preloadImageUrl,
+            'image_url' => $this->absolutePublicUrl($imageUrl ?? $preloadImageUrl),
+            'og_type' => $ogType,
+            'og_locale' => str_replace('-', '_', PublicLocale::formatterLocale($this->locale())),
         ];
     }
 
@@ -296,17 +321,225 @@ abstract class PublicController extends Controller
      * Derive a page's meta from a model's server-generated SEO translations,
      * falling back to its name/description translations.
      *
-     * @return array{title: string, description: string}
+     * @param  array<string, string>  $alternates
+     * @param  array<int, array<string, mixed>>  $structuredData
+     * @return array{title: string, description: string, canonical: string, alternates: array<string, string>, structured_data: array<int, array<string, mixed>>, robots: string|null, preload_image_url: string|null, image_url: string|null, og_type: string, og_locale: string}
      */
-    protected function modelMeta(object $model, ?string $descriptionField = 'description'): array
+    protected function modelMeta(
+        object $model,
+        ?string $descriptionField = 'description',
+        ?string $canonical = null,
+        array $alternates = [],
+        array $structuredData = [],
+        ?string $robots = null,
+        ?string $preloadImageUrl = null,
+        ?string $imageUrl = null,
+        string $ogType = 'website',
+    ): array {
+        $title = $this->cleanMetaText($this->translation($model, 'meta_title'))
+            ?? $this->cleanMetaText($this->translation($model, 'name'))
+            ?? $this->modelSlug($model);
+
+        $description = $this->cleanMetaText($this->translation($model, 'meta_description'))
+            ?? ($descriptionField !== null
+                ? $this->cleanMetaText($this->translation($model, $descriptionField))
+                : null)
+            ?? $this->modelFallbackDescription($title);
+
+        return $this->meta($title, $description, $canonical, $alternates, $structuredData, $robots, $preloadImageUrl, $imageUrl, $ogType);
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $structuredData
+     * @return array{title: string, description: string, canonical: string, alternates: array<string, string>, structured_data: array<int, array<string, mixed>>, robots: string|null, preload_image_url: string|null, image_url: string|null, og_type: string, og_locale: string}
+     */
+    protected function localizedMeta(
+        ?string $title,
+        ?string $description,
+        string $routeName,
+        array $parameters = [],
+        array $structuredData = [],
+        ?string $robots = null,
+        ?string $preloadImageUrl = null,
+        ?string $imageUrl = null,
+        string $ogType = 'website',
+    ): array {
+        $urls = $this->localizedRouteUrls($routeName, $parameters);
+
+        return $this->meta(
+            $title,
+            $description,
+            $urls[$this->locale()] ?? url()->current(),
+            $urls,
+            $structuredData,
+            $robots,
+            $preloadImageUrl,
+            $imageUrl,
+            $ogType,
+        );
+    }
+
+    /**
+     * @return array<int, array{id: int, slug: string, name: string, href: string}>
+     */
+    protected function relatedCategoryNavItems(Category $category, int $limit = 4): array
     {
-        $title = $this->translation($model, 'meta_title')
-            ?? $this->translation($model, 'name');
+        return collect($this->navigation())
+            ->reject(fn (array $item): bool => $item['slug'] === $category->slug)
+            ->take($limit)
+            ->values()
+            ->all();
+    }
 
-        $description = $this->translation($model, 'meta_description')
-            ?? ($descriptionField !== null ? $this->translation($model, $descriptionField) : null);
+    /**
+     * @return array<string, string>
+     */
+    protected function localizedRouteUrls(string $name, array $parameters = []): array
+    {
+        $urls = collect(PublicLocale::codes())
+            ->mapWithKeys(fn (string $locale): array => [
+                $locale => route($name, [
+                    'locale' => $locale,
+                    ...$parameters,
+                ]),
+            ])
+            ->all();
 
-        return $this->meta($title, $description);
+        return [
+            ...$urls,
+            'x-default' => route($name, [
+                'locale' => PublicLocale::Default,
+                ...$parameters,
+            ]),
+        ];
+    }
+
+    /**
+     * @param  array<int, array{name: string, url: string}>  $items
+     * @return array<string, mixed>
+     */
+    protected function breadcrumbStructuredData(array $items): array
+    {
+        return [
+            '@context' => 'https://schema.org',
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => collect($items)
+                ->values()
+                ->map(fn (array $item, int $index): array => [
+                    '@type' => 'ListItem',
+                    'position' => $index + 1,
+                    'name' => $this->cleanMetaText($item['name']) ?? self::SITE_NAME,
+                    'item' => $this->absolutePublicUrl($item['url']),
+                ])
+                ->all(),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function productStructuredData(Product $product, string $canonical): array
+    {
+        $name = $this->cleanMetaText($this->translation($product, 'name')) ?? $product->slug;
+        $description = $this->cleanMetaText($this->translation($product, 'short_description'))
+            ?? $this->cleanMetaText($this->translation($product, 'description'))
+            ?? $this->modelFallbackDescription($name);
+        $primaryCategory = $product->categories->first();
+        $brand = $this->cleanMetaText($product->brand);
+        $images = $product->media
+            ->map(fn (Media $media): ?string => $this->absolutePublicUrl(StorageUrl::for($media->path)))
+            ->filter()
+            ->values()
+            ->all();
+
+        return $this->compactStructuredData([
+            '@context' => 'https://schema.org',
+            '@type' => 'Product',
+            'name' => $name,
+            'image' => $images,
+            'description' => $description,
+            'brand' => $brand ? [
+                '@type' => 'Brand',
+                'name' => $brand,
+            ] : null,
+            'category' => $primaryCategory
+                ? ($this->cleanMetaText($this->translation($primaryCategory, 'name')) ?? $primaryCategory->slug)
+                : null,
+            'url' => $canonical,
+        ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    protected function compactStructuredData(array $data): array
+    {
+        return collect($data)
+            ->map(function (mixed $value): mixed {
+                if (is_array($value)) {
+                    return $this->compactStructuredData($value);
+                }
+
+                return is_string($value) ? $this->cleanMetaText($value) : $value;
+            })
+            ->reject(fn (mixed $value): bool => $value === null || $value === '' || $value === [])
+            ->all();
+    }
+
+    protected function absolutePublicUrl(?string $url): ?string
+    {
+        if ($url === null || $url === '') {
+            return null;
+        }
+
+        if (Str::startsWith($url, ['http://', 'https://'])) {
+            return $url;
+        }
+
+        return url($url);
+    }
+
+    private function cleanMetaText(?string $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $value = Str::squish(strip_tags($value));
+
+        return $value === '' ? null : $value;
+    }
+
+    private function defaultMetaDescription(): string
+    {
+        return match ($this->locale()) {
+            'en' => 'Discover luxury, niche, and Arabic perfumes at Goan Perfume in Kelheim, curated with personal fragrance advice.',
+            'ar' => 'اكتشف عطوراً فاخرة ونادرة وعربية لدى Goan Perfume في كيلهايم مع استشارة عطرية شخصية.',
+            default => 'Entdecken Sie Luxus-, Nischen- und arabische Parfums bei Goan Perfume in Kelheim mit persönlicher Duftberatung.',
+        };
+    }
+
+    private function modelFallbackDescription(?string $title): string
+    {
+        $name = $title !== null && $title !== '' ? $title : self::SITE_NAME;
+
+        return match ($this->locale()) {
+            'en' => "Discover {$name} at Goan Perfume: curated fragrances with personal advice in Kelheim.",
+            'ar' => "اكتشف {$name} لدى Goan Perfume: عطور مختارة مع استشارة شخصية في كيلهايم.",
+            default => "Entdecken Sie {$name} bei Goan Perfume: kuratierte Parfums mit persönlicher Beratung in Kelheim.",
+        };
+    }
+
+    private function modelSlug(object $model): ?string
+    {
+        if (! method_exists($model, 'getAttribute')) {
+            return null;
+        }
+
+        $slug = $model->getAttribute('slug');
+
+        return is_string($slug) ? $slug : null;
     }
 
     protected function setting(string $key): ?string

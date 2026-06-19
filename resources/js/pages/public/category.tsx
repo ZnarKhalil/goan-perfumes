@@ -1,7 +1,9 @@
-import { Head, Link } from '@inertiajs/react';
-import { ChevronDown, Menu, Search, X } from 'lucide-react';
+import { Link, router } from '@inertiajs/react';
+import type { MouseEvent } from 'react';
 import { useMemo, useState } from 'react';
+import { ChevronDown, Menu, Search, X } from '@/components/public/icons';
 import ProductGrid from '@/components/public/product-grid';
+import PublicHead from '@/components/public/public-head';
 import {
     Sheet,
     SheetContent,
@@ -36,31 +38,26 @@ export default function Category(page: PublicCategoryPageProps) {
             locale={page.locale}
             theme="dark"
         >
-            <Head title={page.meta.title}>
-                <meta name="description" content={page.meta.description} />
-            </Head>
-            <section className="relative min-h-[58svh] overflow-hidden">
-                {page.category.banner_url ? (
-                    <img
-                        src={page.category.banner_url}
-                        alt=""
-                        className="absolute inset-0 h-full w-full object-cover"
-                    />
-                ) : (
-                    <div className="absolute inset-0 bg-[radial-gradient(120%_120%_at_30%_10%,#241708,#0b0907)]" />
-                )}
-                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,5,4,0.5)_0%,rgba(7,5,4,0.35)_45%,rgba(11,9,7,0.96)_100%)]" />
-                <div className="absolute inset-0 grain-layer opacity-[0.1] mix-blend-overlay" />
-                <div className="relative flex min-h-[58svh] items-end px-4 pt-28 pb-12 md:px-8 md:pt-32 md:pb-16">
-                    <div className="max-w-4xl">
-                        <p className="mb-5 flex items-center gap-3 text-[0.7rem] font-semibold tracking-[0.38em] text-[#e7c889] uppercase">
-                            <span className="vitrine-pulse inline-block size-2 rounded-full bg-[#e7c889]" />
-                            {copy.category.eyebrow}
-                        </p>
-                        <h1 className="font-display text-5xl leading-[1.02] font-light text-stone-50 md:text-7xl">
-                            {page.category.name}
-                        </h1>
-                        <p className="mt-5 max-w-2xl text-base leading-7 text-stone-300 md:text-lg">
+            <PublicHead meta={page.meta} />
+            <section className="relative overflow-hidden border-b border-white/10">
+                <div className="absolute inset-0 category-animated-field" />
+                <div className="absolute top-1/2 left-[-18%] h-14 w-[76%] -translate-y-1/2 category-ribbon" />
+                <div className="absolute top-1/2 right-[-24%] h-10 w-[70%] -translate-y-1/2 category-ribbon category-ribbon-reverse" />
+                <div className="absolute inset-y-0 -left-1/3 w-1/2 category-light-sweep" />
+                <div className="absolute inset-0 grain-layer opacity-[0.12] mix-blend-overlay" />
+                <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,5,4,0.82)_0%,rgba(7,5,4,0.55)_48%,rgba(11,9,7,0.88)_100%)]" />
+                <div className="relative px-4 py-6 md:px-8 md:py-7">
+                    <div className="mx-auto flex max-w-7xl flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                        <div>
+                            <p className="mb-2 flex items-center gap-3 text-[0.65rem] font-semibold tracking-[0.32em] text-[#e7c889] uppercase">
+                                <span className="vitrine-pulse inline-block size-1.5 rounded-full bg-[#e7c889]" />
+                                {copy.category.eyebrow}
+                            </p>
+                            <h1 className="font-display text-3xl leading-tight font-light text-stone-50 md:text-5xl">
+                                {page.category.name}
+                            </h1>
+                        </div>
+                        <p className="max-w-xl text-sm leading-6 text-stone-300 md:text-right">
                             {page.category.description}
                         </p>
                     </div>
@@ -70,31 +67,37 @@ export default function Category(page: PublicCategoryPageProps) {
             <section className="px-4 py-12 md:px-8 md:py-16">
                 <div className="mx-auto max-w-7xl">
                     <div className="grid gap-8">
-                        <div className="flex flex-col justify-between gap-3 border-b border-white/10 pb-5 md:flex-row md:items-end">
-                            <div>
-                                <p className="text-sm text-stone-400">
-                                    {copy.category.results(
-                                        page.pagination.from,
-                                        page.pagination.to,
-                                        page.pagination.total,
-                                    )}
-                                </p>
-                                <h2 className="mt-2 font-display text-3xl font-light text-stone-50">
-                                    {copy.category.filteredSelection}
-                                </h2>
-                            </div>
-                            <div className="flex flex-col gap-3 md:items-end">
-                                <p className="max-w-sm text-sm leading-6 text-stone-400">
-                                    {copy.category.filterHelp}
-                                </p>
-                                <FilterSheet
-                                    activeFilters={activeFilters}
-                                    categoryHref={page.category.href}
-                                    copy={copy}
-                                    filters={page.filters}
-                                    isRtl={isRtl}
-                                    selectedFilters={page.selected_filters}
-                                />
+                        <div
+                            id="product-results"
+                            tabIndex={-1}
+                            className="scroll-mt-24 focus:outline-none"
+                        >
+                            <div className="flex flex-col justify-between gap-3 border-b border-white/10 pb-5 md:flex-row md:items-end">
+                                <div>
+                                    <p className="text-sm text-stone-400">
+                                        {copy.category.results(
+                                            page.pagination.from,
+                                            page.pagination.to,
+                                            page.pagination.total,
+                                        )}
+                                    </p>
+                                    <h2 className="mt-2 font-display text-3xl font-light text-stone-50">
+                                        {copy.category.filteredSelection}
+                                    </h2>
+                                </div>
+                                <div className="flex flex-col gap-3 md:items-end">
+                                    <p className="max-w-sm text-sm leading-6 text-stone-400">
+                                        {copy.category.filterHelp}
+                                    </p>
+                                    <FilterSheet
+                                        activeFilters={activeFilters}
+                                        categoryHref={page.category.href}
+                                        copy={copy}
+                                        filters={page.filters}
+                                        isRtl={isRtl}
+                                        selectedFilters={page.selected_filters}
+                                    />
+                                </div>
                             </div>
                         </div>
 
@@ -105,6 +108,25 @@ export default function Category(page: PublicCategoryPageProps) {
                         />
 
                         <Pagination copy={copy} links={page.pagination.links} />
+
+                        {page.related_categories.length > 0 && (
+                            <section className="border-t border-white/10 pt-8">
+                                <h2 className="font-display text-2xl font-light text-stone-50">
+                                    {copy.category.relatedTitle}
+                                </h2>
+                                <div className="mt-4 flex flex-wrap gap-2">
+                                    {page.related_categories.map((category) => (
+                                        <Link
+                                            key={category.id}
+                                            href={category.href}
+                                            className="rounded-full border border-white/15 px-4 py-2 text-sm text-stone-300 transition hover:border-[#e7c889]/60 hover:text-[#e7c889]"
+                                        >
+                                            {category.name}
+                                        </Link>
+                                    ))}
+                                </div>
+                            </section>
+                        )}
                     </div>
                 </div>
             </section>
@@ -433,6 +455,31 @@ function Pagination({
     copy: PublicCopy;
     links: PublicCategoryPageProps['pagination']['links'];
 }) {
+    function visitPage(event: MouseEvent<Element>, href: string | null): void {
+        if (!href) {
+            event.preventDefault();
+
+            return;
+        }
+
+        event.preventDefault();
+
+        router.visit(href, {
+            preserveScroll: true,
+            onSuccess: () => {
+                window.requestAnimationFrame(() => {
+                    const productResults =
+                        document.getElementById('product-results');
+
+                    productResults?.scrollIntoView({
+                        block: 'start',
+                    });
+                    productResults?.focus({ preventScroll: true });
+                });
+            },
+        });
+    }
+
     return (
         <nav
             aria-label={copy.pagination.label}
@@ -442,6 +489,7 @@ function Pagination({
                 <Link
                     key={link.label}
                     href={link.href ?? '#'}
+                    onClick={(event) => visitPage(event, link.href)}
                     className={cn(
                         'min-w-10 rounded-full border px-3 py-2 text-center text-sm transition',
                         link.active

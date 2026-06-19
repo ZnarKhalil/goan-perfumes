@@ -1,6 +1,6 @@
-import { router, useForm } from '@inertiajs/react';
+import { Link, router, useForm } from '@inertiajs/react';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import DataTable from '@/components/dashboard/data-table';
 import TranslationTabs, {
@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import attributesRoutes from '@/routes/dashboard/attributes';
 import valueRoutes from '@/routes/dashboard/attributes/values';
 
 const FIELDS: TranslationField[] = [{ name: 'name', label: 'Name' }];
@@ -30,9 +31,28 @@ export type AttributeValueRow = {
     translations: TranslationsShape;
 };
 
+type PaginationLink = {
+    url: string | null;
+    label: string;
+    active: boolean;
+};
+
+export type ValuesPagination = {
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    from: number | null;
+    to: number | null;
+    links: PaginationLink[];
+};
+
 type Props = {
     attributeId: number;
     values: AttributeValueRow[];
+    pagination: ValuesPagination;
+    search: string;
+    nextSortOrder: number;
 };
 
 type FormData = {
@@ -42,24 +62,54 @@ type FormData = {
     _method?: 'PUT';
 };
 
-// The next free sort order within this attribute — used as the create default
-// so the per-attribute unique rule is not tripped on the common case.
-const nextSortOrderOf = (values: AttributeValueRow[]): number => {
-    const orders = values.map((value) => value.sort_order);
-
-    return orders.length > 0 ? Math.max(...orders) + 1 : 0;
-};
-
-const blankForm = (values: AttributeValueRow[]): FormData => ({
-    sort_order: nextSortOrderOf(values),
+const blankForm = (nextSortOrder: number): FormData => ({
+    sort_order: nextSortOrder,
     is_active: true,
     translations: emptyTranslations(FIELDS),
 });
 
-export default function AttributeValueEditor({ attributeId, values }: Props) {
+export default function AttributeValueEditor({
+    attributeId,
+    values,
+    pagination,
+    search,
+    nextSortOrder,
+}: Props) {
     const [editing, setEditing] = useState<AttributeValueRow | null>(null);
+    const [searchTerm, setSearchTerm] = useState(search);
+    const isInitialMount = useRef(true);
     const { data, setData, post, processing, errors, reset, clearErrors } =
-        useForm<FormData>(blankForm(values));
+        useForm<FormData>(blankForm(nextSortOrder));
+
+    // Debounce the search input and refresh only the attribute prop so the form
+    // state on the right is preserved while typing.
+    useEffect(() => {
+        if (isInitialMount.current) {
+            isInitialMount.current = false;
+
+            return;
+        }
+
+        const timeout = setTimeout(() => {
+            if (searchTerm === search) {
+                return;
+            }
+
+            router.get(
+                attributesRoutes.edit({ attribute: attributeId }).url,
+                searchTerm ? { value_search: searchTerm } : {},
+                {
+                    only: ['attribute'],
+                    preserveState: true,
+                    preserveScroll: true,
+                    replace: true,
+                },
+            );
+        }, 350);
+
+        return () => clearTimeout(timeout);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchTerm]);
 
     const selectForEdit = (value: AttributeValueRow) => {
         clearErrors();
@@ -72,11 +122,11 @@ export default function AttributeValueEditor({ attributeId, values }: Props) {
         });
     };
 
-    const resetToCreate = (nextValues: AttributeValueRow[] = values) => {
+    const resetToCreate = (nextSort: number = nextSortOrder) => {
         clearErrors();
         setEditing(null);
         reset();
-        setData(blankForm(nextValues));
+        setData(blankForm(nextSort));
     };
 
     const submit = (e: FormEvent) => {
@@ -92,16 +142,16 @@ export default function AttributeValueEditor({ attributeId, values }: Props) {
         post(url, {
             preserveScroll: true,
             onSuccess: (page) => {
-                // Read the fresh values from the reloaded page so the next
+                // Read the fresh next sort order from the reloaded page so the
                 // create default reflects the value just added.
-                const freshValues =
+                const freshNextSort =
                     (
                         page.props as {
-                            attribute?: { values?: AttributeValueRow[] };
+                            attribute?: { next_value_sort_order?: number };
                         }
-                    ).attribute?.values ?? values;
+                    ).attribute?.next_value_sort_order ?? nextSortOrder;
 
-                resetToCreate(freshValues);
+                resetToCreate(freshNextSort);
             },
         });
     };
@@ -154,62 +204,126 @@ export default function AttributeValueEditor({ attributeId, values }: Props) {
             </div>
 
             <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_24rem]">
-                <DataTable<AttributeValueRow>
-                    rows={values}
-                    rowKey={(row) => row.id}
-                    columns={[
-                        {
-                            key: 'name',
-                            label: 'Name',
-                            render: (row) => (
-                                <div>
-                                    <div className="font-medium">
-                                        {row.name}
+                <div className="grid content-start gap-3">
+                    <Input
+                        type="search"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        placeholder="Werte nach Name suchen…"
+                        className="max-w-sm"
+                        aria-label="Werte nach Name suchen"
+                    />
+
+                    <DataTable<AttributeValueRow>
+                        rows={values}
+                        rowKey={(row) => row.id}
+                        emptyMessage={
+                            search
+                                ? 'Keine Werte gefunden.'
+                                : 'Noch keine Werte angelegt.'
+                        }
+                        columns={[
+                            {
+                                key: 'name',
+                                label: 'Name',
+                                render: (row) => (
+                                    <div>
+                                        <div className="font-medium">
+                                            {row.name}
+                                        </div>
+                                        <div className="text-xs text-muted-foreground">
+                                            {row.slug}
+                                        </div>
                                     </div>
-                                    <div className="text-xs text-muted-foreground">
-                                        {row.slug}
-                                    </div>
-                                </div>
-                            ),
-                        },
-                        {
-                            key: 'sort_order',
-                            label: 'Reihenfolge',
-                            className: 'w-28',
-                        },
-                        {
-                            key: 'status',
-                            label: 'Status',
-                            className: 'w-24',
-                            render: (row) =>
-                                row.is_active ? (
-                                    <Badge variant="outline">Aktiv</Badge>
-                                ) : (
-                                    <Badge variant="secondary">Inaktiv</Badge>
                                 ),
-                        },
-                    ]}
-                    actions={(row) => (
-                        <>
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => selectForEdit(row)}
-                            >
-                                <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => remove(row)}
-                            >
-                                <Trash2 className="h-4 w-4" />
-                            </Button>
-                        </>
+                            },
+                            {
+                                key: 'sort_order',
+                                label: 'Reihenfolge',
+                                className: 'w-28',
+                            },
+                            {
+                                key: 'status',
+                                label: 'Status',
+                                className: 'w-24',
+                                render: (row) =>
+                                    row.is_active ? (
+                                        <Badge variant="outline">Aktiv</Badge>
+                                    ) : (
+                                        <Badge variant="secondary">
+                                            Inaktiv
+                                        </Badge>
+                                    ),
+                            },
+                        ]}
+                        actions={(row) => (
+                            <>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => selectForEdit(row)}
+                                >
+                                    <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => remove(row)}
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            </>
+                        )}
+                    />
+
+                    {pagination.last_page > 1 && (
+                        <nav
+                            aria-label="Seitennavigation"
+                            className="flex flex-wrap items-center justify-between gap-3"
+                        >
+                            <p className="text-sm text-muted-foreground">
+                                {pagination.from}–{pagination.to} von{' '}
+                                {pagination.total} Werten
+                            </p>
+                            <div className="flex flex-wrap gap-1">
+                                {pagination.links.map((link, index) =>
+                                    link.url ? (
+                                        <Button
+                                            key={index}
+                                            asChild
+                                            variant={
+                                                link.active
+                                                    ? 'default'
+                                                    : 'outline'
+                                            }
+                                            size="sm"
+                                        >
+                                            <Link
+                                                href={link.url}
+                                                only={['attribute']}
+                                                preserveState
+                                                preserveScroll
+                                            >
+                                                {paginationLabel(link.label)}
+                                            </Link>
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            key={index}
+                                            variant="outline"
+                                            size="sm"
+                                            disabled
+                                        >
+                                            {paginationLabel(link.label)}
+                                        </Button>
+                                    ),
+                                )}
+                            </div>
+                        </nav>
                     )}
-                />
+                </div>
 
                 <form
                     onSubmit={submit}
@@ -279,4 +393,16 @@ export default function AttributeValueEditor({ attributeId, values }: Props) {
             </div>
         </section>
     );
+}
+
+function paginationLabel(label: string): string {
+    if (label.includes('Previous')) {
+        return '‹ Zurück';
+    }
+
+    if (label.includes('Next')) {
+        return 'Weiter ›';
+    }
+
+    return label;
 }

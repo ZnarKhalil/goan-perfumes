@@ -1,7 +1,10 @@
 import { Head } from '@inertiajs/react';
 import AttributeForm from '@/components/dashboard/attributes/attribute-form';
 import AttributeValueEditor from '@/components/dashboard/attributes/attribute-value-editor';
-import type { AttributeValueRow } from '@/components/dashboard/attributes/attribute-value-editor';
+import type {
+    AttributeValueRow,
+    ValuesPagination,
+} from '@/components/dashboard/attributes/attribute-value-editor';
 import type { TranslationsShape } from '@/components/dashboard/translation-tabs';
 import Heading from '@/components/heading';
 import { adminTitle, dashboardLabels } from '@/lib/de';
@@ -16,7 +19,10 @@ type Props = {
         is_multiple: boolean;
         translations: TranslationsShape;
         name: string;
+        next_value_sort_order: number;
+        value_search: string;
         values: AttributeValueRow[];
+        values_pagination: ValuesPagination;
     };
 };
 
@@ -45,6 +51,9 @@ export default function AttributesEdit({ attribute }: Props) {
                 <AttributeValueEditor
                     attributeId={attribute.id}
                     values={attribute.values}
+                    pagination={attribute.values_pagination}
+                    search={attribute.value_search}
+                    nextSortOrder={attribute.next_value_sort_order}
                 />
             </div>
         </>

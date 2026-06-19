@@ -1,8 +1,8 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/react-starter-kit",
+    "name": "goan/perfume",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
+    "description": "Product showcase website and admin dashboard for Goan Perfume.",
     "keywords": [
         "laravel",
         "framework"
@@ -14,7 +14,8 @@
         "laravel/fortify": "^1.34",
         "laravel/framework": "^13.7",
         "laravel/tinker": "^3.0",
-        "laravel/wayfinder": "^0.1.14"
+        "laravel/wayfinder": "^0.1.14",
+        "spatie/laravel-analytics": "^5.7"
     },
     "require-dev": {
         "fakerphp/faker": "^1.24",

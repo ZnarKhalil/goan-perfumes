@@ -168,6 +168,14 @@ export type PublicPagination = {
 export type PublicMeta = {
     title: string;
     description: string;
+    canonical: string;
+    alternates: Record<PublicLocaleCode | 'x-default', string>;
+    structured_data: Record<string, unknown>[];
+    robots: string | null;
+    preload_image_url: string | null;
+    image_url: string | null;
+    og_type: string;
+    og_locale: string;
 };
 
 export type PublicLayoutProps = {
@@ -198,8 +206,8 @@ export type PublicCategoryPageProps = {
     meta: PublicMeta;
     category: PublicCategoryNavItem & {
         description: string;
-        banner_url: string | null;
     };
+    related_categories: PublicCategoryNavItem[];
     filters: PublicFilterGroup[];
     selected_filters: Record<string, string[]>;
     products: PublicProductCard[];
@@ -216,6 +224,22 @@ export type PublicProductPageProps = {
 };
 
 export type PublicContactPageProps = {
+    navigation: PublicCategoryNavItem[];
+    contact: PublicContactSettings;
+    logo_url: string | null;
+    locale?: PublicLocaleProps;
+    meta: PublicMeta;
+};
+
+export type PublicPrivacyPolicyPageProps = {
+    navigation: PublicCategoryNavItem[];
+    contact: PublicContactSettings;
+    logo_url: string | null;
+    locale?: PublicLocaleProps;
+    meta: PublicMeta;
+};
+
+export type PublicImpressumPageProps = {
     navigation: PublicCategoryNavItem[];
     contact: PublicContactSettings;
     logo_url: string | null;

@@ -1,6 +1,8 @@
-import { Link } from '@inertiajs/react';
-import { Facebook, Instagram, Music2 } from 'lucide-react';
+import { Link, usePage } from '@inertiajs/react';
+import { useEffect } from 'react';
+import CookieConsent from '@/components/public/cookie-consent';
 import FloatingContactSidebar from '@/components/public/floating-contact-sidebar';
+import { Facebook, Instagram, Music2 } from '@/components/public/icons';
 import SiteHeader from '@/components/public/site-header';
 import { getPublicCopy } from '@/lib/public-copy';
 import { cn } from '@/lib/utils';
@@ -14,10 +16,17 @@ export default function PublicLayout({
     theme = 'light',
     children,
 }: PublicLayoutProps) {
+    const { url } = usePage();
     const copy = getPublicCopy(locale);
     const direction = locale?.dir ?? 'ltr';
     const isDark = theme === 'dark';
     const isArabic = locale?.current === 'ar';
+    const privacyHref = locale
+        ? `/${locale.current}/datenschutz`
+        : '/datenschutz';
+    const impressumHref = locale
+        ? `/${locale.current}/impressum`
+        : '/impressum';
     const footerSocialLinks = [
         {
             label: 'Instagram',
@@ -40,11 +49,23 @@ export default function PublicLayout({
             link.href !== null,
     );
 
+    useEffect(() => {
+        document.body.style.pointerEvents = '';
+        document.body.style.overflow = '';
+        document.body.removeAttribute('data-scroll-locked');
+        document
+            .querySelectorAll(
+                '[data-slot="sheet-overlay"], [data-slot="dropdown-menu-content"]',
+            )
+            .forEach((element) => element.remove());
+    }, [url]);
+
     return (
         <div
             dir={direction}
             className={cn(
                 'min-h-screen font-body antialiased',
+                'max-w-full overflow-x-clip',
                 isArabic && 'font-arabic',
                 isDark
                     ? 'bg-[#0b0907] text-stone-100'
@@ -87,8 +108,8 @@ export default function PublicLayout({
                                 className={cn(
                                     'text-[0.65rem] font-semibold tracking-[0.3em] uppercase',
                                     isDark
-                                        ? 'text-stone-500'
-                                        : 'text-stone-400',
+                                        ? 'text-stone-300'
+                                        : 'text-stone-600',
                                 )}
                             >
                                 {copy.footer.collectionsTitle}
@@ -117,7 +138,7 @@ export default function PublicLayout({
                         <p
                             className={cn(
                                 'text-[0.65rem] font-semibold tracking-[0.3em] uppercase',
-                                isDark ? 'text-stone-500' : 'text-stone-400',
+                                isDark ? 'text-stone-300' : 'text-stone-600',
                             )}
                         >
                             {copy.footer.contactTitle}
@@ -220,11 +241,42 @@ export default function PublicLayout({
 
                 <div
                     className={cn(
-                        'mx-auto mt-12 max-w-7xl border-t pt-6 text-xs',
+                        'mx-auto mt-12 flex max-w-7xl flex-col gap-3 border-t pt-6 text-xs sm:flex-row sm:items-center sm:justify-between',
                         isDark ? 'border-white/10' : 'border-stone-200',
                     )}
                 >
-                    © {new Date().getFullYear()} {copy.footer.brand}
+                    <p>
+                        © {new Date().getFullYear()} {copy.footer.brand}
+                    </p>
+                    <div className="flex flex-wrap items-center gap-4">
+                        <Link
+                            href={impressumHref}
+                            className={cn(
+                                'transition-colors duration-300',
+                                isDark
+                                    ? 'hover:text-[#e7c889]'
+                                    : 'hover:text-stone-900',
+                            )}
+                        >
+                            {copy.footer.impressumLink}
+                        </Link>
+                        <Link
+                            href={privacyHref}
+                            className={cn(
+                                'transition-colors duration-300',
+                                isDark
+                                    ? 'hover:text-[#e7c889]'
+                                    : 'hover:text-stone-900',
+                            )}
+                        >
+                            {copy.cookies.privacyLink}
+                        </Link>
+                        <CookieConsent
+                            copy={copy}
+                            privacyHref={privacyHref}
+                            theme={theme}
+                        />
+                    </div>
                 </div>
             </footer>
         </div>

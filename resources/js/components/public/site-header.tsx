@@ -1,6 +1,6 @@
 import { Link } from '@inertiajs/react';
-import { Menu } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { Menu } from '@/components/public/icons';
 import LocaleSwitcher from '@/components/public/locale-switcher';
 import SiteDrawer from '@/components/public/site-drawer';
 import type { PublicCopy } from '@/lib/public-copy';
@@ -55,8 +55,8 @@ export default function SiteHeader({
                     : 'border-b border-stone-200/80 bg-[#fbf8f2]/90 backdrop-blur',
             )}
         >
-            <div className="grid h-16 grid-cols-[1fr_auto_1fr] items-center px-4 md:h-20 md:px-8">
-                <div className="flex items-center">
+            <div className="grid h-16 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center px-4 md:h-20 md:px-8">
+                <div className="flex min-w-0 items-center">
                     <SiteDrawer
                         navigation={navigation}
                         homeHref={homeHref}
@@ -82,17 +82,14 @@ export default function SiteHeader({
 
                 <Link
                     href={homeHref}
-                    className="flex items-center justify-center text-center"
+                    className="flex max-w-[min(12rem,48vw)] min-w-0 items-center justify-center text-center"
                     aria-label={copy.aria.goHome}
                 >
                     {logoUrl ? (
                         <img
                             src={logoUrl}
                             alt="Goan Perfume"
-                            className={cn(
-                                'max-h-10 w-auto transition',
-                                isDark && 'brightness-0 invert',
-                            )}
+                            className="max-h-10 max-w-full object-contain transition"
                         />
                     ) : (
                         <span
@@ -106,7 +103,7 @@ export default function SiteHeader({
                     )}
                 </Link>
 
-                <div className="flex items-center justify-end gap-2">
+                <div className="flex min-w-0 items-center justify-end gap-2">
                     <div className="hidden md:block">
                         <LocaleSwitcher
                             locale={locale}

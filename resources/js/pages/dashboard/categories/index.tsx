@@ -15,7 +15,6 @@ type CategoryRow = {
     parent_name: string | null;
     sort_order: number;
     is_active: boolean;
-    image_url: string | null;
 };
 
 type Props = {
@@ -57,23 +56,6 @@ export default function CategoriesIndex({ categories }: Props) {
                     rows={categories}
                     rowKey={(row) => row.id}
                     columns={[
-                        {
-                            key: 'banner',
-                            label: 'Banner',
-                            className: 'w-20',
-                            render: (row) =>
-                                row.image_url ? (
-                                    <img
-                                        src={row.image_url}
-                                        alt=""
-                                        className="h-10 w-16 rounded object-cover"
-                                    />
-                                ) : (
-                                    <span className="text-xs text-muted-foreground">
-                                        —
-                                    </span>
-                                ),
-                        },
                         {
                             key: 'name',
                             label: 'Name',

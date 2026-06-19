@@ -215,15 +215,6 @@
     }
 }
 
-@keyframes vitrine-shimmer {
-    0% {
-        background-position: -200% 0;
-    }
-    100% {
-        background-position: 200% 0;
-    }
-}
-
 @keyframes vitrine-pulse {
     0%,
     100% {
@@ -249,6 +240,94 @@
     100% {
         transform: translate3d(0, 0, 0);
     }
+}
+
+@keyframes category-ribbon {
+    0% {
+        opacity: 0.32;
+        transform: translate3d(-8%, -50%, 0) rotate(-8deg) scaleX(0.92);
+    }
+    45% {
+        opacity: 0.86;
+    }
+    100% {
+        opacity: 0.48;
+        transform: translate3d(18%, -50%, 0) rotate(-8deg) scaleX(1.12);
+    }
+}
+
+@keyframes category-light-sweep {
+    0%,
+    20% {
+        opacity: 0;
+        transform: translateX(-70%) skewX(-18deg);
+    }
+    38%,
+    58% {
+        opacity: 0.75;
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(260%) skewX(-18deg);
+    }
+}
+
+@utility category-animated-field {
+    background:
+        linear-gradient(
+            115deg,
+            rgba(231, 200, 137, 0.32),
+            transparent 22%,
+            rgba(123, 70, 29, 0.28) 45%,
+            transparent 72%
+        ),
+        conic-gradient(
+            from 138deg at 50% 50%,
+            rgba(231, 200, 137, 0.28),
+            transparent 24%,
+            rgba(149, 91, 38, 0.24),
+            transparent 62%,
+            rgba(231, 200, 137, 0.18)
+        ),
+        linear-gradient(100deg, #0b0907 0%, #17100a 48%, #0b0907 100%);
+    background-size:
+        220% 220%,
+        190% 190%,
+        100% 100%;
+}
+
+@utility category-ribbon {
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(231, 200, 137, 0.08) 12%,
+        rgba(231, 200, 137, 0.36) 42%,
+        rgba(255, 247, 225, 0.22) 52%,
+        rgba(121, 67, 25, 0.2) 72%,
+        transparent
+    );
+    filter: blur(0.5px);
+    mix-blend-mode: screen;
+    animation: category-ribbon 7.5s ease-in-out infinite alternate;
+    will-change: transform, opacity;
+}
+
+@utility category-ribbon-reverse {
+    animation-direction: alternate-reverse;
+    animation-duration: 9.5s;
+    opacity: 0.58;
+}
+
+@utility category-light-sweep {
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(231, 200, 137, 0.32),
+        rgba(255, 250, 240, 0.2),
+        transparent
+    );
+    animation: category-light-sweep 5.8s ease-in-out infinite;
+    will-change: transform, opacity;
 }
 
 .vitrine-aurora {
@@ -294,7 +373,6 @@
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    animation: vitrine-shimmer 7s linear infinite;
 }
 
 .vitrine-group:hover .vitrine-marquee,
@@ -309,7 +387,8 @@
     .vitrine-marquee-fast,
     .vitrine-pulse,
     .vitrine-drift,
-    .vitrine-shimmer-text {
+    .category-ribbon,
+    .category-light-sweep {
         animation: none !important;
     }
 

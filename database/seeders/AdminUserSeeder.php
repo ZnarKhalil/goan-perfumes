@@ -10,14 +10,14 @@ class AdminUserSeeder extends Seeder
 {
     public function run(): void
     {
-        User::updateOrCreate(
-            ['email' => 'admin@goanperfume.de'],
-            [
+        User::query()
+            ->firstOrNew(['email' => 'admin@goanperfume.de'])
+            ->forceFill([
                 'name' => 'Goan Perfume Admin',
-                'password' => Hash::make('password'),
+                'password' => Hash::make(config('auth.admin_password')),
                 'is_admin' => true,
                 'email_verified_at' => now(),
-            ],
-        );
+            ])
+            ->save();
     }
 }

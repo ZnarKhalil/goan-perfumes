@@ -144,11 +144,8 @@ return [
     */
 
     'features' => [
-        // Self-service registration and password reset are disabled: this is an
-        // admin-only application, users come from AdminUserSeeder and the only
-        // public auth flow is login. Email verification stays enabled because
-        // the authenticated settings/profile page wires into Fortify's resend
-        // verification endpoint.
+        // Self-service registration and password reset are disabled. Admins are
+        // seeded and can change passwords from the authenticated security page.
         Features::emailVerification(),
         Features::twoFactorAuthentication([
             'confirm' => true,

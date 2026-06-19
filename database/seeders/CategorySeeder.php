@@ -12,6 +12,7 @@ class CategorySeeder extends Seeder
     {
         $categories = PerfumeCatalog::categories();
         $slugs = collect($categories)->pluck('slug')->all();
+        $translations = PerfumeCatalog::categoryTranslations();
 
         Category::query()
             ->whereNotIn('slug', $slugs)
@@ -23,12 +24,16 @@ class CategorySeeder extends Seeder
                 [
                     'sort_order' => $index,
                     'is_active' => true,
-                    'image_path' => null,
                 ],
             );
 
-            foreach (['de', 'en', 'ar'] as $locale) {
-                $model->setTranslation($locale, 'name', $category['name']);
+            $names = PerfumeCatalog::localized(
+                $category['name'],
+                $translations[$category['slug']] ?? [],
+            );
+
+            foreach ($names as $locale => $name) {
+                $model->setTranslation($locale, 'name', $name);
             }
 
             $model->translations()

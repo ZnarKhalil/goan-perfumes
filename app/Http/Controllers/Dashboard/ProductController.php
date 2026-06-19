@@ -11,11 +11,14 @@ use App\Models\Category;
 use App\Models\Media;
 use App\Models\Product;
 use App\Models\ProductVariant;
+use App\Models\Translation;
 use App\Services\MediaService;
 use App\Support\Price;
 use App\Support\PublicLocale;
 use App\Support\StorageUrl;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -37,20 +40,46 @@ class ProductController extends Controller
         'meta_description',
     ];
 
+    private const SORTABLE_COLUMNS = ['name', 'brand', 'price', 'variants', 'created'];
+
     public function __construct(private readonly MediaService $mediaService) {}
 
-    public function index(): Response
+    public function index(Request $request): Response
     {
+        $filters = $this->resolveFilters($request);
+
         $products = Product::query()
             ->with(['translations', 'categories.translations', 'primaryMedia'])
             ->withMin('variants', 'price')
             ->withMax('variants', 'price')
             ->withCount('variants')
-            ->orderByDesc('id')
+            ->addSelect(['de_name' => Translation::query()
+                ->select('value')
+                ->whereColumn('translatable_id', 'products.id')
+                ->where('translatable_type', Product::class)
+                ->where('locale', 'de')
+                ->where('field', 'name')
+                ->limit(1)])
+            ->when(filled($filters['name']), fn ($query) => $query
+                ->whereHas('translations', fn ($translation) => $translation
+                    ->where('field', 'name')
+                    ->whereRaw('LOWER(value) LIKE ?', ['%'.Str::lower($filters['name']).'%'])))
+            ->when(filled($filters['brand']), fn ($query) => $query
+                ->whereRaw('LOWER(brand) LIKE ?', ['%'.Str::lower($filters['brand']).'%']))
+            ->when($filters['category'] !== null, fn ($query) => $query
+                ->whereHas('categories', fn ($category) => $category
+                    ->whereKey($filters['category'])))
+            ->when($filters['status'] !== null, fn ($query) => $query
+                ->where('is_active', $filters['status'] === 'active'))
+            ->when($filters['featured'] !== null, fn ($query) => $query
+                ->where('is_featured', $filters['featured'] === 'yes'))
+            ->tap(fn ($query) => $this->applySort($query, $filters['sort'], $filters['direction']))
             ->paginate(self::PRODUCTS_PER_PAGE)
             ->withQueryString();
 
         return Inertia::render('dashboard/products/index', [
+            'filters' => $filters,
+            'categories' => $this->categoryOptions(),
             'products' => $products
                 ->getCollection()
                 ->map(fn (Product $product) => [
@@ -81,6 +110,42 @@ class ProductController extends Controller
                 'links' => $products->linkCollection()->all(),
             ],
         ]);
+    }
+
+    /**
+     * @return array{name: string, brand: string, category: ?int, status: ?string, featured: ?string, sort: string, direction: string}
+     */
+    private function resolveFilters(Request $request): array
+    {
+        $status = $request->string('status')->toString();
+        $featured = $request->string('featured')->toString();
+        $sort = $request->string('sort')->toString();
+        $direction = $request->string('direction')->lower()->toString();
+        $category = $request->integer('category');
+
+        return [
+            'name' => $request->string('name')->trim()->toString(),
+            'brand' => $request->string('brand')->trim()->toString(),
+            'category' => $category > 0 ? $category : null,
+            'status' => in_array($status, ['active', 'inactive'], true) ? $status : null,
+            'featured' => in_array($featured, ['yes', 'no'], true) ? $featured : null,
+            'sort' => in_array($sort, self::SORTABLE_COLUMNS, true) ? $sort : 'created',
+            'direction' => $direction === 'asc' ? 'asc' : 'desc',
+        ];
+    }
+
+    /**
+     * @param  Builder<Product>  $query
+     */
+    private function applySort(Builder $query, string $sort, string $direction): void
+    {
+        match ($sort) {
+            'name' => $query->orderBy('de_name', $direction)->orderByDesc('id'),
+            'brand' => $query->orderBy('brand', $direction)->orderByDesc('id'),
+            'price' => $query->orderBy('variants_min_price', $direction)->orderByDesc('id'),
+            'variants' => $query->orderBy('variants_count', $direction)->orderByDesc('id'),
+            default => $query->orderBy('id', $direction),
+        };
     }
 
     public function create(): Response
@@ -270,6 +335,7 @@ class ProductController extends Controller
                 fn ($query) => $query->whereKeyNot($product->id),
             )
             ->lockForUpdate()
+            ->pluck('id')
             ->count();
 
         if ($used >= self::MAX_FEATURED_PRODUCTS) {

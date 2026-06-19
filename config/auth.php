@@ -114,4 +114,16 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Seeded Admin Password
+    |--------------------------------------------------------------------------
+    |
+    | Used by AdminUserSeeder for the initial admin-only account. Override this
+    | in deployed environments so reseeding does not restore a shared password.
+    |
+    */
+
+    'admin_password' => env('ADMIN_PASSWORD', 'xW9!tR4#pL7@qV2$nB6%zK3&mH8'),
+
 ];

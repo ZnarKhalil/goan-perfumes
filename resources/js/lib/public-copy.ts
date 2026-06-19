@@ -28,6 +28,7 @@ export type PublicCopy = {
         search: string;
         clearSearch: string;
         noFilterResults: string;
+        relatedTitle: string;
     };
     contact: {
         directExchangeBody: string;
@@ -36,6 +37,7 @@ export type PublicCopy = {
         eyebrow: string;
         intro: string;
         open: string;
+        openMethod: (method: string) => string;
         pageTitle: string;
         title: string;
         methods: {
@@ -44,12 +46,30 @@ export type PublicCopy = {
             whatsapp: string;
         };
     };
+    cookies: {
+        accept: string;
+        analyticsDescription: string;
+        analyticsTitle: string;
+        bannerLabel: string;
+        description: string;
+        footerSettings: string;
+        necessaryDescription: string;
+        necessaryTitle: string;
+        privacyLink: string;
+        reject: string;
+        save: string;
+        settings: string;
+        settingsDescription: string;
+        settingsTitle: string;
+        title: string;
+    };
     footer: {
         brand: string;
         summary: string;
         collectionsTitle: string;
         contactTitle: string;
         contactPage: string;
+        impressumLink: string;
     };
     home: {
         aboutEyebrow: string;
@@ -83,6 +103,7 @@ export type PublicCopy = {
         imageMissing: string;
         inquiry: string;
         priceOnRequest: string;
+        categoriesTitle: string;
         scentProfile: string;
         sizeHelp: string;
         sizeTitle: string;
@@ -120,6 +141,7 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             search: 'Filter suchen',
             clearSearch: 'Suche löschen',
             noFilterResults: 'Keine Filter gefunden.',
+            relatedTitle: 'Weitere Duftwelten',
         },
         contact: {
             directExchangeBody:
@@ -129,6 +151,7 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             eyebrow: 'Kontakt',
             intro: 'Schreiben Sie uns für Produktfragen, verfügbare Größen, aktuelle Angebote oder eine persönliche Empfehlung.',
             open: 'Öffnen',
+            openMethod: (method) => `${method} öffnen`,
             pageTitle: 'Kontakt',
             title: 'Direkter Kontakt für Duftberatung.',
             methods: {
@@ -137,6 +160,27 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
                 whatsapp: 'WhatsApp',
             },
         },
+        cookies: {
+            accept: 'Alle akzeptieren',
+            analyticsDescription:
+                'Hilft uns zu verstehen, welche Seiten und Produkte besucht werden. Google Analytics wird erst nach Ihrer Zustimmung geladen.',
+            analyticsTitle: 'Analytics',
+            bannerLabel: 'Cookie-Hinweis',
+            description:
+                'Wir verwenden notwendige Cookies für die Website und optionale Analytics-Cookies, um die Nutzung der Website zu messen.',
+            footerSettings: 'Cookie-Einstellungen',
+            necessaryDescription:
+                'Erforderlich für Grundfunktionen wie Spracheinstellung und gespeicherte Cookie-Auswahl.',
+            necessaryTitle: 'Notwendige Cookies',
+            privacyLink: 'Datenschutzerklärung',
+            reject: 'Alle ablehnen',
+            save: 'Auswahl speichern',
+            settings: 'Einstellungen',
+            settingsDescription:
+                'Sie können Analytics jederzeit aktivieren oder deaktivieren. Notwendige Cookies bleiben immer aktiv.',
+            settingsTitle: 'Cookie-Einstellungen',
+            title: 'Cookies und Datenschutz',
+        },
         footer: {
             brand: 'Goan Perfume',
             summary:
@@ -144,6 +188,7 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             collectionsTitle: 'Kollektionen',
             contactTitle: 'Kontakt',
             contactPage: 'Kontaktseite',
+            impressumLink: 'Impressum',
         },
         home: {
             aboutEyebrow: 'Über uns',
@@ -178,6 +223,7 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             imageMissing: 'Kein Bild',
             inquiry: 'Anfrage',
             priceOnRequest: 'Preis auf Anfrage',
+            categoriesTitle: 'Kategorien',
             scentProfile: 'Duftprofil',
             sizeHelp: 'Anfrage basiert auf der ausgewählten Größe.',
             sizeTitle: 'Größe wählen',
@@ -213,6 +259,7 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             search: 'Search filters',
             clearSearch: 'Clear search',
             noFilterResults: 'No filters found.',
+            relatedTitle: 'More scent worlds',
         },
         contact: {
             directExchangeBody:
@@ -222,6 +269,7 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             eyebrow: 'Contact',
             intro: 'Write to us about product questions, available sizes, current offers, or a personal recommendation.',
             open: 'Open',
+            openMethod: (method) => `Open ${method}`,
             pageTitle: 'Contact',
             title: 'Direct contact for fragrance advice.',
             methods: {
@@ -230,6 +278,27 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
                 whatsapp: 'WhatsApp',
             },
         },
+        cookies: {
+            accept: 'Accept all',
+            analyticsDescription:
+                'Helps us understand which pages and products are visited. Google Analytics only loads after your consent.',
+            analyticsTitle: 'Analytics',
+            bannerLabel: 'Cookie notice',
+            description:
+                'We use necessary cookies for the website and optional analytics cookies to measure website usage.',
+            footerSettings: 'Cookie settings',
+            necessaryDescription:
+                'Required for basic features such as language preference and saved cookie choice.',
+            necessaryTitle: 'Necessary cookies',
+            privacyLink: 'Privacy policy',
+            reject: 'Reject all',
+            save: 'Save selection',
+            settings: 'Settings',
+            settingsDescription:
+                'You can enable or disable analytics at any time. Necessary cookies always remain active.',
+            settingsTitle: 'Cookie settings',
+            title: 'Cookies and privacy',
+        },
         footer: {
             brand: 'Goan Perfume',
             summary:
@@ -237,6 +306,7 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             collectionsTitle: 'Collections',
             contactTitle: 'Contact',
             contactPage: 'Contact page',
+            impressumLink: 'Legal notice',
         },
         home: {
             aboutEyebrow: 'About us',
@@ -272,6 +342,7 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             imageMissing: 'No image',
             inquiry: 'Inquiry',
             priceOnRequest: 'Price on request',
+            categoriesTitle: 'Categories',
             scentProfile: 'Scent profile',
             sizeHelp: 'The inquiry is based on the selected size.',
             sizeTitle: 'Choose size',
@@ -307,6 +378,7 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             search: 'بحث في الفلاتر',
             clearSearch: 'مسح البحث',
             noFilterResults: 'لم يتم العثور على فلاتر.',
+            relatedTitle: 'عوالم عطرية أخرى',
         },
         contact: {
             directExchangeBody:
@@ -316,6 +388,7 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             eyebrow: 'التواصل',
             intro: 'راسلنا بخصوص أسئلة المنتجات أو المقاسات المتوفرة أو العروض الحالية أو للحصول على توصية شخصية.',
             open: 'فتح',
+            openMethod: (method) => `فتح ${method}`,
             pageTitle: 'التواصل',
             title: 'تواصل مباشر لاستشارة العطور.',
             methods: {
@@ -324,6 +397,27 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
                 whatsapp: 'واتساب',
             },
         },
+        cookies: {
+            accept: 'قبول الكل',
+            analyticsDescription:
+                'يساعدنا على فهم الصفحات والمنتجات التي تتم زيارتها. لا يتم تحميل Google Analytics إلا بعد موافقتك.',
+            analyticsTitle: 'التحليلات',
+            bannerLabel: 'إشعار ملفات تعريف الارتباط',
+            description:
+                'نستخدم ملفات تعريف ارتباط ضرورية للموقع وملفات اختيارية للتحليلات لقياس استخدام الموقع.',
+            footerSettings: 'إعدادات ملفات تعريف الارتباط',
+            necessaryDescription:
+                'ضرورية للوظائف الأساسية مثل تفضيل اللغة وحفظ اختيار ملفات تعريف الارتباط.',
+            necessaryTitle: 'ملفات تعريف الارتباط الضرورية',
+            privacyLink: 'سياسة الخصوصية',
+            reject: 'رفض الكل',
+            save: 'حفظ الاختيار',
+            settings: 'الإعدادات',
+            settingsDescription:
+                'يمكنك تفعيل التحليلات أو إيقافها في أي وقت. تبقى الملفات الضرورية مفعلة دائمًا.',
+            settingsTitle: 'إعدادات ملفات تعريف الارتباط',
+            title: 'ملفات تعريف الارتباط والخصوصية',
+        },
         footer: {
             brand: 'Goan Perfume',
             summary:
@@ -331,6 +425,7 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             collectionsTitle: 'المجموعات',
             contactTitle: 'التواصل',
             contactPage: 'صفحة التواصل',
+            impressumLink: 'البيانات القانونية',
         },
         home: {
             aboutEyebrow: 'من نحن',
@@ -364,6 +459,7 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             imageMissing: 'لا توجد صورة',
             inquiry: 'استفسار',
             priceOnRequest: 'السعر عند الطلب',
+            categoriesTitle: 'الفئات',
             scentProfile: 'طابع العطر',
             sizeHelp: 'يعتمد الاستفسار على المقاس المحدد.',
             sizeTitle: 'اختر المقاس',

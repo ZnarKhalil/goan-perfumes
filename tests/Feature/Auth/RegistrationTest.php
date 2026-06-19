@@ -1,25 +1,23 @@
 <?php
 
-use Laravel\Fortify\Features;
+use Illuminate\Support\Facades\Route;
 
-beforeEach(function () {
-    $this->skipUnlessFortifyHas(Features::registration());
+test('registration routes are not registered', function () {
+    expect(Route::has('register'))->toBeFalse()
+        ->and(Route::has('register.store'))->toBeFalse();
 });
 
-test('registration screen can be rendered', function () {
-    $response = $this->get(route('register'));
-
-    $response->assertOk();
+test('registration screen is not available', function () {
+    $this->get('/register')->assertRedirect('/de/register');
 });
 
-test('new users can register', function () {
-    $response = $this->post(route('register.store'), [
+test('new users cannot self-register', function () {
+    $this->post('/register', [
         'name' => 'Test User',
         'email' => 'test@example.com',
         'password' => 'password',
         'password_confirmation' => 'password',
-    ]);
+    ])->assertMethodNotAllowed();
 
-    $this->assertAuthenticated();
-    $response->assertRedirect(route('dashboard', absolute: false));
+    $this->assertGuest();
 });

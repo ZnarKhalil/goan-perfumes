@@ -10,24 +10,29 @@ export default defineConfig({
     plugins: [
         laravel({
             input: ['resources/css/app.css', 'resources/js/app.tsx'],
+            ssr: 'resources/js/app.tsx',
             refresh: true,
             fonts: [
                 bunny('Instrument Sans', {
                     weights: [400, 500, 600],
                 }),
                 bunny('Fraunces', {
-                    weights: [400, 500, 600, 700],
-                    italic: true,
+                    weights: [400, 500],
                 }),
                 bunny('Manrope', {
-                    weights: [400, 500, 600, 700],
+                    weights: [400, 500, 600],
                 }),
                 bunny('Noto Kufi Arabic', {
                     weights: [400, 500, 700],
                 }),
             ],
         }),
-        inertia(),
+        inertia({
+            ssr: {
+                entry: 'resources/js/app.tsx',
+                port: 13714,
+            },
+        }),
         react({
             babel: {
                 plugins: ['babel-plugin-react-compiler'],

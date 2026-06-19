@@ -39,6 +39,8 @@ test('home renders public props from stored content', function () {
             ->component('public/home')
             ->has('navigation', 1)
             ->where('navigation.0.slug', 'luxusparfums')
+            ->where('navigation.0.image_url', '/images/category-fallbacks/luxusparfums.webp')
+            ->where('meta.preload_image_url', '/storage/page-sections/hero.jpg')
             ->has('promotions', 1)
             ->where('promotions.0.title', 'Aktion')
             ->where('page_sections.hero.title', 'Goan Perfume')
@@ -215,6 +217,7 @@ test('home falls back to hero section when there are no active promotions', func
 
 test('category page renders filters products and pagination', function () {
     $category = publicCategory('damenparfums', 'Damenparfums');
+    publicCategory('herrenparfums', 'Herrenparfums');
     $product = publicProduct('rose-oud', 'Rose Oud', $category);
     $attribute = Attribute::factory()->multiple()->create(['code' => 'familie']);
     $attribute->setTranslation('de', 'name', 'Familie');
@@ -230,6 +233,8 @@ test('category page renders filters products and pagination', function () {
             ->where('locale.switcher_urls.ar', fn (string $href) => str_contains($href, '/ar/damenparfums?familie=blumig'))
             ->where('filters.0.values.0.selected', true)
             ->where('selected_filters.familie.0', 'blumig')
+            ->where('related_categories.0.slug', 'herrenparfums')
+            ->where('related_categories.0.href', '/de/herrenparfums')
             ->has('products', 1)
             ->where('products.0.slug', 'rose-oud')
             ->where('pagination.total', 1),
@@ -353,9 +358,9 @@ test('seeded public navigation and filters use catalog names in every locale', f
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('public/category')
-            ->where('navigation.0.name', 'Damenparfums')
-            ->where('category.name', 'Damenparfums')
-            ->where('filters.0.name', 'Art')
+            ->where('navigation.0.name', "Women's Perfumes")
+            ->where('category.name', "Women's Perfumes")
+            ->where('filters.0.name', 'Type')
             ->where('filters.0.values.0.name', 'Designer'),
         );
 
@@ -364,10 +369,10 @@ test('seeded public navigation and filters use catalog names in every locale', f
         ->assertInertia(fn (Assert $page) => $page
             ->component('public/category')
             ->where('locale.dir', 'rtl')
-            ->where('navigation.0.name', 'Damenparfums')
-            ->where('category.name', 'Damenparfums')
-            ->where('filters.0.name', 'Art')
-            ->where('filters.0.values.0.name', 'Designer'),
+            ->where('navigation.0.name', 'عطور نسائية')
+            ->where('category.name', 'عطور نسائية')
+            ->where('filters.0.name', 'النوع')
+            ->where('filters.0.values.0.name', 'ديزاينر'),
         );
 });
 
@@ -400,10 +405,35 @@ test('product detail page renders media variants attributes and contact settings
             ->component('public/product')
             ->where('contact.whatsapp_url', 'https://wa.me/491701234567')
             ->where('product.name', 'Iris Musk')
+            ->where('meta.preload_image_url', '/storage/media/products/iris.jpg')
             ->has('product.media', 1)
             ->has('product.variants', 1)
             ->where('product.attribute_groups.0.name', 'Noten')
+            ->where('product.categories.0.href', url('/de/nischenparfums'))
             ->where('product.primary_category.slug', 'nischenparfums'),
+        );
+});
+
+test('products without media use category fallback images', function () {
+    $category = publicCategory('damenparfums', 'Damenparfums');
+    publicProduct('rose-oud', 'Rose Oud', $category);
+
+    $this->get('/de/damenparfums')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('public/category')
+            ->where('products.0.image_url', '/images/category-fallbacks/damenparfums.webp')
+            ->where('products.0.image_alt', 'Rose Oud'),
+        );
+
+    $this->get('/de/produkt/rose-oud')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('public/product')
+            ->where('meta.preload_image_url', '/images/category-fallbacks/damenparfums.webp')
+            ->where('product.media.0.url', '/images/category-fallbacks/damenparfums.webp')
+            ->where('product.media.0.alt', 'Rose Oud')
+            ->where('product.media.0.is_primary', true),
         );
 });
 
@@ -425,6 +455,74 @@ test('contact page renders public layout props', function () {
             ->where('contact.email', 'kontakt@example.test')
             ->has('navigation', 1),
         );
+});
+
+test('privacy policy page renders public layout props', function () {
+    publicCategory('arabische-parfums', 'Arabische Parfums');
+
+    $this->get('/de/datenschutz')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('public/privacy-policy')
+            ->where('meta.title', 'Datenschutzerklärung')
+            ->where('meta.description', fn (string $value) => str_contains($value, 'Google Analytics'))
+            ->has('navigation', 1),
+        );
+
+    $this->get('/en/datenschutz')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('public/privacy-policy')
+            ->where('meta.title', 'Privacy policy')
+            ->where('meta.description', fn (string $value) => str_contains($value, 'Google Analytics')),
+        );
+
+    $this->get('/ar/datenschutz')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('public/privacy-policy')
+            ->where('meta.title', 'سياسة الخصوصية')
+            ->where('meta.description', fn (string $value) => str_contains($value, 'Google Analytics')),
+        );
+});
+
+test('impressum page renders public layout props', function () {
+    publicCategory('arabische-parfums', 'Arabische Parfums');
+
+    $this->get('/de/impressum')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('public/impressum')
+            ->where('meta.title', 'Impressum')
+            ->where('meta.description', fn (string $value) => str_contains($value, 'Anbieterkennzeichnung'))
+            ->has('navigation', 1),
+        );
+
+    $this->get('/en/impressum')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('public/impressum')
+            ->where('meta.title', 'Legal notice')
+            ->where('meta.description', fn (string $value) => str_contains($value, 'Legal provider information')),
+        );
+
+    $this->get('/ar/impressum')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('public/impressum')
+            ->where('meta.title', 'البيانات القانونية')
+            ->where('meta.description', fn (string $value) => str_contains($value, 'معلومات المزوّد')),
+        );
+});
+
+test('root privacy policy URL redirects to the active public locale', function () {
+    $this->get('/datenschutz')
+        ->assertRedirect('/de/datenschutz');
+});
+
+test('root impressum URL redirects to the active public locale', function () {
+    $this->get('/impressum')
+        ->assertRedirect('/de/impressum');
 });
 
 test('empty contact settings are returned as null urls', function () {
@@ -462,7 +560,8 @@ test('database seeder provides complete public demo content', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('public/category')
-            ->where('category.image_url', null)
+            ->where('category.image_url', '/images/category-fallbacks/luxusparfums.webp')
+            ->missing('category.banner_url')
             ->has('products', 12)
             ->where('pagination.total', 15)
             ->has('filters', 4),

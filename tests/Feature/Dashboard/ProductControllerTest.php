@@ -79,6 +79,120 @@ test('the product index is paginated', function () {
         );
 });
 
+test('the product index exposes filters and category options', function () {
+    Category::factory()->create()->setTranslation('de', 'name', 'Damenparfums');
+
+    $this->actingAs($this->admin)
+        ->get('/dashboard/products')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('filters.name', '')
+            ->where('filters.brand', '')
+            ->where('filters.category', null)
+            ->where('filters.status', null)
+            ->where('filters.featured', null)
+            ->where('filters.sort', 'created')
+            ->where('filters.direction', 'desc')
+            ->has('categories', 1)
+            ->where('categories.0.name', 'Damenparfums'),
+        );
+});
+
+test('the product index filters by German name', function () {
+    Product::factory()->create()->setTranslation('de', 'name', 'Rose Oud');
+    Product::factory()->create()->setTranslation('de', 'name', 'Citrus Splash');
+
+    $this->actingAs($this->admin)
+        ->get('/dashboard/products?name=rose')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('products', 1)
+            ->where('products.0.name', 'Rose Oud'),
+        );
+});
+
+test('the product index filters by brand', function () {
+    Product::factory()->create(['brand' => 'Dior']);
+    Product::factory()->create(['brand' => 'Chanel']);
+
+    $this->actingAs($this->admin)
+        ->get('/dashboard/products?brand=dio')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('products', 1)
+            ->where('products.0.brand', 'Dior'),
+        );
+});
+
+test('the product index filters by category', function () {
+    $category = Category::factory()->create();
+    $matching = Product::factory()->create();
+    $matching->categories()->attach($category);
+    Product::factory()->create();
+
+    $this->actingAs($this->admin)
+        ->get("/dashboard/products?category={$category->id}")
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('products', 1)
+            ->where('products.0.id', $matching->id),
+        );
+});
+
+test('the product index filters by status and highlight', function () {
+    Product::factory()->create(['is_active' => true, 'is_featured' => false]);
+    Product::factory()->create(['is_active' => false, 'is_featured' => false]);
+    Product::factory()->featured()->create(['is_active' => true]);
+
+    $this->actingAs($this->admin)
+        ->get('/dashboard/products?status=inactive')
+        ->assertInertia(fn ($page) => $page
+            ->has('products', 1)
+            ->where('products.0.is_active', false),
+        );
+
+    $this->actingAs($this->admin)
+        ->get('/dashboard/products?featured=yes')
+        ->assertInertia(fn ($page) => $page
+            ->has('products', 1)
+            ->where('products.0.is_featured', true),
+        );
+});
+
+test('the product index sorts by German name', function () {
+    Product::factory()->create()->setTranslation('de', 'name', 'Zephyr');
+    Product::factory()->create()->setTranslation('de', 'name', 'Amber');
+
+    $this->actingAs($this->admin)
+        ->get('/dashboard/products?sort=name&direction=asc')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('products.0.name', 'Amber')
+            ->where('products.1.name', 'Zephyr'),
+        );
+
+    $this->actingAs($this->admin)
+        ->get('/dashboard/products?sort=name&direction=desc')
+        ->assertInertia(fn ($page) => $page
+            ->where('products.0.name', 'Zephyr')
+            ->where('products.1.name', 'Amber'),
+        );
+});
+
+test('the product index sorts by price', function () {
+    $cheap = Product::factory()->create();
+    ProductVariant::factory()->for($cheap)->create(['price' => '10.00', 'is_default' => true]);
+    $pricey = Product::factory()->create();
+    ProductVariant::factory()->for($pricey)->create(['price' => '90.00', 'is_default' => true]);
+
+    $this->actingAs($this->admin)
+        ->get('/dashboard/products?sort=price&direction=asc')
+        ->assertInertia(fn ($page) => $page
+            ->where('products.0.id', $cheap->id)
+            ->where('products.1.id', $pricey->id),
+        );
+});
+
 test('admin can create a product with translations categories attributes variants and media', function () {
     Storage::fake('public');
 
@@ -131,12 +245,10 @@ test('admin can create a product with translations categories attributes variant
                     [
                         'sort_order' => 0,
                         'is_primary' => true,
-                        'alt_text' => ['de' => 'Flakon vorne'],
                     ],
                     [
                         'sort_order' => 1,
                         'is_primary' => false,
-                        'alt_text' => ['de' => 'Verpackung'],
                     ],
                 ],
             ],
@@ -164,7 +276,11 @@ test('admin can create a product with translations categories attributes variant
     expect($product->variants)->toHaveCount(2);
     expect($product->variants()->where('is_default', true)->sole()->size_ml)->toBe(50);
     expect($product->media)->toHaveCount(2);
-    expect($product->media()->primary()->sole()->translate('de', 'alt_text'))->toBe('Flakon vorne');
+    expect($product->media()->primary()->sole()->translate('de', 'alt_text'))->toBe('Sommer Oud Parfum von Maison Test');
+    expect($product->media()->primary()->sole()->translate('en', 'alt_text'))->toBe('Summer Oud perfume by Maison Test');
+    expect($product->media()->primary()->sole()->path)
+        ->toContain('sommer-oud-sommer-oud-parfum-von-maison-test')
+        ->toEndWith('.webp');
 
     $product->media->each(fn (Media $media) => Storage::disk('public')->assertExists($media->path));
 });
@@ -201,6 +317,53 @@ test('store rejects multiple values for a single-select attribute and missing de
         ->assertSessionHasErrors(['attribute_values', 'variants']);
 
     expect(Product::count())->toBe(0);
+});
+
+test('store generates product image alt text when none is provided', function () {
+    Storage::fake('public');
+
+    $category = Category::factory()->create();
+
+    $this->actingAs($this->admin)
+        ->post('/dashboard/products', [
+            'translations' => [
+                'de' => [
+                    'name' => 'Sommer Oud',
+                    'short_description' => 'Kurz',
+                    'description' => 'Lange Beschreibung',
+                ],
+            ],
+            'brand' => 'Maison Test',
+            'is_active' => true,
+            'is_featured' => false,
+            'categories' => [$category->id],
+            'attribute_values' => [],
+            'variants' => [
+                [
+                    'size_ml' => 50,
+                    'price' => '59.90',
+                    'compare_at_price' => null,
+                    'is_default' => true,
+                    'is_active' => true,
+                ],
+            ],
+            'media_uploads' => [
+                UploadedFile::fake()->image('front.jpg', 800, 800),
+            ],
+            'media_meta' => [
+                'new' => [
+                    [
+                        'sort_order' => 0,
+                        'is_primary' => true,
+                    ],
+                ],
+            ],
+        ])
+        ->assertRedirect('/dashboard/products');
+
+    $media = Product::query()->sole()->media()->sole();
+
+    expect($media->translate('de', 'alt_text'))->toBe('Sommer Oud Parfum von Maison Test');
 });
 
 test('create and edit expose remaining homepage highlight slots', function () {
@@ -298,6 +461,64 @@ test('update rejects exceeding the homepage highlight limit', function () {
     expect(Product::where('is_featured', true)->count())->toBe(4);
 });
 
+test('admin can update an existing homepage highlight with new media', function () {
+    Storage::fake('public');
+
+    Product::factory()->count(3)->featured()->create();
+    $category = Category::factory()->create();
+    $product = Product::factory()->featured()->create(['slug' => 'featured']);
+    $product->setTranslation('de', 'name', 'Featured');
+    $product->categories()->attach($category);
+    $variant = ProductVariant::factory()->for($product)->create([
+        'size_ml' => 50,
+        'price' => '50.00',
+        'is_default' => true,
+    ]);
+
+    $this->actingAs($this->admin)
+        ->post("/dashboard/products/{$product->id}", [
+            '_method' => 'PUT',
+            'brand' => 'Goan',
+            'is_active' => true,
+            'is_featured' => true,
+            'translations' => [
+                'de' => ['name' => 'Featured', 'short_description' => '', 'description' => ''],
+                'ar' => ['name' => ''],
+                'en' => ['name' => ''],
+            ],
+            'categories' => [$category->id],
+            'attribute_values' => [],
+            'variants' => [
+                [
+                    'id' => $variant->id,
+                    'size_ml' => 50,
+                    'price' => '50.00',
+                    'compare_at_price' => null,
+                    'is_default' => true,
+                    'is_active' => true,
+                ],
+            ],
+            'media_uploads' => [
+                UploadedFile::fake()->image('front.jpg', 1600, 2000),
+            ],
+            'media_meta' => [
+                'new' => [
+                    [
+                        'sort_order' => 0,
+                        'is_primary' => true,
+                    ],
+                ],
+            ],
+        ])
+        ->assertRedirect('/dashboard/products');
+
+    expect($product->refresh()->is_featured)->toBeTrue();
+    expect(Product::where('is_featured', true)->count())->toBe(4);
+    expect($product->media()->primary()->sole()->translate('de', 'alt_text'))->toBe('Featured Parfum von Goan');
+
+    Storage::disk('public')->assertExists($product->media()->primary()->sole()->path);
+});
+
 test('admin can update product graph variants and media', function () {
     Storage::fake('public');
 
@@ -377,14 +598,12 @@ test('admin can update product graph variants and media', function () {
                         'id' => $keptMedia->id,
                         'sort_order' => 1,
                         'is_primary' => false,
-                        'alt_text' => ['de' => 'Behalten'],
                     ],
                 ],
                 'new' => [
                     [
                         'sort_order' => 0,
                         'is_primary' => true,
-                        'alt_text' => ['de' => 'Neu'],
                     ],
                 ],
                 'removed' => [$removedMedia->id],
@@ -408,7 +627,7 @@ test('admin can update product graph variants and media', function () {
     expect(Media::find($removedMedia->id))->toBeNull();
     Storage::disk('public')->assertMissing($removedMedia->path);
     expect($keptMedia->refresh()->sort_order)->toBe(1);
-    expect($product->media()->primary()->sole()->translate('de', 'alt_text'))->toBe('Neu');
+    expect($product->media()->primary()->sole()->translate('de', 'alt_text'))->toBe('Neu Parfum von Neu');
 });
 
 test('admin can delete a product and clean up media translations variants and pivots', function () {

@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Public;
 
 use App\Models\Category;
 use App\Models\Product;
-use App\Support\StorageUrl;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -26,20 +25,42 @@ class CategoryController extends PublicController
             ),
             $selectedFilters,
         )->paginate(12)->withQueryString();
+        $canonical = route('categories.show', [
+            'locale' => $this->locale(),
+            'slug' => $category->slug,
+        ]);
+        $hasQueryParameters = $request->query() !== [];
 
         return Inertia::render('public/category', [
             ...$this->layoutProps(),
-            'meta' => $this->modelMeta($category),
+            'meta' => $this->modelMeta(
+                $category,
+                canonical: $canonical,
+                alternates: $this->localizedRouteUrls('categories.show', ['slug' => $category->slug]),
+                structuredData: [
+                    $this->breadcrumbStructuredData([
+                        [
+                            'name' => 'Goan Perfume',
+                            'url' => route('home', ['locale' => $this->locale()]),
+                        ],
+                        [
+                            'name' => $this->translation($category, 'name') ?? $category->slug,
+                            'url' => $canonical,
+                        ],
+                    ]),
+                ],
+                robots: $hasQueryParameters ? 'noindex, follow' : null,
+            ),
             'category' => [
                 ...$this->categoryNavItem($category),
                 'description' => $this->translation($category, 'description') ?? '',
-                'banner_url' => StorageUrl::for($category->image_path),
             ],
+            'related_categories' => $this->relatedCategoryNavItems($category),
             'filters' => $this->filterGroups($selectedFilters, $category->slug),
             'selected_filters' => $selectedFilters,
             'products' => $products
                 ->getCollection()
-                ->map(fn (Product $product) => $this->productCard($product))
+                ->map(fn (Product $product) => $this->productCard($product, $category))
                 ->values()
                 ->all(),
             'pagination' => [

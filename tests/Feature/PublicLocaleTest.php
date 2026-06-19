@@ -93,6 +93,24 @@ test('legacy public routes redirect to the cookie locale with German fallback', 
         ]));
 });
 
+test('legacy public redirects do not let query parameters override route parameters', function () {
+    $this->get('/?locale=ar')
+        ->assertRedirect(route('home', ['locale' => 'de']));
+
+    $this->get('/produkt/iris-musk?slug=overridden&locale=ar')
+        ->assertRedirect(route('products.show', [
+            'locale' => 'de',
+            'slug' => 'iris-musk',
+        ]));
+
+    $this->get('/damenparfums?slug=overridden&locale=ar&familie=blumig')
+        ->assertRedirect(route('categories.show', [
+            'locale' => 'de',
+            'slug' => 'damenparfums',
+            'familie' => 'blumig',
+        ]));
+});
+
 test('dashboard pages do not receive public locale props', function () {
     $admin = User::factory()->admin()->create();
 

@@ -8,6 +8,23 @@ use Inertia\Middleware;
 class HandleInertiaRequests extends Middleware
 {
     /**
+     * The paths that should be excluded from server-side rendering.
+     *
+     * @var array<int, string>
+     */
+    protected $withoutSsr = [
+        'dashboard',
+        'dashboard/*',
+        'email/verify',
+        'email/verify/*',
+        'login',
+        'settings',
+        'settings/*',
+        'two-factor-challenge',
+        'user/confirm-password',
+    ];
+
+    /**
      * The root template that's loaded on the first page visit.
      *
      * @see https://inertiajs.com/server-side-setup#root-template

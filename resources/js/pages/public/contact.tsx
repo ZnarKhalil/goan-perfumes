@@ -1,5 +1,12 @@
-import { Head } from '@inertiajs/react';
-import { Facebook, Instagram, Mail, Phone, Send, Video } from 'lucide-react';
+import {
+    Facebook,
+    Instagram,
+    Mail,
+    Phone,
+    Send,
+    Video,
+} from '@/components/public/icons';
+import PublicHead from '@/components/public/public-head';
 import PublicLayout from '@/layouts/public-layout';
 import { getPublicCopy } from '@/lib/public-copy';
 import type {
@@ -19,9 +26,7 @@ export default function Contact(page: PublicContactPageProps) {
             locale={page.locale}
             theme="dark"
         >
-            <Head title={page.meta.title}>
-                <meta name="description" content={page.meta.description} />
-            </Head>
+            <PublicHead meta={page.meta} />
 
             <section className="px-4 pt-28 pb-14 md:px-8 md:pt-36 md:pb-20">
                 <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
@@ -67,7 +72,7 @@ export default function Contact(page: PublicContactPageProps) {
                                         <Icon className="size-5 text-stone-500 transition group-hover:text-[#e7c889]" />
                                     </div>
                                     <p className="mt-auto text-sm text-stone-400">
-                                        {copy.contact.open}
+                                        {copy.contact.openMethod(link.label)}
                                     </p>
                                 </a>
                             );

@@ -1,9 +1,11 @@
 import { Link } from '@inertiajs/react';
+import { useState } from 'react';
 import type { ReactNode } from 'react';
 import LocaleSwitcher from '@/components/public/locale-switcher';
 import {
     Sheet,
     SheetContent,
+    SheetDescription,
     SheetHeader,
     SheetTitle,
     SheetTrigger,
@@ -30,10 +32,12 @@ export default function SiteDrawer({
     copy,
     trigger,
 }: Props) {
+    const [open, setOpen] = useState(false);
     const isRtl = locale?.dir === 'rtl';
+    const closeDrawer = () => setOpen(false);
 
     return (
-        <Sheet>
+        <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>{trigger}</SheetTrigger>
             <SheetContent
                 side={isRtl ? 'right' : 'left'}
@@ -48,10 +52,14 @@ export default function SiteDrawer({
                     <SheetTitle className="font-display text-2xl text-stone-50">
                         {copy.aria.mobileMenuTitle}
                     </SheetTitle>
+                    <SheetDescription className="sr-only">
+                        {copy.aria.mobileMenuTitle}
+                    </SheetDescription>
                 </SheetHeader>
                 <nav className="grid px-6 py-6">
                     <Link
                         href={homeHref}
+                        onClick={closeDrawer}
                         className="border-b border-white/10 py-4 text-lg font-medium transition hover:text-[#e7c889]"
                     >
                         {copy.navigation.homepage}
@@ -60,6 +68,7 @@ export default function SiteDrawer({
                         <Link
                             key={category.slug}
                             href={category.href}
+                            onClick={closeDrawer}
                             className="border-b border-white/10 py-4 text-lg font-medium transition hover:text-[#e7c889]"
                         >
                             {category.name}
@@ -67,13 +76,21 @@ export default function SiteDrawer({
                     ))}
                     <Link
                         href={contactHref}
+                        onClick={closeDrawer}
                         className="py-4 text-lg font-medium transition hover:text-[#e7c889]"
                     >
                         {copy.contact.eyebrow}
                     </Link>
                 </nav>
                 <div className="px-6 py-5">
-                    <LocaleSwitcher locale={locale} compact tone="dark" />
+                    <LocaleSwitcher
+                        locale={locale}
+                        compact
+                        tone="dark"
+                        onNavigate={closeDrawer}
+                        reloadDocument
+                        navigateDelayMs={220}
+                    />
                 </div>
             </SheetContent>
         </Sheet>

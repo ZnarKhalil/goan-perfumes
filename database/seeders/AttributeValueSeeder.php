@@ -12,6 +12,7 @@ class AttributeValueSeeder extends Seeder
     public function run(): void
     {
         $values = PerfumeCatalog::attributeValues();
+        $translations = PerfumeCatalog::attributeValueTranslations();
         $attributes = Attribute::query()->whereIn('code', array_keys($values))->get()->keyBy('code');
 
         foreach ($values as $code => $names) {
@@ -36,8 +37,13 @@ class AttributeValueSeeder extends Seeder
                     ['sort_order' => $index, 'is_active' => true],
                 );
 
-                foreach (['de', 'en', 'ar'] as $locale) {
-                    $value->setTranslation($locale, 'name', $valueData['name']);
+                $names = PerfumeCatalog::localized(
+                    $valueData['name'],
+                    $translations[$slug] ?? [],
+                );
+
+                foreach ($names as $locale => $name) {
+                    $value->setTranslation($locale, 'name', $name);
                 }
 
                 $value->translations()

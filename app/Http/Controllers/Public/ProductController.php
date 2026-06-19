@@ -39,10 +39,45 @@ class ProductController extends PublicController
             ->where('slug', $slug)
             ->where('is_active', true)
             ->firstOrFail();
+        $canonical = route('products.show', [
+            'locale' => $this->locale(),
+            'slug' => $product->slug,
+        ]);
+        $primaryCategory = $product->categories->first();
+        $primaryMedia = $product->media->firstWhere('is_primary', true) ?? $product->media->first();
+        $preloadImageUrl = StorageUrl::for($primaryMedia?->path)
+            ?? $this->categoryFallbackImageUrl($primaryCategory);
 
         return Inertia::render('public/product', [
             ...$this->layoutProps(),
-            'meta' => $this->modelMeta($product, 'short_description'),
+            'meta' => $this->modelMeta(
+                $product,
+                'short_description',
+                $canonical,
+                $this->localizedRouteUrls('products.show', ['slug' => $product->slug]),
+                [
+                    $this->productStructuredData($product, $canonical),
+                    $this->breadcrumbStructuredData([
+                        [
+                            'name' => 'Goan Perfume',
+                            'url' => route('home', ['locale' => $this->locale()]),
+                        ],
+                        ...($primaryCategory ? [[
+                            'name' => $this->translation($primaryCategory, 'name') ?? $primaryCategory->slug,
+                            'url' => route('categories.show', [
+                                'locale' => $this->locale(),
+                                'slug' => $primaryCategory->slug,
+                            ]),
+                        ]] : []),
+                        [
+                            'name' => $this->translation($product, 'name') ?? $product->slug,
+                            'url' => $canonical,
+                        ],
+                    ]),
+                ],
+                preloadImageUrl: $preloadImageUrl,
+                ogType: 'product',
+            ),
             'product' => $this->productDetail($product),
         ]);
     }
@@ -50,6 +85,25 @@ class ProductController extends PublicController
     private function productDetail(Product $product): array
     {
         $name = $this->translation($product, 'name') ?? $product->slug;
+        $primaryCategory = $product->categories->first();
+        $media = $product->media
+            ->map(fn (Media $media) => [
+                'id' => $media->id,
+                'url' => StorageUrl::for($media->path),
+                'alt' => $this->translation($media, 'alt_text') ?? $media->alt_text ?? $name,
+                'is_primary' => $media->is_primary,
+            ])
+            ->values()
+            ->all();
+
+        if ($media === [] && ($fallbackImageUrl = $this->categoryFallbackImageUrl($primaryCategory)) !== null) {
+            $media[] = [
+                'id' => 0,
+                'url' => $fallbackImageUrl,
+                'alt' => $name,
+                'is_primary' => true,
+            ];
+        }
 
         return [
             'id' => $product->id,
@@ -58,15 +112,7 @@ class ProductController extends PublicController
             'brand' => $product->brand,
             'short_description' => $this->translation($product, 'short_description') ?? '',
             'description' => $this->translation($product, 'description') ?? '',
-            'media' => $product->media
-                ->map(fn (Media $media) => [
-                    'id' => $media->id,
-                    'url' => StorageUrl::for($media->path),
-                    'alt' => $this->translation($media, 'alt_text') ?? $media->alt_text ?? $name,
-                    'is_primary' => $media->is_primary,
-                ])
-                ->values()
-                ->all(),
+            'media' => $media,
             'variants' => $product->variants
                 ->map(fn (ProductVariant $variant) => [
                     'id' => $variant->id,
@@ -82,8 +128,8 @@ class ProductController extends PublicController
                 ->map(fn (Category $category) => $this->categoryNavItem($category))
                 ->values()
                 ->all(),
-            'primary_category' => $product->categories->first()
-                ? $this->categoryNavItem($product->categories->first())
+            'primary_category' => $primaryCategory
+                ? $this->categoryNavItem($primaryCategory)
                 : null,
         ];
     }

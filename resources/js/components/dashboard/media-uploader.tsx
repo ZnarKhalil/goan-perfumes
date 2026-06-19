@@ -64,6 +64,7 @@ type MultiProps = {
     accept?: string;
     /** Max items for client-side guard. Server still authoritative. */
     max?: number;
+    showAltTextFields?: boolean;
 };
 
 type Props = SingleProps | MultiProps;
@@ -207,6 +208,7 @@ function MultiUploader({
     label = 'Bilder',
     accept = ACCEPT_DEFAULT,
     max = 20,
+    showAltTextFields = true,
 }: MultiProps) {
     const inputId = useId();
     const inputRef = useRef<HTMLInputElement | null>(null);
@@ -344,6 +346,7 @@ function MultiUploader({
                                         onSetPrimary={setPrimary}
                                         onRemove={remove}
                                         onAltChange={setAlt}
+                                        showAltTextFields={showAltTextFields}
                                     />
                                 ))}
                             </div>
@@ -390,6 +393,7 @@ type SortableMediaProps = {
         locale: keyof MediaAltText,
         value: string,
     ) => void;
+    showAltTextFields: boolean;
 };
 
 function SortableMedia({
@@ -397,6 +401,7 @@ function SortableMedia({
     onSetPrimary,
     onRemove,
     onAltChange,
+    showAltTextFields,
 }: SortableMediaProps) {
     const {
         attributes,
@@ -475,27 +480,29 @@ function SortableMedia({
                     className="aspect-square w-full object-cover"
                 />
             )}
-            <div className="grid gap-1 border-t border-input p-2">
-                {(
-                    [
-                        ['de', 'Alt-Text DE'],
-                        ['ar', 'Alt-Text AR'],
-                        ['en', 'Alt-Text EN'],
-                    ] as const
-                ).map(([locale, placeholder]) => (
-                    <input
-                        key={locale}
-                        type="text"
-                        dir={locale === 'ar' ? 'rtl' : undefined}
-                        placeholder={placeholder}
-                        value={altText[locale]}
-                        onChange={(e) =>
-                            onAltChange(item.id, locale, e.target.value)
-                        }
-                        className="block w-full rounded border border-input bg-transparent px-2 py-1 text-xs outline-none"
-                    />
-                ))}
-            </div>
+            {showAltTextFields && (
+                <div className="grid gap-1 border-t border-input p-2">
+                    {(
+                        [
+                            ['de', 'Alt-Text DE'],
+                            ['ar', 'Alt-Text AR'],
+                            ['en', 'Alt-Text EN'],
+                        ] as const
+                    ).map(([locale, placeholder]) => (
+                        <input
+                            key={locale}
+                            type="text"
+                            dir={locale === 'ar' ? 'rtl' : undefined}
+                            placeholder={placeholder}
+                            value={altText[locale]}
+                            onChange={(e) =>
+                                onAltChange(item.id, locale, e.target.value)
+                            }
+                            className="block w-full rounded border border-input bg-transparent px-2 py-1 text-xs outline-none"
+                        />
+                    ))}
+                </div>
+            )}
         </div>
     );
 }
