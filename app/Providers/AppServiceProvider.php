@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Inertia\ExceptionResponse;
+use Inertia\Inertia;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -25,6 +27,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+        $this->configureErrorPages();
     }
 
     /**
@@ -51,5 +54,21 @@ class AppServiceProvider extends ServiceProvider
                 ->uncompromised()
             : null,
         );
+    }
+
+    /**
+     * Render branded Inertia pages for common HTTP errors.
+     */
+    protected function configureErrorPages(): void
+    {
+        Inertia::handleExceptionsUsing(function (ExceptionResponse $response) {
+            if (! in_array($response->statusCode(), [403, 404, 419, 429, 500, 503], true)) {
+                return null;
+            }
+
+            return $response->render('error', [
+                'status' => $response->statusCode(),
+            ])->withSharedData();
+        });
     }
 }
