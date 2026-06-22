@@ -259,9 +259,11 @@ abstract class PublicController extends Controller
     protected function applyFilters(Builder $query, array $selectedFilters): Builder
     {
         foreach ($selectedFilters as $attributeCode => $valueSlugs) {
-            $query->whereHas('attributeValues', fn (Builder $attributeValueQuery) => $attributeValueQuery
-                ->whereIn('slug', $valueSlugs)
-                ->whereHas('attribute', fn (Builder $attributeQuery) => $attributeQuery->where('code', $attributeCode)));
+            foreach ($valueSlugs as $valueSlug) {
+                $query->whereHas('attributeValues', fn (Builder $attributeValueQuery) => $attributeValueQuery
+                    ->where('slug', $valueSlug)
+                    ->whereHas('attribute', fn (Builder $attributeQuery) => $attributeQuery->where('code', $attributeCode)));
+            }
         }
 
         return $query;

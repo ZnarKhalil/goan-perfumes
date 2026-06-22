@@ -270,7 +270,7 @@ test('category pagination links use href and products are sorted by catalog numb
         );
 });
 
-test('category filters use OR within a group and AND across groups', function () {
+test('category filters use AND within a group and AND across groups', function () {
     $category = publicCategory('damenparfums', 'Damenparfums');
     $familie = Attribute::factory()->multiple()->create(['code' => 'familie']);
     $familie->setTranslation('de', 'name', 'Familie');
@@ -280,12 +280,15 @@ test('category filters use OR within a group and AND across groups', function ()
     $fruchtig = AttributeValue::factory()->for($familie)->create(['slug' => 'fruchtig']);
     $frisch = AttributeValue::factory()->for($stimmung)->create(['slug' => 'frisch']);
 
-    $rose = publicProduct('rose-oud', 'Rose Oud', $category);
-    $rose->attributeValues()->attach([$blumig->id, $frisch->id]);
-    $citrus = publicProduct('citrus-musk', 'Citrus Musk', $category);
-    $citrus->attributeValues()->attach([$fruchtig->id, $frisch->id]);
+    // Has both selected familie values AND the selected stimmung — the only match.
+    $match = publicProduct('rose-oud', 'Rose Oud', $category);
+    $match->attributeValues()->attach([$blumig->id, $fruchtig->id, $frisch->id]);
+    // Missing fruchtig — fails AND within the familie group.
+    $missingFamilie = publicProduct('citrus-musk', 'Citrus Musk', $category);
+    $missingFamilie->attributeValues()->attach([$blumig->id, $frisch->id]);
+    // Missing frisch — fails AND across groups.
     $missingMood = publicProduct('soft-rose', 'Soft Rose', $category);
-    $missingMood->attributeValues()->attach($blumig);
+    $missingMood->attributeValues()->attach([$blumig->id, $fruchtig->id]);
 
     $this->get('/de/damenparfums?familie=blumig,fruchtig&stimmung=frisch')
         ->assertOk()
@@ -294,10 +297,9 @@ test('category filters use OR within a group and AND across groups', function ()
             ->where('selected_filters.familie.0', 'blumig')
             ->where('selected_filters.familie.1', 'fruchtig')
             ->where('selected_filters.stimmung.0', 'frisch')
-            ->has('products', 2)
-            ->where('products.0.slug', 'citrus-musk')
-            ->where('products.1.slug', 'rose-oud')
-            ->where('pagination.total', 2),
+            ->has('products', 1)
+            ->where('products.0.slug', 'rose-oud')
+            ->where('pagination.total', 1),
         );
 });
 
