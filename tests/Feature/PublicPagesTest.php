@@ -570,6 +570,54 @@ test('database seeder provides complete public demo content', function () {
         );
 });
 
+test('search matches product names for the current locale', function () {
+    $category = publicCategory('luxusparfums', 'Luxusparfums');
+    publicProduct('amber-noir-intense', 'Amber Noir Intense', $category);
+    publicProduct('rose-oud', 'Rose Oud', $category);
+
+    $this->get('/de/suche?q=amber')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('public/search')
+            ->where('query', 'amber')
+            ->where('meta.robots', 'noindex, follow')
+            ->has('products', 1)
+            ->where('products.0.name', 'Amber Noir Intense')
+            ->where('pagination.total', 1),
+        );
+});
+
+test('search without a query returns no products', function () {
+    $category = publicCategory('luxusparfums', 'Luxusparfums');
+    publicProduct('amber-noir-intense', 'Amber Noir Intense', $category);
+
+    $this->get('/de/suche')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('public/search')
+            ->where('query', '')
+            ->has('products', 0)
+            ->where('pagination.total', 0),
+        );
+});
+
+test('search only matches the active localized product name', function () {
+    $category = publicCategory('women', 'Damenparfums');
+    $product = publicProduct('rose-oud', 'Rose Oud DE', $category);
+    $product->setTranslation('en', 'name', 'Rose Oud EN');
+
+    $this->get('/en/suche?q=Rose Oud EN')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('products', 1)
+            ->where('products.0.name', 'Rose Oud EN'),
+        );
+
+    $this->get('/de/suche?q=nonexistent term')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->has('products', 0));
+});
+
 function publicCategory(string $slug, string $name): Category
 {
     $category = Category::factory()->create(['slug' => $slug]);

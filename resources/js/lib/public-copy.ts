@@ -112,6 +112,21 @@ export type PublicCopy = {
         highlight: string;
         imageMissing: string;
     };
+    search: {
+        eyebrow: string;
+        title: string;
+        placeholder: string;
+        submit: string;
+        clear: string;
+        resultsFor: (query: string) => string;
+        results: (
+            from: number | null,
+            to: number | null,
+            total: number,
+        ) => string;
+        empty: string;
+        prompt: string;
+    };
 };
 
 const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
@@ -232,6 +247,18 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             highlight: 'Highlight',
             imageMissing: 'Kein Bild',
         },
+        search: {
+            eyebrow: 'Suche',
+            title: 'Produkte suchen',
+            placeholder: 'Produkte suchen',
+            submit: 'Suchen',
+            clear: 'Suche löschen',
+            resultsFor: (query) => `Ergebnisse für „${query}“`,
+            results: (from, to, total) =>
+                `Ergebnisse ${from ?? 0}-${to ?? 0} von ${total}`,
+            empty: 'Keine Produkte für Ihre Suche gefunden.',
+            prompt: 'Geben Sie einen Suchbegriff ein, um Produkte zu finden.',
+        },
     },
     en: {
         aria: {
@@ -351,6 +378,18 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             highlight: 'Highlight',
             imageMissing: 'No image',
         },
+        search: {
+            eyebrow: 'Search',
+            title: 'Search products',
+            placeholder: 'Search products',
+            submit: 'Search',
+            clear: 'Clear search',
+            resultsFor: (query) => `Results for “${query}”`,
+            results: (from, to, total) =>
+                `Results ${from ?? 0}-${to ?? 0} of ${total}`,
+            empty: 'No products were found for your search.',
+            prompt: 'Enter a search term to find products.',
+        },
     },
     ar: {
         aria: {
@@ -467,6 +506,18 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
         productCard: {
             highlight: 'مميز',
             imageMissing: 'لا توجد صورة',
+        },
+        search: {
+            eyebrow: 'بحث',
+            title: 'ابحث عن المنتجات',
+            placeholder: 'ابحث عن المنتجات',
+            submit: 'بحث',
+            clear: 'مسح البحث',
+            resultsFor: (query) => `نتائج البحث عن «${query}»`,
+            results: (from, to, total) =>
+                `النتائج ${from ?? 0}-${to ?? 0} من ${total}`,
+            empty: 'لم يتم العثور على منتجات لبحثك.',
+            prompt: 'أدخل كلمة للبحث عن المنتجات.',
         },
     },
 };

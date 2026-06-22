@@ -7,6 +7,7 @@ use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\ImpressumController;
 use App\Http\Controllers\Public\PrivacyPolicyController;
 use App\Http\Controllers\Public\ProductController;
+use App\Http\Controllers\Public\SearchController;
 use App\Http\Controllers\Public\SitemapController;
 use App\Support\PublicLocale;
 use Illuminate\Http\Request;
@@ -45,6 +46,7 @@ Route::prefix('{locale}')
         Route::get('/kontakt', ContactController::class)->name('contact');
         Route::get('/impressum', ImpressumController::class)->name('impressum');
         Route::get('/datenschutz', PrivacyPolicyController::class)->name('privacy');
+        Route::get('/suche', [SearchController::class, 'index'])->name('search');
         Route::get('/produkt/{slug}', [ProductController::class, 'show'])->name('products.show');
         Route::get('/{slug}', [CategoryController::class, 'show'])->name('categories.show');
     });
@@ -62,6 +64,10 @@ Route::get('/impressum', fn (Request $request) => redirect()->route('impressum',
     'locale' => PublicLocale::normalize($request->cookie(PublicLocale::CookieName)),
 ]));
 Route::get('/datenschutz', fn (Request $request) => redirect()->route('privacy', [
+    ...$request->query(),
+    'locale' => PublicLocale::normalize($request->cookie(PublicLocale::CookieName)),
+]));
+Route::get('/suche', fn (Request $request) => redirect()->route('search', [
     ...$request->query(),
     'locale' => PublicLocale::normalize($request->cookie(PublicLocale::CookieName)),
 ]));

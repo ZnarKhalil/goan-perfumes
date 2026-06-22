@@ -2,6 +2,7 @@ import { Link } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import { Menu } from '@/components/public/icons';
 import LocaleSwitcher from '@/components/public/locale-switcher';
+import SearchForm from '@/components/public/search-form';
 import SiteDrawer from '@/components/public/site-drawer';
 import type { PublicCopy } from '@/lib/public-copy';
 import { cn } from '@/lib/utils';
@@ -104,6 +105,14 @@ export default function SiteHeader({
                 </Link>
 
                 <div className="flex min-w-0 items-center justify-end gap-2">
+                    <div className="hidden md:block md:w-44 lg:w-56">
+                        <SearchForm
+                            locale={locale}
+                            copy={copy}
+                            tone={isDark ? 'dark' : 'light'}
+                            className="w-full"
+                        />
+                    </div>
                     <div className="hidden md:block">
                         <LocaleSwitcher
                             locale={locale}
