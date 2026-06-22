@@ -270,7 +270,7 @@ test('category pagination links use href and products are sorted by catalog numb
         );
 });
 
-test('category filters use OR within a group and AND across groups', function () {
+test('category filters use AND within a group and AND across groups', function () {
     $category = publicCategory('damenparfums', 'Damenparfums');
     $familie = Attribute::factory()->multiple()->create(['code' => 'familie']);
     $familie->setTranslation('de', 'name', 'Familie');
@@ -280,12 +280,15 @@ test('category filters use OR within a group and AND across groups', function ()
     $fruchtig = AttributeValue::factory()->for($familie)->create(['slug' => 'fruchtig']);
     $frisch = AttributeValue::factory()->for($stimmung)->create(['slug' => 'frisch']);
 
-    $rose = publicProduct('rose-oud', 'Rose Oud', $category);
-    $rose->attributeValues()->attach([$blumig->id, $frisch->id]);
-    $citrus = publicProduct('citrus-musk', 'Citrus Musk', $category);
-    $citrus->attributeValues()->attach([$fruchtig->id, $frisch->id]);
+    // Has both selected familie values AND the selected stimmung — the only match.
+    $match = publicProduct('rose-oud', 'Rose Oud', $category);
+    $match->attributeValues()->attach([$blumig->id, $fruchtig->id, $frisch->id]);
+    // Missing fruchtig — fails AND within the familie group.
+    $missingFamilie = publicProduct('citrus-musk', 'Citrus Musk', $category);
+    $missingFamilie->attributeValues()->attach([$blumig->id, $frisch->id]);
+    // Missing frisch — fails AND across groups.
     $missingMood = publicProduct('soft-rose', 'Soft Rose', $category);
-    $missingMood->attributeValues()->attach($blumig);
+    $missingMood->attributeValues()->attach([$blumig->id, $fruchtig->id]);
 
     $this->get('/de/damenparfums?familie=blumig,fruchtig&stimmung=frisch')
         ->assertOk()
@@ -294,10 +297,9 @@ test('category filters use OR within a group and AND across groups', function ()
             ->where('selected_filters.familie.0', 'blumig')
             ->where('selected_filters.familie.1', 'fruchtig')
             ->where('selected_filters.stimmung.0', 'frisch')
-            ->has('products', 2)
-            ->where('products.0.slug', 'citrus-musk')
-            ->where('products.1.slug', 'rose-oud')
-            ->where('pagination.total', 2),
+            ->has('products', 1)
+            ->where('products.0.slug', 'rose-oud')
+            ->where('pagination.total', 1),
         );
 });
 
@@ -566,6 +568,54 @@ test('database seeder provides complete public demo content', function () {
             ->where('pagination.total', 15)
             ->has('filters', 4),
         );
+});
+
+test('search matches product names for the current locale', function () {
+    $category = publicCategory('luxusparfums', 'Luxusparfums');
+    publicProduct('amber-noir-intense', 'Amber Noir Intense', $category);
+    publicProduct('rose-oud', 'Rose Oud', $category);
+
+    $this->get('/de/suche?q=amber')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('public/search')
+            ->where('query', 'amber')
+            ->where('meta.robots', 'noindex, follow')
+            ->has('products', 1)
+            ->where('products.0.name', 'Amber Noir Intense')
+            ->where('pagination.total', 1),
+        );
+});
+
+test('search without a query returns no products', function () {
+    $category = publicCategory('luxusparfums', 'Luxusparfums');
+    publicProduct('amber-noir-intense', 'Amber Noir Intense', $category);
+
+    $this->get('/de/suche')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('public/search')
+            ->where('query', '')
+            ->has('products', 0)
+            ->where('pagination.total', 0),
+        );
+});
+
+test('search only matches the active localized product name', function () {
+    $category = publicCategory('women', 'Damenparfums');
+    $product = publicProduct('rose-oud', 'Rose Oud DE', $category);
+    $product->setTranslation('en', 'name', 'Rose Oud EN');
+
+    $this->get('/en/suche?q=Rose Oud EN')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('products', 1)
+            ->where('products.0.name', 'Rose Oud EN'),
+        );
+
+    $this->get('/de/suche?q=nonexistent term')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->has('products', 0));
 });
 
 function publicCategory(string $slug, string $name): Category

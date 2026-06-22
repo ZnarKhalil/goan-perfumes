@@ -51,6 +51,7 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 ## Frontend Bundling
 
 - If the user doesn't see a frontend change reflected in the UI, it could mean they need to run `npm run build`, `npm run dev`, or `composer run dev`. Ask them.
+- ALWAYS run `npm run build` yourself after editing any frontend file (`resources/js`, React/Inertia/Tailwind) before finishing the task. The user does not run a dev server, so changes only appear after a build.
 
 ## Documentation Files
 

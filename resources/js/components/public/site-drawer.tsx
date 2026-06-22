@@ -2,6 +2,7 @@ import { Link } from '@inertiajs/react';
 import { useState } from 'react';
 import type { ReactNode } from 'react';
 import LocaleSwitcher from '@/components/public/locale-switcher';
+import SearchForm from '@/components/public/search-form';
 import {
     Sheet,
     SheetContent,
@@ -56,7 +57,16 @@ export default function SiteDrawer({
                         {copy.aria.mobileMenuTitle}
                     </SheetDescription>
                 </SheetHeader>
-                <nav className="grid px-6 py-6">
+                <div className="px-6 pt-6">
+                    <SearchForm
+                        locale={locale}
+                        copy={copy}
+                        tone="dark"
+                        className="w-full"
+                        onSubmitted={closeDrawer}
+                    />
+                </div>
+                <nav className="grid px-6 pt-4 pb-6">
                     <Link
                         href={homeHref}
                         onClick={closeDrawer}

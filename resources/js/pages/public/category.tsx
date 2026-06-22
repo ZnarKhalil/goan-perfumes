@@ -149,8 +149,10 @@ function FilterSheet({
     isRtl: boolean;
     selectedFilters: PublicCategoryPageProps['selected_filters'];
 }) {
+    const [isOpen, setIsOpen] = useState(false);
+
     return (
-        <Sheet>
+        <Sheet open={isOpen} onOpenChange={setIsOpen} modal={false}>
             <SheetTrigger asChild>
                 <button
                     type="button"
@@ -165,8 +167,21 @@ function FilterSheet({
                     )}
                 </button>
             </SheetTrigger>
+            {/*
+             * The sheet runs in non-modal mode so background filter visits don't
+             * tear down Radix's scroll-lock and crash React. Non-modal mode also
+             * drops Radix's overlay, so we render our own dimmed backdrop.
+             */}
+            {isOpen && (
+                <div
+                    aria-hidden
+                    onClick={() => setIsOpen(false)}
+                    className="fixed inset-0 z-40 bg-black/80"
+                />
+            )}
             <SheetContent
                 side={isRtl ? 'right' : 'left'}
+                onOpenAutoFocus={(event) => event.preventDefault()}
                 className="h-svh w-[92vw] gap-0 overflow-hidden border-white/10 bg-[#0b0907] p-0 text-stone-100 sm:max-w-md"
             >
                 <SheetHeader
@@ -271,20 +286,25 @@ function FilterPanel({
                 {activeFilters.length > 0 && (
                     <div className="mt-4 flex flex-wrap gap-2">
                         {activeFilters.map(({ group, value }) => (
-                            <Link
+                            <button
                                 key={`${group.code}-${value.slug}`}
-                                href={buildFilterHref(
-                                    categoryHref,
-                                    selectedFilters,
-                                    group.code,
-                                    value.slug,
-                                    false,
-                                )}
+                                type="button"
+                                onClick={() =>
+                                    applyFilterVisit(
+                                        buildFilterHref(
+                                            categoryHref,
+                                            selectedFilters,
+                                            group.code,
+                                            value.slug,
+                                            false,
+                                        ),
+                                    )
+                                }
                                 className="inline-flex items-center gap-1 rounded-full bg-[#e7c889] px-2.5 py-1.5 text-xs font-medium text-stone-950"
                             >
                                 {value.name}
                                 <X className="size-3" />
-                            </Link>
+                            </button>
                         ))}
                     </div>
                 )}
@@ -386,16 +406,20 @@ function FilterChip({
     value: PublicFilterValue;
 }) {
     return (
-        <Link
-            href={buildFilterHref(
-                categoryHref,
-                selectedFilters,
-                group.code,
-                value.slug,
-                !value.selected,
-                group.is_multiple,
-            )}
-            preserveScroll
+        <button
+            type="button"
+            onClick={() =>
+                applyFilterVisit(
+                    buildFilterHref(
+                        categoryHref,
+                        selectedFilters,
+                        group.code,
+                        value.slug,
+                        !value.selected,
+                        group.is_multiple,
+                    ),
+                )
+            }
             className={cn(
                 'rounded-full border px-3 py-2 text-sm transition',
                 value.selected
@@ -404,8 +428,22 @@ function FilterChip({
             )}
         >
             {value.name}
-        </Link>
+        </button>
     );
+}
+
+/**
+ * Applies a filter change without closing the filter sheet. A partial reload
+ * (`only`) refreshes just the catalogue data while preserving component state,
+ * so the Radix sheet portal is never torn down mid-navigation — doing a full
+ * visit here crashes React with a portal removeChild error and blanks the page.
+ */
+function applyFilterVisit(href: string): void {
+    router.visit(href, {
+        only: ['products', 'filters', 'selected_filters', 'pagination', 'meta'],
+        preserveScroll: true,
+        preserveState: true,
+    });
 }
 
 function buildFilterHref(

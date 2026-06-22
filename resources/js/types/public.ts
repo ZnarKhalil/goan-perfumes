@@ -214,6 +214,17 @@ export type PublicCategoryPageProps = {
     pagination: PublicPagination;
 };
 
+export type PublicSearchPageProps = {
+    navigation: PublicCategoryNavItem[];
+    contact: PublicContactSettings;
+    logo_url: string | null;
+    locale?: PublicLocaleProps;
+    meta: PublicMeta;
+    query: string;
+    products: PublicProductCard[];
+    pagination: PublicPagination;
+};
+
 export type PublicProductPageProps = {
     navigation: PublicCategoryNavItem[];
     contact: PublicContactSettings;
