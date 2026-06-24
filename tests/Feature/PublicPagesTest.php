@@ -13,6 +13,7 @@ use Database\Seeders\AttributeSeeder;
 use Database\Seeders\AttributeValueSeeder;
 use Database\Seeders\CategorySeeder;
 use Database\Seeders\DatabaseSeeder;
+use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
 
 test('home renders public props from stored content', function () {
@@ -648,6 +649,32 @@ test('search only matches the active localized product name', function () {
     $this->get('/de/suche?q=nonexistent term')
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page->has('products', 0));
+});
+
+test('search is case-insensitive against uppercase product names', function () {
+    // PostgreSQL's LIKE is case-sensitive. SQLite's is not, which would hide
+    // the bug, so force SQLite to behave like PostgreSQL for this test.
+    $isSqlite = DB::connection()->getDriverName() === 'sqlite';
+
+    if ($isSqlite) {
+        DB::statement('PRAGMA case_sensitive_like = ON');
+    }
+
+    try {
+        $category = publicCategory('luxusparfums', 'Luxusparfums');
+        publicProduct('d4', 'D4', $category);
+
+        $this->get('/de/suche?q=d4')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('products', 1)
+                ->where('products.0.name', 'D4'),
+            );
+    } finally {
+        if ($isSqlite) {
+            DB::statement('PRAGMA case_sensitive_like = OFF');
+        }
+    }
 });
 
 function publicCategory(string $slug, string $name): Category

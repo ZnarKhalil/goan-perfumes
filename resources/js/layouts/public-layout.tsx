@@ -2,7 +2,7 @@ import { Link, usePage } from '@inertiajs/react';
 import { useEffect } from 'react';
 import CookieConsent from '@/components/public/cookie-consent';
 import FloatingContactSidebar from '@/components/public/floating-contact-sidebar';
-import { Facebook, Instagram, Music2 } from '@/components/public/icons';
+import { Facebook, Instagram, Tiktok } from '@/components/public/icons';
 import SiteHeader from '@/components/public/site-header';
 import { getPublicCopy } from '@/lib/public-copy';
 import { cn } from '@/lib/utils';
@@ -37,7 +37,7 @@ export default function PublicLayout({
         {
             label: 'TikTok',
             href: contact.tiktok_url,
-            icon: Music2,
+            icon: Tiktok,
         },
         {
             label: 'Facebook',
