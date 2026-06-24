@@ -42,11 +42,22 @@ class GoogleAnalyticsService
             );
         }
 
-        return Cache::remember(
-            key: "google-analytics.dashboard.{$rangeDays}",
-            ttl: now()->addMinutes(30),
-            callback: fn () => $this->fetchDashboard($rangeDays),
-        );
+        $cacheKey = "google-analytics.dashboard.{$rangeDays}";
+
+        if (is_array($cached = Cache::get($cacheKey))) {
+            return $cached;
+        }
+
+        $dashboard = $this->fetchDashboard($rangeDays);
+
+        // Only cache successful reads. Caching an 'unavailable' result would
+        // pin a transient API failure for the full cache window, which is why
+        // the dashboard error previously persisted long after the cause was gone.
+        if ($dashboard['status'] === 'ready') {
+            Cache::put($cacheKey, $dashboard, now()->addMinutes(30));
+        }
+
+        return $dashboard;
     }
 
     private function fetchDashboard(int $rangeDays): array
