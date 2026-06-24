@@ -27,6 +27,7 @@ export default function PublicLayout({
     const impressumHref = locale
         ? `/${locale.current}/impressum`
         : '/impressum';
+    const termsHref = locale ? `/${locale.current}/agb` : '/agb';
     const footerSocialLinks = [
         {
             label: 'Instagram',
@@ -270,6 +271,17 @@ export default function PublicLayout({
                             )}
                         >
                             {copy.cookies.privacyLink}
+                        </Link>
+                        <Link
+                            href={termsHref}
+                            className={cn(
+                                'transition-colors duration-300',
+                                isDark
+                                    ? 'hover:text-[#e7c889]'
+                                    : 'hover:text-stone-900',
+                            )}
+                        >
+                            {copy.footer.termsLink}
                         </Link>
                         <CookieConsent
                             copy={copy}

@@ -21,8 +21,12 @@ export function initializeGoogleAnalytics(): void {
 
     window[`ga-disable-${measurementId}`] = false;
     window.dataLayer = window.dataLayer ?? [];
-    window.gtag = function gtag(...args: unknown[]) {
-        window.dataLayer?.push(args);
+    // gtag.js only executes dataLayer entries that are `arguments` objects as
+    // commands; a plain array is silently ignored, so the config/page_view hits
+    // would never be sent. Push `arguments` itself, exactly like the official stub.
+    window.gtag = function gtag() {
+        // eslint-disable-next-line prefer-rest-params
+        window.dataLayer?.push(arguments);
     };
 
     window.gtag('js', new Date());

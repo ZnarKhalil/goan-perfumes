@@ -10,6 +10,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Inertia\ExceptionResponse;
 use Inertia\Inertia;
+use Opcodes\LogViewer\Facades\LogViewer;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -28,6 +29,16 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
         $this->configureErrorPages();
+        $this->configureLogViewer();
+    }
+
+    /**
+     * Restrict the Log Viewer to authenticated admin users, consistent with
+     * the EnsureUserIsAdmin middleware and Dashboard form requests.
+     */
+    protected function configureLogViewer(): void
+    {
+        LogViewer::auth(fn ($request): bool => $request->user()?->is_admin === true);
     }
 
     /**

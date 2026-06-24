@@ -63,6 +63,9 @@ class SitemapController extends Controller
         $this->writeLocalizedStaticRoute($writer, 'privacy', [
             resource_path('js/pages/public/privacy-policy.tsx'),
         ]);
+        $this->writeLocalizedStaticRoute($writer, 'terms', [
+            resource_path('js/pages/public/terms.tsx'),
+        ]);
 
         foreach ($categories as $category) {
             $alternates = $this->localizedRouteUrls('categories.show', ['slug' => $category->slug]);

@@ -101,12 +101,22 @@ class GoogleAnalyticsService
      */
     private function realtime(): array
     {
+        // Anchor the end of the range to the top of the hour. Spatie's
+        // Period::toMinuteRange() derives endMinutesAgo from the end date's
+        // minute-of-hour, so any other end date produces an invalid range
+        // (endMinutesAgo > startMinutesAgo) and the Realtime API rejects it.
+        $end = CarbonImmutable::now()->startOfHour();
+
         $period = Period::create(
-            CarbonImmutable::now()->subMinutes(self::RealtimeLookbackMinutes),
-            CarbonImmutable::now(),
+            $end->subMinutes(self::RealtimeLookbackMinutes),
+            $end,
         );
 
-        $row = Analytics::getRealtime($period, ['activeUsers'])->first() ?? [];
+        try {
+            $row = Analytics::getRealtime($period, ['activeUsers'])->first() ?? [];
+        } catch (Throwable) {
+            return ['active_users' => 0];
+        }
 
         return [
             'active_users' => (int) ($row['activeUsers'] ?? 0),
