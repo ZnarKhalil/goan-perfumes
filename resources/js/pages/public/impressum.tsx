@@ -9,7 +9,6 @@ type ImpressumContent = {
     eyebrow: string;
     title: string;
     intro: string;
-    placeholderNote: string;
     sections: {
         title: string;
         rows: {
@@ -24,8 +23,6 @@ const content: Record<PublicLocaleCode, ImpressumContent> = {
         eyebrow: 'Rechtliches',
         title: 'Impressum',
         intro: 'Angaben gemäß § 5 DDG.',
-        placeholderNote:
-            'Bitte die E-Mail-Adresse vor Veröffentlichung ergänzen.',
         sections: [
             {
                 title: 'Anbieter',
@@ -59,7 +56,6 @@ const content: Record<PublicLocaleCode, ImpressumContent> = {
         eyebrow: 'Legal',
         title: 'Legal notice',
         intro: 'Provider information according to section 5 DDG.',
-        placeholderNote: 'Please add the email address before publication.',
         sections: [
             {
                 title: 'Provider',
@@ -93,7 +89,6 @@ const content: Record<PublicLocaleCode, ImpressumContent> = {
         eyebrow: 'قانوني',
         title: 'البيانات القانونية',
         intro: 'معلومات المزوّد وفقاً للمادة 5 من DDG.',
-        placeholderNote: 'يرجى إضافة عنوان البريد الإلكتروني قبل النشر.',
         sections: [
             {
                 title: 'المزوّد',
@@ -148,9 +143,6 @@ export default function Impressum(page: PublicImpressumPageProps) {
                     </h1>
                     <p className="mt-6 max-w-3xl text-base leading-8 text-stone-600">
                         {copy.intro}
-                    </p>
-                    <p className="mt-5 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900">
-                        {copy.placeholderNote}
                     </p>
                 </div>
             </section>

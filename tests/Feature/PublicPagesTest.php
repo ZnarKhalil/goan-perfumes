@@ -517,9 +517,41 @@ test('impressum page renders public layout props', function () {
         );
 });
 
+test('terms page renders public layout props', function () {
+    publicCategory('arabische-parfums', 'Arabische Parfums');
+
+    $this->get('/de/agb')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('public/terms')
+            ->where('meta.title', 'Allgemeine Geschäftsbedingungen')
+            ->where('meta.description', fn (string $value) => str_contains($value, 'WhatsApp'))
+            ->has('navigation', 1),
+        );
+
+    $this->get('/en/agb')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('public/terms')
+            ->where('meta.title', 'Terms and conditions'),
+        );
+
+    $this->get('/ar/agb')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('public/terms')
+            ->where('meta.title', 'الشروط والأحكام'),
+        );
+});
+
 test('root privacy policy URL redirects to the active public locale', function () {
     $this->get('/datenschutz')
         ->assertRedirect('/de/datenschutz');
+});
+
+test('root terms URL redirects to the active public locale', function () {
+    $this->get('/agb')
+        ->assertRedirect('/de/agb');
 });
 
 test('root impressum URL redirects to the active public locale', function () {

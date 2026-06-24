@@ -54,7 +54,14 @@
       "Bash(curl -sL \"https://goan-perfumes.test/de/produkt/$\\(php artisan tinker --execute='echo \\\\App\\\\Models\\\\Product::where\\(\"is_active\",true\\)->value\\(\"slug\"\\);' \\)\" -o /tmp/prod.html -w \"HTTP %{http_code}\\\\n\")",
       "Bash(grep -o 'name=\"description\"[^>]*content=\"[^\"]\\\\{0,80\\\\}' /tmp/prod.html)",
       "Bash(echo \"=== exit: $? ===\")",
-      "mcp__laravel-boost__database-query"
+      "mcp__laravel-boost__database-query",
+      "Bash(php -r '$f=\"storage/app/analytics/service-account-credentials.json\"; $d=json_decode\\(file_get_contents\\($f\\),true\\); if\\($d===null\\){echo \"INVALID JSON\\\\n\";exit;} echo \"valid JSON\\\\n\"; foreach\\([\"type\",\"project_id\",\"private_key\",\"client_email\",\"token_uri\"] as $k\\){echo str_pad\\($k,16\\).\": \".\\(isset\\($d[$k]\\)?\\(in_array\\($k,[\"private_key\"]\\)?\"present \\(\".strlen\\($d[$k]\\).\" chars\\)\":$d[$k]\\):\"MISSING\"\\).\"\\\\n\";}')",
+      "Bash(cd *)",
+      "Bash(composer show *)",
+      "Bash(curl -s -L https://goanperfume.de/de)",
+      "Bash(curl -s -L https://goanperfume.de/build/assets/public-layout-BM6sSsJu.js)",
+      "Bash(curl -s -I -L https://goanperfume.de/de)",
+      "Bash(echo \"exit: $?\")"
     ]
   },
   "enableAllProjectMcpServers": true,

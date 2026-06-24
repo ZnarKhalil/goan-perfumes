@@ -257,3 +257,11 @@ export type PublicImpressumPageProps = {
     locale?: PublicLocaleProps;
     meta: PublicMeta;
 };
+
+export type PublicTermsPageProps = {
+    navigation: PublicCategoryNavItem[];
+    contact: PublicContactSettings;
+    logo_url: string | null;
+    locale?: PublicLocaleProps;
+    meta: PublicMeta;
+};

@@ -70,6 +70,7 @@ export type PublicCopy = {
         contactTitle: string;
         contactPage: string;
         impressumLink: string;
+        termsLink: string;
     };
     home: {
         aboutEyebrow: string;
@@ -204,6 +205,7 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             contactTitle: 'Kontakt',
             contactPage: 'Kontaktseite',
             impressumLink: 'Impressum',
+            termsLink: 'AGB',
         },
         home: {
             aboutEyebrow: 'Über uns',
@@ -334,6 +336,7 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             contactTitle: 'Contact',
             contactPage: 'Contact page',
             impressumLink: 'Legal notice',
+            termsLink: 'Terms',
         },
         home: {
             aboutEyebrow: 'About us',
@@ -465,6 +468,7 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             contactTitle: 'التواصل',
             contactPage: 'صفحة التواصل',
             impressumLink: 'البيانات القانونية',
+            termsLink: 'الشروط والأحكام',
         },
         home: {
             aboutEyebrow: 'من نحن',
