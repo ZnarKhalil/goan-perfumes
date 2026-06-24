@@ -61,7 +61,8 @@
       "Bash(curl -s -L https://goanperfume.de/de)",
       "Bash(curl -s -L https://goanperfume.de/build/assets/public-layout-BM6sSsJu.js)",
       "Bash(curl -s -I -L https://goanperfume.de/de)",
-      "Bash(echo \"exit: $?\")"
+      "Bash(echo \"exit: $?\")",
+      "Bash(vendor/bin/pint app/Providers/AppServiceProvider.php --format agent)"
     ]
   },
   "enableAllProjectMcpServers": true,
