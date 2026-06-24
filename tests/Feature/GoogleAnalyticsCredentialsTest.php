@@ -3,8 +3,25 @@
 use App\Services\GoogleAnalyticsService;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Spatie\Analytics\Facades\Analytics;
 use Spatie\Analytics\Period;
+
+function fakeAnalytics(): Mockery\MockInterface
+{
+    config([
+        'analytics.property_id' => '542125730',
+        // Any existing file satisfies the file_exists() configured check.
+        'analytics.service_account_credentials_json' => base_path('composer.json'),
+    ]);
+
+    // Bind the mock as the facade root so the real Google client is never
+    // built from the (deliberately invalid) credentials path above.
+    $analytics = Mockery::mock(\Spatie\Analytics\Analytics::class);
+    app()->instance('laravel-analytics', $analytics);
+
+    return $analytics;
+}
 
 test('google analytics service account credentials are ignored by git', function () {
     $gitignore = file_get_contents(base_path('.gitignore'));
@@ -39,6 +56,29 @@ test('the realtime range is valid regardless of the current minute', function ()
         ->and($realtime)->toBe(['active_users' => 7]);
 
     CarbonImmutable::setTestNow();
+});
+
+test('a failed dashboard read is not cached', function () {
+    $analytics = fakeAnalytics();
+    $analytics->shouldReceive('get')->andThrow(new RuntimeException('GA down'));
+
+    $result = app(GoogleAnalyticsService::class)->dashboard(30);
+
+    expect($result['status'])->toBe('unavailable')
+        ->and(Cache::has('google-analytics.dashboard.30'))->toBeFalse();
+});
+
+test('a successful dashboard read is cached', function () {
+    $analytics = fakeAnalytics();
+    $analytics->shouldReceive('get')->andReturn(collect());
+    $analytics->shouldReceive('getRealtime')->andReturn(collect());
+    $analytics->shouldReceive('fetchMostVisitedPages')->andReturn(collect());
+    $analytics->shouldReceive('fetchTopCountries')->andReturn(collect());
+
+    $result = app(GoogleAnalyticsService::class)->dashboard(30);
+
+    expect($result['status'])->toBe('ready')
+        ->and(Cache::has('google-analytics.dashboard.30'))->toBeTrue();
 });
 
 test('a failing realtime call does not blank the rest of the dashboard', function () {
