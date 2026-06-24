@@ -62,7 +62,8 @@
       "Bash(curl -s -L https://goanperfume.de/build/assets/public-layout-BM6sSsJu.js)",
       "Bash(curl -s -I -L https://goanperfume.de/de)",
       "Bash(echo \"exit: $?\")",
-      "Bash(vendor/bin/pint app/Providers/AppServiceProvider.php --format agent)"
+      "Bash(vendor/bin/pint app/Providers/AppServiceProvider.php --format agent)",
+      "Bash(php -r '$j=json_decode\\(file_get_contents\\(\"composer.json\"\\),true\\); echo \"require: \".\\(isset\\($j[\"require\"][\"opcodesio/log-viewer\"]\\)?\"YES \\(\".$j[\"require\"][\"opcodesio/log-viewer\"].\"\\)\":\"no\"\\).\"\\\\n\"; echo \"require-dev: \".\\(isset\\($j[\"require-dev\"][\"opcodesio/log-viewer\"]\\)?\"YES \\(\".$j[\"require-dev\"][\"opcodesio/log-viewer\"].\"\\)\":\"no\"\\).\"\\\\n\";')"
     ]
   },
   "enableAllProjectMcpServers": true,

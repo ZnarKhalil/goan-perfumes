@@ -38,6 +38,13 @@ class AppServiceProvider extends ServiceProvider
      */
     protected function configureLogViewer(): void
     {
+        // The log-viewer binding is unavailable while its package manifest is
+        // (re)built, e.g. during `package:discover` on a fresh deploy. Guard the
+        // facade call so boot never hard-fails when the binding is not yet set.
+        if (! $this->app->bound('log-viewer')) {
+            return;
+        }
+
         LogViewer::auth(fn ($request): bool => $request->user()?->is_admin === true);
     }
 
