@@ -21,13 +21,16 @@ class SearchController extends PublicController
         if ($term === '') {
             $query->whereRaw('1 = 0');
         } else {
-            $like = '%'.addcslashes($term, '%_\\').'%';
+            // Match case-insensitively: PostgreSQL's LIKE is case-sensitive, so
+            // a lowercase query like "d4" would otherwise miss a stored "D4".
+            // lower() on both sides keeps this portable across pgsql and sqlite.
+            $like = '%'.addcslashes(Str::lower($term), '%_\\').'%';
             $locales = array_values(array_unique([$this->locale(), PublicLocale::Default]));
 
             $query->whereHas('translations', fn (Builder $translation) => $translation
                 ->where('field', 'name')
                 ->whereIn('locale', $locales)
-                ->where('value', 'like', $like));
+                ->whereRaw('lower(value) like ?', [$like]));
         }
 
         $products = $query->paginate(12)->withQueryString();

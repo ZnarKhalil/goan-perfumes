@@ -3,8 +3,8 @@ import {
     Instagram,
     Mail,
     MessageCircle,
-    Music2,
     Phone,
+    Tiktok,
 } from '@/components/public/icons';
 import type { PublicCopy } from '@/lib/public-copy';
 import { cn } from '@/lib/utils';
@@ -40,7 +40,7 @@ export default function FloatingContactSidebar({
         {
             label: 'TikTok',
             href: contact.tiktok_url,
-            icon: Music2,
+            icon: Tiktok,
         },
         {
             label: 'Instagram',
