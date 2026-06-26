@@ -6,6 +6,7 @@ import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { adminTitle, dashboardLabels } from '@/lib/de';
+import { publicContentCacheTags } from '@/lib/inertia-cache';
 import promotionsRoutes from '@/routes/dashboard/promotions';
 
 type PromotionRow = {
@@ -40,6 +41,7 @@ export default function PromotionsIndex({ promotions }: Props) {
         }
 
         router.delete(PromotionController.destroy.url({ promotion: row.id }), {
+            invalidateCacheTags: publicContentCacheTags,
             preserveScroll: true,
         });
     };

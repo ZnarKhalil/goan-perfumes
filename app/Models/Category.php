@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 
 #[Fillable(['slug', 'parent_id', 'sort_order', 'is_active'])]
 class Category extends Model
@@ -49,6 +50,11 @@ class Category extends Model
     public function media(): MorphMany
     {
         return $this->morphMany(Media::class, 'mediable');
+    }
+
+    public function primaryMedia(): MorphOne
+    {
+        return $this->morphOne(Media::class, 'mediable')->where('is_primary', true);
     }
 
     protected static function booted(): void

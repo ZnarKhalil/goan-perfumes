@@ -21,19 +21,40 @@ use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Inertia\Inertia;
+use Inertia\OnceProp;
 
 abstract class PublicController extends Controller
 {
+    private const LayoutOnceCacheSeconds = 300;
+
     /** @var EloquentCollection<int, Attribute>|null */
     private ?EloquentCollection $filterableAttributes = null;
 
     protected function layoutProps(): array
     {
         return [
-            'navigation' => $this->navigation(),
-            'contact' => $this->contactSettings(),
-            'logo_url' => $this->logoUrl(),
+            'navigation' => $this->onceLayoutProp(
+                'navigation',
+                fn (): array => $this->navigation(),
+            ),
+            'contact' => $this->onceLayoutProp(
+                'contact',
+                fn (): array => $this->contactSettings(),
+            ),
+            'logo_url' => $this->onceLayoutProp(
+                'logo_url',
+                fn (): ?string => $this->logoUrl(),
+            ),
         ];
+    }
+
+    private function onceLayoutProp(string $key, callable $callback): OnceProp
+    {
+        return Inertia::once($callback)->once(
+            as: "public-layout:{$this->locale()}:{$key}",
+            until: self::LayoutOnceCacheSeconds,
+        );
     }
 
     protected function navigation(): array
@@ -113,7 +134,7 @@ abstract class PublicController extends Controller
     {
         return Product::query()
             ->select('products.*')
-            ->with(['translations', 'categories.translations', 'primaryMedia.translations'])
+            ->with(['translations', 'categories.translations', 'categories.primaryMedia', 'primaryMedia.translations'])
             ->withMin(['variants as variants_min_price' => fn (Builder $query) => $query->where('is_active', true)], 'price')
             ->withMax(['variants as variants_max_price' => fn (Builder $query) => $query->where('is_active', true)], 'price')
             ->where('is_active', true);

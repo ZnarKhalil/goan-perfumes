@@ -1,7 +1,8 @@
 import MagneticLink from '@/components/public/home/magnetic-link';
+import type { InertiaLinkCacheProps } from '@/lib/inertia-cache';
 import { cn } from '@/lib/utils';
 
-type Props = {
+type Props = InertiaLinkCacheProps & {
     href: string;
     children: React.ReactNode;
     external?: boolean;
@@ -20,11 +21,17 @@ export default function CtaLink({
     external = false,
     variant = 'solid',
     className,
+    cacheFor,
+    cacheTags,
+    prefetch,
 }: Props) {
     return (
         <MagneticLink
             href={href}
             external={external}
+            cacheFor={cacheFor}
+            cacheTags={cacheTags}
+            prefetch={prefetch}
             className={cn(
                 'rounded-full px-8 py-4 text-sm font-medium tracking-wide backdrop-blur-md transition-colors duration-500',
                 variant === 'solid'

@@ -15,15 +15,19 @@ export default defineConfig({
             fonts: [
                 bunny('Instrument Sans', {
                     weights: [400, 500, 600],
+                    preload: false,
                 }),
                 bunny('Fraunces', {
                     weights: [400, 500],
+                    preload: false,
                 }),
                 bunny('Manrope', {
                     weights: [400, 500, 600],
+                    preload: false,
                 }),
                 bunny('Noto Kufi Arabic', {
                     weights: [400, 500, 700],
+                    preload: false,
                 }),
             ],
         }),

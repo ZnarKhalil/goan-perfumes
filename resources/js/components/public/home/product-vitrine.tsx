@@ -2,6 +2,10 @@ import { Link } from '@inertiajs/react';
 import Reveal from '@/components/public/home/reveal';
 import TiltCard from '@/components/public/home/tilt-card';
 import Price from '@/components/public/price';
+import {
+    publicCategoryPrefetch,
+    publicProductPrefetch,
+} from '@/lib/inertia-cache';
 import type { PublicCopy } from '@/lib/public-copy';
 import type { PublicProductCard } from '@/types/public';
 
@@ -39,6 +43,7 @@ export default function ProductVitrine({
                     </div>
                     <Link
                         href={seeAllHref}
+                        {...publicCategoryPrefetch}
                         className="group inline-flex items-center gap-2 text-sm font-medium text-stone-300 transition-colors hover:text-[#e7c889]"
                     >
                         {seeAllLabel}
@@ -54,12 +59,8 @@ export default function ProductVitrine({
                     </div>
                 ) : (
                     <div className="mt-14 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                        {products.map((product, index) => (
-                            <Reveal
-                                key={product.id}
-                                delay={index * 0.09}
-                                y={48}
-                            >
+                        {products.map((product) => (
+                            <Reveal key={product.id}>
                                 <VitrineCard product={product} copy={copy} />
                             </Reveal>
                         ))}
@@ -81,6 +82,7 @@ function VitrineCard({
         <TiltCard className="h-full rounded-[1.4rem] border border-white/10 bg-white/[0.035] p-3 shadow-[0_30px_70px_-40px_rgba(0,0,0,0.9)] backdrop-blur-xl">
             <Link
                 href={product.href}
+                {...publicProductPrefetch}
                 className="flex h-full flex-col focus-visible:outline-none"
             >
                 <div className="relative aspect-[4/5] overflow-hidden rounded-[1.05rem] bg-[radial-gradient(120%_90%_at_50%_0%,#221708,#0c0907)]">

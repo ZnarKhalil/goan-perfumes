@@ -13,7 +13,7 @@ class CategoryController extends PublicController
     public function show(Request $request, string $locale, string $slug): Response
     {
         $category = Category::query()
-            ->with('translations')
+            ->with(['translations', 'primaryMedia'])
             ->where('slug', $slug)
             ->where('is_active', true)
             ->firstOrFail();

@@ -1,5 +1,8 @@
 import { Link, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
+import { useState } from 'react';
+import MediaUploader from '@/components/dashboard/media-uploader';
+import type { MediaItem } from '@/components/dashboard/media-uploader';
 import TranslationTabs, {
     emptyTranslations,
 } from '@/components/dashboard/translation-tabs';
@@ -20,6 +23,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { publicAllCacheTags } from '@/lib/inertia-cache';
 import categoriesRoutes from '@/routes/dashboard/categories';
 
 const FIELDS: TranslationField[] = [
@@ -32,6 +36,19 @@ export type CategoryParentOption = {
     name: string;
 };
 
+export type CategoryMediaRow = {
+    id: number;
+    url: string;
+    sort_order: number;
+    is_primary: boolean;
+    alt_text: string;
+    alt_text_translations?: {
+        de: string;
+        ar: string;
+        en: string;
+    };
+};
+
 export type CategoryFormProps = {
     mode: 'create' | 'edit';
     categoryId?: number;
@@ -40,6 +57,7 @@ export type CategoryFormProps = {
         sort_order: number;
         is_active: boolean;
         translations: TranslationsShape;
+        media: CategoryMediaRow[];
     };
     parents: CategoryParentOption[];
 };
@@ -49,7 +67,19 @@ type FormData = {
     sort_order: number;
     is_active: boolean;
     translations: TranslationsShape;
+    media_uploads: File[];
+    media_meta: {
+        existing: MediaMetaItem[];
+        new: MediaMetaItem[];
+        removed: number[];
+    };
     _method?: 'PUT';
+};
+
+type MediaMetaItem = {
+    id?: number;
+    sort_order: number;
+    is_primary: boolean;
 };
 
 export default function CategoryForm({
@@ -58,23 +88,61 @@ export default function CategoryForm({
     initial,
     parents,
 }: CategoryFormProps) {
-    const { data, setData, post, processing, errors } = useForm<FormData>({
-        parent_id: initial.parent_id ? String(initial.parent_id) : 'none',
-        sort_order: initial.sort_order,
-        is_active: initial.is_active,
-        translations: initial.translations ?? emptyTranslations(FIELDS),
-        ...(mode === 'edit' ? { _method: 'PUT' as const } : {}),
-    });
+    const [mediaItems, setMediaItems] = useState<MediaItem[]>(
+        initial.media.map((media) => ({
+            id: `existing-${media.id}`,
+            serverId: media.id,
+            url: media.url,
+            sort_order: media.sort_order,
+            is_primary: media.is_primary,
+            alt_text: media.alt_text,
+            alt_text_translations: media.alt_text_translations,
+        })),
+    );
+    const [removedMediaIds, setRemovedMediaIds] = useState<number[]>([]);
+    const { data, setData, post, processing, errors, transform } =
+        useForm<FormData>({
+            parent_id: initial.parent_id ? String(initial.parent_id) : 'none',
+            sort_order: initial.sort_order,
+            is_active: initial.is_active,
+            translations: initial.translations ?? emptyTranslations(FIELDS),
+            media_uploads: [],
+            media_meta: {
+                existing: [],
+                new: [],
+                removed: [],
+            },
+            ...(mode === 'edit' ? { _method: 'PUT' as const } : {}),
+        });
 
     const submit = (e: FormEvent) => {
         e.preventDefault();
+
+        const newItems = mediaItems.filter((item) => item.file);
+        const existingItems = mediaItems.filter((item) => item.serverId);
+
+        transform((current) => ({
+            ...current,
+            media_uploads: newItems
+                .map((item) => item.file)
+                .filter((file): file is File => file instanceof File),
+            media_meta: {
+                existing: existingItems.map((item) => mediaMeta(item)),
+                new: newItems.map((item) => mediaMeta(item)),
+                removed: removedMediaIds,
+            },
+        }));
+
         const url =
             mode === 'create'
                 ? categoriesRoutes.store().url
                 : categoriesRoutes.update({
                       category: categoriesRoute(categoryId),
                   }).url;
-        post(url);
+        post(url, {
+            forceFormData: true,
+            invalidateCacheTags: publicAllCacheTags,
+        });
     };
 
     const setTranslation = (
@@ -88,8 +156,32 @@ export default function CategoryForm({
         });
     };
 
+    const updateMediaItems = (items: MediaItem[]) => {
+        const previousExistingIds = mediaItems
+            .map((item) => item.serverId)
+            .filter((id): id is number => typeof id === 'number');
+        const nextExistingIds = items
+            .map((item) => item.serverId)
+            .filter((id): id is number => typeof id === 'number');
+        const removedNow = previousExistingIds.filter(
+            (id) => !nextExistingIds.includes(id),
+        );
+
+        if (removedNow.length > 0) {
+            setRemovedMediaIds((current) =>
+                Array.from(new Set([...current, ...removedNow])),
+            );
+        }
+
+        setMediaItems(items);
+    };
+
     return (
-        <form onSubmit={submit} className="grid gap-8">
+        <form
+            onSubmit={submit}
+            className="grid gap-8"
+            encType="multipart/form-data"
+        >
             <section className="grid gap-4 rounded-lg border border-sidebar-border/70 p-6 dark:border-sidebar-border">
                 <h3 className="text-sm font-medium">Inhalte (mehrsprachig)</h3>
                 <TranslationTabs
@@ -157,6 +249,25 @@ export default function CategoryForm({
                 </div>
             </section>
 
+            <section className="grid gap-4 rounded-lg border border-sidebar-border/70 p-6 dark:border-sidebar-border">
+                <div>
+                    <h3 className="text-sm font-medium">Kategoriebild</h3>
+                    <p className="text-sm text-muted-foreground">
+                        Wird auf der Startseite und als Produkt-Fallback für
+                        diese Kategorie verwendet.
+                    </p>
+                </div>
+                <MediaUploader
+                    mode="multi"
+                    items={mediaItems}
+                    onItemsChange={updateMediaItems}
+                    error={errors.media_uploads ?? errors.media_meta}
+                    label="Kategoriebild"
+                    max={1}
+                    showAltTextFields={false}
+                />
+            </section>
+
             <div className="flex items-center justify-end gap-3">
                 <Button asChild variant="ghost">
                     <Link href={categoriesRoutes.index()}>Abbrechen</Link>
@@ -167,6 +278,14 @@ export default function CategoryForm({
             </div>
         </form>
     );
+}
+
+function mediaMeta(item: MediaItem): MediaMetaItem {
+    return {
+        ...(item.serverId ? { id: item.serverId } : {}),
+        sort_order: item.sort_order,
+        is_primary: item.is_primary,
+    };
 }
 
 function categoriesRoute(id: number | undefined): number {

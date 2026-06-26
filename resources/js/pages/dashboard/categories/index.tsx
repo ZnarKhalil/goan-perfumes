@@ -6,6 +6,7 @@ import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { adminTitle, dashboardLabels } from '@/lib/de';
+import { publicAllCacheTags } from '@/lib/inertia-cache';
 import categoriesRoutes from '@/routes/dashboard/categories';
 
 type CategoryRow = {
@@ -15,6 +16,7 @@ type CategoryRow = {
     parent_name: string | null;
     sort_order: number;
     is_active: boolean;
+    image_url: string | null;
 };
 
 type Props = {
@@ -32,6 +34,7 @@ export default function CategoriesIndex({ categories }: Props) {
         }
 
         router.delete(CategoryController.destroy.url({ category: row.id }), {
+            invalidateCacheTags: publicAllCacheTags,
             preserveScroll: true,
         });
     };
@@ -56,6 +59,21 @@ export default function CategoriesIndex({ categories }: Props) {
                     rows={categories}
                     rowKey={(row) => row.id}
                     columns={[
+                        {
+                            key: 'image',
+                            label: 'Bild',
+                            className: 'w-20',
+                            render: (row) =>
+                                row.image_url ? (
+                                    <img
+                                        src={row.image_url}
+                                        alt=""
+                                        className="size-12 rounded-md object-cover"
+                                    />
+                                ) : (
+                                    <div className="size-12 rounded-md border border-dashed border-sidebar-border/70 bg-muted/30 dark:border-sidebar-border" />
+                                ),
+                        },
                         {
                             key: 'name',
                             label: 'Name',

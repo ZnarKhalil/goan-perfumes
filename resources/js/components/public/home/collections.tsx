@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 import Reveal from '@/components/public/home/reveal';
+import { publicCategoryPrefetch } from '@/lib/inertia-cache';
 import type { PublicCategoryNavItem } from '@/types/public';
 
 type Props = {
@@ -31,14 +32,14 @@ export default function Collections({ categories, eyebrow, title }: Props) {
                 </Reveal>
 
                 <div className="mt-14 flex snap-x snap-mandatory gap-5 overflow-x-auto pb-4 [scrollbar-width:none] md:grid md:grid-cols-3 md:overflow-visible lg:grid-cols-4 [&::-webkit-scrollbar]:hidden">
-                    {categories.map((category, index) => (
+                    {categories.map((category) => (
                         <Reveal
                             key={category.id}
-                            delay={index * 0.07}
                             className="min-w-[78vw] snap-start sm:min-w-[44vw] md:min-w-0"
                         >
                             <Link
                                 href={category.href}
+                                {...publicCategoryPrefetch}
                                 className="group relative block aspect-[3/4] overflow-hidden rounded-[1.4rem] border border-white/10"
                             >
                                 {category.image_url ? (

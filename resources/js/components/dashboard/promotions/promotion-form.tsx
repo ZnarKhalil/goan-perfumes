@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { publicContentCacheTags } from '@/lib/inertia-cache';
 import promotionsRoutes from '@/routes/dashboard/promotions';
 
 const FIELDS: TranslationField[] = [
@@ -67,7 +68,7 @@ export default function PromotionForm({
                       promotion: requirePromotionId(promotionId),
                   }).url;
 
-        post(url);
+        post(url, { invalidateCacheTags: publicContentCacheTags });
     };
 
     const setTranslation = (

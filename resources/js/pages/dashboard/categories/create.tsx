@@ -33,6 +33,7 @@ export default function CategoriesCreate({ parents, next_sort_order }: Props) {
                         sort_order: next_sort_order,
                         is_active: true,
                         translations: emptyTranslations(FIELDS),
+                        media: [],
                     }}
                 />
             </div>

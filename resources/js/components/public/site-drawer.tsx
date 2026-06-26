@@ -11,6 +11,11 @@ import {
     SheetTitle,
     SheetTrigger,
 } from '@/components/ui/sheet';
+import {
+    publicCategoryPrefetch,
+    publicHomePrefetch,
+    publicNavigationPrefetch,
+} from '@/lib/inertia-cache';
 import type { PublicCopy } from '@/lib/public-copy';
 import { cn } from '@/lib/utils';
 import type { PublicCategoryNavItem } from '@/types/public';
@@ -69,6 +74,7 @@ export default function SiteDrawer({
                 <nav className="grid px-6 pt-4 pb-6">
                     <Link
                         href={homeHref}
+                        {...publicHomePrefetch}
                         onClick={closeDrawer}
                         className="border-b border-white/10 py-4 text-lg font-medium transition hover:text-[#e7c889]"
                     >
@@ -78,6 +84,7 @@ export default function SiteDrawer({
                         <Link
                             key={category.slug}
                             href={category.href}
+                            {...publicCategoryPrefetch}
                             onClick={closeDrawer}
                             className="border-b border-white/10 py-4 text-lg font-medium transition hover:text-[#e7c889]"
                         >
@@ -86,6 +93,7 @@ export default function SiteDrawer({
                     ))}
                     <Link
                         href={contactHref}
+                        {...publicNavigationPrefetch}
                         onClick={closeDrawer}
                         className="py-4 text-lg font-medium transition hover:text-[#e7c889]"
                     >

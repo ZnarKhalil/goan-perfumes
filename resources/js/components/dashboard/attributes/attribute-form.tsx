@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { publicCatalogCacheTags } from '@/lib/inertia-cache';
 import attributesRoutes from '@/routes/dashboard/attributes';
 
 const FIELDS: TranslationField[] = [{ name: 'name', label: 'Name' }];
@@ -61,7 +62,7 @@ export default function AttributeForm({
                       attribute: requireAttributeId(attributeId),
                   }).url;
 
-        post(url);
+        post(url, { invalidateCacheTags: publicCatalogCacheTags });
     };
 
     const setTranslation = (

@@ -23,6 +23,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { adminTitle, dashboardLabels } from '@/lib/de';
+import { publicCatalogCacheTags } from '@/lib/inertia-cache';
 import productsRoutes from '@/routes/dashboard/products';
 
 type ProductRow = {
@@ -188,6 +189,7 @@ export default function ProductsIndex({
         }
 
         router.delete(ProductController.destroy.url({ product: row.id }), {
+            invalidateCacheTags: publicCatalogCacheTags,
             preserveScroll: true,
         });
     };

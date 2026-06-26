@@ -14,6 +14,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { adminTitle, dashboardLabels } from '@/lib/de';
+import { publicContentCacheTags } from '@/lib/inertia-cache';
 import siteSettingsRoutes from '@/routes/dashboard/settings/site';
 
 type Settings = {
@@ -63,6 +64,7 @@ export default function SiteSettings({ settings }: Props) {
 
         post(siteSettingsRoutes.update().url, {
             forceFormData: true,
+            invalidateCacheTags: publicContentCacheTags,
             preserveScroll: true,
         });
     };

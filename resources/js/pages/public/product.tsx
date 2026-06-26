@@ -3,6 +3,10 @@ import { useState } from 'react';
 import { ArrowLeft, Mail, Phone, Send } from '@/components/public/icons';
 import PublicHead from '@/components/public/public-head';
 import PublicLayout from '@/layouts/public-layout';
+import {
+    publicCategoryPrefetch,
+    publicHomePrefetch,
+} from '@/lib/inertia-cache';
 import { getPublicCopy } from '@/lib/public-copy';
 import type { PublicCopy } from '@/lib/public-copy';
 import { formatEuro } from '@/lib/public-format';
@@ -92,6 +96,7 @@ export default function Product(page: PublicProductPageProps) {
                         >
                             <Link
                                 href={`/${page.locale?.current ?? 'de'}`}
+                                {...publicHomePrefetch}
                                 className="transition hover:text-[#e7c889]"
                             >
                                 {copy.navigation.homepage}
@@ -101,6 +106,7 @@ export default function Product(page: PublicProductPageProps) {
                                     <span aria-hidden="true">/</span>
                                     <Link
                                         href={product.primary_category.href}
+                                        {...publicCategoryPrefetch}
                                         className="transition hover:text-[#e7c889]"
                                     >
                                         {product.primary_category.name}
@@ -119,6 +125,7 @@ export default function Product(page: PublicProductPageProps) {
                         {product.primary_category && (
                             <Link
                                 href={product.primary_category.href}
+                                {...publicCategoryPrefetch}
                                 className="inline-flex items-center gap-2 text-sm text-stone-400 transition hover:text-[#e7c889]"
                             >
                                 <ArrowLeft className="size-4 rtl:rotate-180" />
@@ -187,6 +194,7 @@ export default function Product(page: PublicProductPageProps) {
                                         <Link
                                             key={category.id}
                                             href={category.href}
+                                            {...publicCategoryPrefetch}
                                             className="rounded-full border border-white/15 px-3 py-1.5 text-sm text-stone-300 transition hover:border-[#e7c889]/60 hover:text-[#e7c889]"
                                         >
                                             {category.name}

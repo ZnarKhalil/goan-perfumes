@@ -1,8 +1,11 @@
 <?php
 
 use App\Models\Category;
+use App\Models\Media;
 use App\Models\Translation;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
     $this->admin = User::factory()->admin()->create();
@@ -64,6 +67,46 @@ test('admin can create a category with translations', function () {
     expect($category->translate('ar', 'name'))->toBe('زنبق الوادي');
     expect($category->translate('en', 'name'))->toBe('Lily of the valley');
     expect($category->translate('de', 'description'))->toBe('Frühlingshaft.');
+});
+
+test('admin can create a category with an image', function () {
+    Storage::fake('public');
+
+    $response = $this->actingAs($this->admin)
+        ->post('/dashboard/categories', [
+            'sort_order' => 5,
+            'is_active' => true,
+            'translations' => [
+                'de' => ['name' => 'Maiglöckchen', 'description' => 'Frühlingshaft.'],
+                'ar' => ['name' => 'زنبق الوادي'],
+                'en' => ['name' => 'Lily of the valley'],
+            ],
+            'media_uploads' => [
+                UploadedFile::fake()->image('category.jpg', 1200, 900),
+            ],
+            'media_meta' => [
+                'new' => [
+                    [
+                        'sort_order' => 0,
+                        'is_primary' => true,
+                    ],
+                ],
+            ],
+        ]);
+
+    $response->assertRedirect('/dashboard/categories');
+
+    $category = Category::query()->sole();
+    $media = $category->media()->sole();
+
+    expect($media->is_primary)->toBeTrue();
+    expect($media->sort_order)->toBe(0);
+    expect($media->path)->toStartWith("media/categories/{$category->id}/")
+        ->toEndWith('.webp');
+    expect($media->translate('de', 'alt_text'))->toBe('Kategorie Maiglöckchen');
+    expect($media->translate('en', 'alt_text'))->toBe('Lily of the valley perfume category');
+
+    Storage::disk('public')->assertExists($media->path);
 });
 
 test('store rejects a sort order already used by another category', function () {
@@ -206,6 +249,105 @@ test('admin can update an existing category', function () {
     expect($category->is_active)->toBeFalse();
     expect($category->sort_order)->toBe(9);
     expect($category->translate('de', 'name'))->toBe('Neu');
+});
+
+test('edit exposes existing category media', function () {
+    $category = Category::factory()->create(['slug' => 'kat']);
+    $category->setTranslation('de', 'name', 'Kategorie');
+    $media = $category->media()->create([
+        'path' => 'media/categories/1/cover.webp',
+        'sort_order' => 0,
+        'is_primary' => true,
+    ]);
+
+    $this->actingAs($this->admin)
+        ->get("/dashboard/categories/{$category->id}/edit")
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('dashboard/categories/edit')
+            ->where('category.media.0.id', $media->id)
+            ->where('category.media.0.is_primary', true),
+        );
+});
+
+test('admin can replace a category image', function () {
+    Storage::fake('public');
+
+    $category = Category::factory()->create(['slug' => 'kat']);
+    $category->setTranslation('de', 'name', 'Kategorie');
+    $oldMedia = $category->media()->create([
+        'path' => 'media/categories/1/old.webp',
+        'sort_order' => 0,
+        'is_primary' => true,
+    ]);
+    Storage::disk('public')->put($oldMedia->path, 'old');
+
+    $this->actingAs($this->admin)
+        ->post("/dashboard/categories/{$category->id}", [
+            '_method' => 'PUT',
+            'parent_id' => null,
+            'sort_order' => 0,
+            'is_active' => true,
+            'translations' => [
+                'de' => ['name' => 'Kategorie neu'],
+                'ar' => ['name' => ''],
+                'en' => ['name' => ''],
+            ],
+            'media_uploads' => [
+                UploadedFile::fake()->image('new.jpg', 1200, 900),
+            ],
+            'media_meta' => [
+                'new' => [
+                    [
+                        'sort_order' => 0,
+                        'is_primary' => true,
+                    ],
+                ],
+                'removed' => [$oldMedia->id],
+            ],
+        ])
+        ->assertRedirect('/dashboard/categories')
+        ->assertSessionHasNoErrors();
+
+    expect(Media::find($oldMedia->id))->toBeNull();
+    expect($category->refresh()->media)->toHaveCount(1);
+    expect($category->media()->primary()->sole()->translate('de', 'alt_text'))->toBe('Kategorie Kategorie neu');
+
+    Storage::disk('public')->assertMissing($oldMedia->path);
+    Storage::disk('public')->assertExists($category->media()->primary()->sole()->path);
+});
+
+test('update rejects media rows owned by another category', function () {
+    $category = Category::factory()->create(['slug' => 'kat']);
+    $category->setTranslation('de', 'name', 'Kategorie');
+    $otherCategory = Category::factory()->create(['slug' => 'other', 'sort_order' => 1]);
+    $otherMedia = $otherCategory->media()->create([
+        'path' => 'media/categories/2/other.webp',
+        'sort_order' => 0,
+        'is_primary' => true,
+    ]);
+
+    $this->actingAs($this->admin)
+        ->put("/dashboard/categories/{$category->id}", [
+            'parent_id' => null,
+            'sort_order' => 0,
+            'is_active' => true,
+            'translations' => [
+                'de' => ['name' => 'Kategorie'],
+                'ar' => ['name' => ''],
+                'en' => ['name' => ''],
+            ],
+            'media_meta' => [
+                'existing' => [
+                    [
+                        'id' => $otherMedia->id,
+                        'sort_order' => 0,
+                        'is_primary' => true,
+                    ],
+                ],
+            ],
+        ])
+        ->assertSessionHasErrors('media_meta');
 });
 
 test('update accepts the "none" parent sentinel sent by the form', function () {

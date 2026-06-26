@@ -21,6 +21,7 @@ class ProductController extends PublicController
             ->with([
                 'translations',
                 'categories.translations',
+                'categories.primaryMedia',
                 'media' => fn ($query) => $query
                     ->with('translations')
                     ->orderByDesc('is_primary')

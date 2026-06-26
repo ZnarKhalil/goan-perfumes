@@ -211,13 +211,17 @@ test('public initial html includes lcp image preload fallback before hydration',
         ->assertSee('<link data-inertia="preload-image" rel="preload" as="image" href="/storage/page-sections/hero.webp" fetchpriority="high">', false);
 });
 
-test('public non arabic initial html does not preload unrelated font families', function () {
+test('public initial html avoids non-critical preloads', function () {
     $this->get('/de')
         ->assertOk()
+        ->assertDontSee('rel="preload" as="font"', false)
         ->assertSee('fraunces-', false)
         ->assertSee('manrope-', false)
         ->assertDontSee('instrument-sans-', false)
-        ->assertDontSee('noto-kufi-arabic-', false);
+        ->assertDontSee('noto-kufi-arabic-', false)
+        ->assertDontSee('cookie-consent-', false)
+        ->assertDontSee('site-drawer-', false)
+        ->assertDontSee('use-reduced-motion-', false);
 });
 
 test('public initial html includes robots fallback for category query pages before hydration', function () {

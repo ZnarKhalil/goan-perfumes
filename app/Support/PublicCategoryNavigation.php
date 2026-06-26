@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Cache;
 
 final class PublicCategoryNavigation
 {
-    private const CacheKeyPrefix = 'public-category-navigation:v2';
+    private const CacheKeyPrefix = 'public-category-navigation:v4';
 
     /**
      * @return array<int, array{id: int, slug: string, name: string, href: string, image_url: string|null}>
@@ -17,7 +17,7 @@ final class PublicCategoryNavigation
         $locale = PublicLocale::normalize($locale);
 
         return Cache::rememberForever(self::cacheKey($locale), fn (): array => Category::query()
-            ->with('translations')
+            ->with(['translations', 'primaryMedia'])
             ->where('is_active', true)
             ->whereNull('parent_id')
             ->orderBy('sort_order')
