@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests\Concerns;
 
+use App\Models\Category;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 trait ValidatesCategoryFields
 {
@@ -61,6 +63,18 @@ trait ValidatesCategoryFields
                     Rule::unique('categories', 'sort_order')->ignore($ignoreCategoryId),
                 ],
                 'is_active' => ['required', 'boolean'],
+                'media_uploads' => ['nullable', 'array'],
+                'media_uploads.*' => ['image', 'mimes:jpg,jpeg,png,webp,avif', 'max:5120'],
+                'media_meta' => ['nullable', 'array'],
+                'media_meta.existing' => ['nullable', 'array'],
+                'media_meta.existing.*.id' => ['required', 'integer', 'exists:media,id'],
+                'media_meta.existing.*.sort_order' => ['nullable', 'integer', 'min:0'],
+                'media_meta.existing.*.is_primary' => ['nullable', 'boolean'],
+                'media_meta.new' => ['nullable', 'array'],
+                'media_meta.new.*.sort_order' => ['nullable', 'integer', 'min:0'],
+                'media_meta.new.*.is_primary' => ['nullable', 'boolean'],
+                'media_meta.removed' => ['nullable', 'array'],
+                'media_meta.removed.*' => ['integer'],
             ],
             $this->translationRules(
                 requiredLocale: 'de',
@@ -72,5 +86,46 @@ trait ValidatesCategoryFields
                 ],
             ),
         );
+    }
+
+    /**
+     * @return array<int, callable(Validator): void>
+     */
+    public function after(): array
+    {
+        return [
+            function (Validator $validator): void {
+                $this->validateMediaOwnership($validator);
+            },
+        ];
+    }
+
+    private function validateMediaOwnership(Validator $validator): void
+    {
+        $category = $this->route('category');
+
+        if (! $category instanceof Category) {
+            return;
+        }
+
+        $ids = collect($this->input('media_meta.existing', []))
+            ->pluck('id')
+            ->merge($this->input('media_meta.removed', []))
+            ->filter()
+            ->map(fn (mixed $id) => (int) $id)
+            ->unique()
+            ->values();
+
+        if ($ids->isEmpty()) {
+            return;
+        }
+
+        $ownedCount = $category->media()
+            ->whereKey($ids)
+            ->count();
+
+        if ($ownedCount !== $ids->count()) {
+            $validator->errors()->add('media_meta', 'Mindestens ein Bild gehört nicht zu dieser Kategorie.');
+        }
     }
 }

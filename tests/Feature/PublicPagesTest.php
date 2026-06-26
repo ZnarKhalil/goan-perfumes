@@ -40,7 +40,7 @@ test('home renders public props from stored content', function () {
             ->component('public/home')
             ->has('navigation', 1)
             ->where('navigation.0.slug', 'luxusparfums')
-            ->where('navigation.0.image_url', '/images/category-fallbacks/luxusparfums.webp')
+            ->where('navigation.0.image_url', null)
             ->where('meta.preload_image_url', '/storage/page-sections/hero.jpg')
             ->has('promotions', 1)
             ->where('promotions.0.title', 'Aktion')
@@ -417,7 +417,7 @@ test('product detail page renders media variants attributes and contact settings
         );
 });
 
-test('products without media use category fallback images', function () {
+test('products without product or category media expose no image fallback', function () {
     $category = publicCategory('damenparfums', 'Damenparfums');
     publicProduct('rose-oud', 'Rose Oud', $category);
 
@@ -425,7 +425,8 @@ test('products without media use category fallback images', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('public/category')
-            ->where('products.0.image_url', '/images/category-fallbacks/damenparfums.webp')
+            ->where('category.image_url', null)
+            ->where('products.0.image_url', null)
             ->where('products.0.image_alt', 'Rose Oud'),
         );
 
@@ -433,8 +434,42 @@ test('products without media use category fallback images', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('public/product')
-            ->where('meta.preload_image_url', '/images/category-fallbacks/damenparfums.webp')
-            ->where('product.media.0.url', '/images/category-fallbacks/damenparfums.webp')
+            ->where('meta.preload_image_url', null)
+            ->where('product.media', []),
+        );
+});
+
+test('uploaded category images are used for navigation and imageless product fallbacks', function () {
+    $category = publicCategory('damenparfums', 'Damenparfums');
+    $category->media()->create([
+        'path' => 'media/categories/damenparfums.webp',
+        'sort_order' => 0,
+        'is_primary' => true,
+    ]);
+    publicProduct('rose-oud', 'Rose Oud', $category);
+
+    $this->get('/de')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('public/home')
+            ->where('navigation.0.image_url', '/storage/media/categories/damenparfums.webp'),
+        );
+
+    $this->get('/de/damenparfums')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('public/category')
+            ->where('category.image_url', '/storage/media/categories/damenparfums.webp')
+            ->where('products.0.image_url', '/storage/media/categories/damenparfums.webp')
+            ->where('products.0.image_alt', 'Rose Oud'),
+        );
+
+    $this->get('/de/produkt/rose-oud')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('public/product')
+            ->where('meta.preload_image_url', '/storage/media/categories/damenparfums.webp')
+            ->where('product.media.0.url', '/storage/media/categories/damenparfums.webp')
             ->where('product.media.0.alt', 'Rose Oud')
             ->where('product.media.0.is_primary', true),
         );
@@ -595,7 +630,7 @@ test('database seeder provides complete public demo content', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('public/category')
-            ->where('category.image_url', '/images/category-fallbacks/luxusparfums.webp')
+            ->where('category.image_url', null)
             ->missing('category.banner_url')
             ->has('products', 12)
             ->where('pagination.total', 15)

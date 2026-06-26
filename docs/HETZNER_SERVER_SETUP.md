@@ -768,7 +768,6 @@ www.goanperfume.de {
 Notes:
 
 - `php_fastcgi` already performs the Laravel front-controller fallback to `index.php`, so a separate `try_files` line is unnecessary.
-- `/images/*` is intentionally cached because this project serves versioned category fallback images from `public/images`.
 - `/storage/*` is cached as immutable because product images and uploaded logo files use generated filenames. Do not overwrite public storage files in place; upload a new file and store a new path.
 - Add `preload` to the HSTS header only after the domain, subdomains, and HTTPS behavior have been stable for a while.
 

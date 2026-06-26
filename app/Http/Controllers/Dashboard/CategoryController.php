@@ -6,10 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Dashboard\StoreCategoryRequest;
 use App\Http\Requests\Dashboard\UpdateCategoryRequest;
 use App\Models\Category;
+use App\Models\Media;
+use App\Services\MediaService;
 use App\Support\PublicCategoryNavigation;
 use App\Support\PublicLocale;
+use App\Support\StorageUrl;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -23,10 +27,12 @@ class CategoryController extends Controller
         'meta_description',
     ];
 
+    public function __construct(private readonly MediaService $mediaService) {}
+
     public function index(): Response
     {
         $categories = Category::query()
-            ->with(['translations', 'parent.translations'])
+            ->with(['translations', 'parent.translations', 'primaryMedia'])
             ->orderBy('sort_order')
             ->orderBy('id')
             ->get()
@@ -37,6 +43,7 @@ class CategoryController extends Controller
                 'parent_name' => $category->parent?->translate('de', 'name'),
                 'sort_order' => $category->sort_order,
                 'is_active' => $category->is_active,
+                'image_url' => StorageUrl::for($category->primaryMedia?->path),
             ])
             ->values();
 
@@ -58,7 +65,7 @@ class CategoryController extends Controller
         $data = $request->validated();
         $parentId = $this->normalizeParentId($data['parent_id'] ?? null);
 
-        $category = DB::transaction(function () use ($data, $parentId) {
+        DB::transaction(function () use ($data, $parentId, $request): void {
             $category = new Category([
                 'slug' => '',
                 'parent_id' => $parentId,
@@ -71,8 +78,11 @@ class CategoryController extends Controller
             $category->save();
 
             $this->syncTranslations($category, $data['translations'] ?? []);
-
-            return $category;
+            $this->mediaService->syncFromRequest(
+                $category,
+                $request->file('media_uploads', []),
+                $data['media_meta'] ?? [],
+            );
         });
 
         PublicCategoryNavigation::flush();
@@ -83,7 +93,13 @@ class CategoryController extends Controller
 
     public function edit(Category $category): Response
     {
-        $category->load('translations');
+        $category->load([
+            'translations',
+            'media' => fn ($query) => $query
+                ->with('translations')
+                ->orderBy('sort_order')
+                ->orderBy('id'),
+        ]);
 
         return Inertia::render('dashboard/categories/edit', [
             'category' => [
@@ -94,6 +110,21 @@ class CategoryController extends Controller
                 'is_active' => $category->is_active,
                 'translations' => $this->translationsAsTabs($category),
                 'name' => $category->translate('de', 'name') ?? $category->slug,
+                'media' => $category->media
+                    ->map(fn (Media $media) => [
+                        'id' => $media->id,
+                        'url' => StorageUrl::for($media->path),
+                        'sort_order' => $media->sort_order,
+                        'is_primary' => $media->is_primary,
+                        'alt_text' => $media->translate('de', 'alt_text') ?? $media->alt_text ?? '',
+                        'alt_text_translations' => [
+                            'de' => $media->translate('de', 'alt_text') ?? '',
+                            'ar' => $media->translate('ar', 'alt_text') ?? '',
+                            'en' => $media->translate('en', 'alt_text') ?? '',
+                        ],
+                    ])
+                    ->values()
+                    ->all(),
             ],
             'parents' => $this->parentOptions($category->id),
         ]);
@@ -104,7 +135,7 @@ class CategoryController extends Controller
         $data = $request->validated();
         $parentId = $this->normalizeParentId($data['parent_id'] ?? null);
 
-        DB::transaction(function () use ($category, $data, $parentId) {
+        DB::transaction(function () use ($category, $data, $parentId, $request): void {
             $category->fill([
                 'parent_id' => $parentId,
                 'sort_order' => $data['sort_order'] ?? 0,
@@ -114,6 +145,11 @@ class CategoryController extends Controller
             $category->save();
 
             $this->syncTranslations($category, $data['translations'] ?? []);
+            $this->mediaService->syncFromRequest(
+                $category,
+                $request->file('media_uploads', []),
+                $data['media_meta'] ?? [],
+            );
         });
 
         PublicCategoryNavigation::flush();
@@ -125,8 +161,18 @@ class CategoryController extends Controller
     public function destroy(Category $category): RedirectResponse
     {
         DB::transaction(function () use ($category): void {
+            $category->load('media.translations');
+            $mediaPaths = $category->media->pluck('path')->all();
+
+            foreach ($category->media as $media) {
+                $media->translations()->delete();
+                $media->delete();
+            }
+
             $category->translations()->delete();
             $category->delete();
+
+            DB::afterCommit(fn () => Storage::disk('public')->delete($mediaPaths));
         });
 
         PublicCategoryNavigation::flush();

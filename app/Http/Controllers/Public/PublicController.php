@@ -113,7 +113,7 @@ abstract class PublicController extends Controller
     {
         return Product::query()
             ->select('products.*')
-            ->with(['translations', 'categories.translations', 'primaryMedia.translations'])
+            ->with(['translations', 'categories.translations', 'categories.primaryMedia', 'primaryMedia.translations'])
             ->withMin(['variants as variants_min_price' => fn (Builder $query) => $query->where('is_active', true)], 'price')
             ->withMax(['variants as variants_max_price' => fn (Builder $query) => $query->where('is_active', true)], 'price')
             ->where('is_active', true);

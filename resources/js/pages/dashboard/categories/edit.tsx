@@ -1,6 +1,9 @@
 import { Head } from '@inertiajs/react';
 import CategoryForm from '@/components/dashboard/categories/category-form';
-import type { CategoryParentOption } from '@/components/dashboard/categories/category-form';
+import type {
+    CategoryMediaRow,
+    CategoryParentOption,
+} from '@/components/dashboard/categories/category-form';
 import type { TranslationsShape } from '@/components/dashboard/translation-tabs';
 import Heading from '@/components/heading';
 import { adminTitle, dashboardLabels } from '@/lib/de';
@@ -15,6 +18,7 @@ type Props = {
         is_active: boolean;
         translations: TranslationsShape;
         name: string;
+        media: CategoryMediaRow[];
     };
     parents: CategoryParentOption[];
 };
@@ -39,6 +43,7 @@ export default function CategoriesEdit({ category, parents }: Props) {
                         sort_order: category.sort_order,
                         is_active: category.is_active,
                         translations: category.translations,
+                        media: category.media,
                     }}
                 />
             </div>

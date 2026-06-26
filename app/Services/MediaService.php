@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Category;
 use App\Models\Media;
 use App\Models\Product;
 use App\Support\ImageUpload;
@@ -153,6 +154,15 @@ class MediaService
             );
         }
 
+        if ($model instanceof Category) {
+            return ImageUpload::storePublicImageAsWebp(
+                $upload,
+                $this->directoryFor($model),
+                $this->descriptiveCategoryImageName($model, $index),
+                $disk,
+            );
+        }
+
         $extension = $upload->extension() ?: $upload->guessExtension() ?: 'bin';
 
         return $upload->storeAs(
@@ -170,6 +180,17 @@ class MediaService
         return collect([
             $product->slug,
             $this->generatedProductAltText($product, PublicLocale::Default),
+            (string) ($index + 1),
+        ])
+            ->filter(fn (?string $part): bool => filled($part))
+            ->implode(' ');
+    }
+
+    private function descriptiveCategoryImageName(Category $category, int $index): string
+    {
+        return collect([
+            $category->slug,
+            $this->generatedCategoryAltText($category, PublicLocale::Default),
             (string) ($index + 1),
         ])
             ->filter(fn (?string $part): bool => filled($part))
@@ -218,6 +239,10 @@ class MediaService
             return $this->generatedProductAltText($model, PublicLocale::Default);
         }
 
+        if ($model instanceof Category) {
+            return $this->generatedCategoryAltText($model, PublicLocale::Default);
+        }
+
         return $this->altTextFallback($altText);
     }
 
@@ -228,6 +253,12 @@ class MediaService
     {
         if ($model instanceof Product) {
             $media->syncTranslations($this->generatedProductAltTextPayloads($model), ['alt_text']);
+
+            return;
+        }
+
+        if ($model instanceof Category) {
+            $media->syncTranslations($this->generatedCategoryAltTextPayloads($model), ['alt_text']);
 
             return;
         }
@@ -268,6 +299,31 @@ class MediaService
             'en' => $brand ? "{$name} perfume by {$brand}" : "{$name} perfume",
             'ar' => $brand ? "عطر {$name} من {$brand}" : "عطر {$name}",
             default => $brand ? "{$name} Parfum von {$brand}" : "{$name} Parfum",
+        };
+
+        return Str::limit(Str::squish(strip_tags($text)), 255, '');
+    }
+
+    /**
+     * @return array<string, array{alt_text: string}>
+     */
+    private function generatedCategoryAltTextPayloads(Category $category): array
+    {
+        return collect(PublicLocale::codes())
+            ->mapWithKeys(fn (string $locale): array => [
+                $locale => ['alt_text' => $this->generatedCategoryAltText($category, $locale)],
+            ])
+            ->all();
+    }
+
+    private function generatedCategoryAltText(Category $category, string $locale): string
+    {
+        $name = $category->translate($locale, 'name', PublicLocale::Default) ?? $category->slug;
+
+        $text = match ($locale) {
+            'en' => "{$name} perfume category",
+            'ar' => "تصنيف عطور {$name}",
+            default => "Kategorie {$name}",
         };
 
         return Str::limit(Str::squish(strip_tags($text)), 255, '');
