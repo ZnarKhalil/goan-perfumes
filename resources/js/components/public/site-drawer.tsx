@@ -1,7 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { useState } from 'react';
 import type { ReactNode } from 'react';
-import LocaleSwitcher from '@/components/public/locale-switcher';
 import SearchForm from '@/components/public/search-form';
 import {
     Sheet,
@@ -47,11 +46,12 @@ export default function SiteDrawer({
             <SheetTrigger asChild>{trigger}</SheetTrigger>
             <SheetContent
                 side={isRtl ? 'right' : 'left'}
+                onOpenAutoFocus={(event) => event.preventDefault()}
                 className="w-[86vw] max-w-sm border-white/10 bg-[#0b0907] px-0 text-stone-100"
             >
                 <SheetHeader
                     className={cn(
-                        'border-b border-white/10 px-6 py-5',
+                        'shrink-0 border-b border-white/10 px-6 py-5',
                         isRtl ? 'text-right' : 'text-left',
                     )}
                 >
@@ -62,53 +62,45 @@ export default function SiteDrawer({
                         {copy.aria.mobileMenuTitle}
                     </SheetDescription>
                 </SheetHeader>
-                <div className="px-6 pt-6">
-                    <SearchForm
-                        locale={locale}
-                        copy={copy}
-                        tone="dark"
-                        className="w-full"
-                        onSubmitted={closeDrawer}
-                    />
-                </div>
-                <nav className="grid px-6 pt-4 pb-6">
-                    <Link
-                        href={homeHref}
-                        {...publicHomePrefetch}
-                        onClick={closeDrawer}
-                        className="border-b border-white/10 py-4 text-lg font-medium transition hover:text-[#e7c889]"
-                    >
-                        {copy.navigation.homepage}
-                    </Link>
-                    {navigation.map((category) => (
+                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+                    <div className="px-6 pt-6">
+                        <SearchForm
+                            locale={locale}
+                            copy={copy}
+                            tone="dark"
+                            className="w-full"
+                            onSubmitted={closeDrawer}
+                        />
+                    </div>
+                    <nav className="grid px-6 pt-4 pb-6">
                         <Link
-                            key={category.slug}
-                            href={category.href}
-                            {...publicCategoryPrefetch}
+                            href={homeHref}
+                            {...publicHomePrefetch}
                             onClick={closeDrawer}
                             className="border-b border-white/10 py-4 text-lg font-medium transition hover:text-[#e7c889]"
                         >
-                            {category.name}
+                            {copy.navigation.homepage}
                         </Link>
-                    ))}
-                    <Link
-                        href={contactHref}
-                        {...publicNavigationPrefetch}
-                        onClick={closeDrawer}
-                        className="py-4 text-lg font-medium transition hover:text-[#e7c889]"
-                    >
-                        {copy.contact.eyebrow}
-                    </Link>
-                </nav>
-                <div className="px-6 py-5">
-                    <LocaleSwitcher
-                        locale={locale}
-                        compact
-                        tone="dark"
-                        onNavigate={closeDrawer}
-                        reloadDocument
-                        navigateDelayMs={220}
-                    />
+                        {navigation.map((category) => (
+                            <Link
+                                key={category.slug}
+                                href={category.href}
+                                {...publicCategoryPrefetch}
+                                onClick={closeDrawer}
+                                className="border-b border-white/10 py-4 text-lg font-medium transition hover:text-[#e7c889]"
+                            >
+                                {category.name}
+                            </Link>
+                        ))}
+                        <Link
+                            href={contactHref}
+                            {...publicNavigationPrefetch}
+                            onClick={closeDrawer}
+                            className="py-4 text-lg font-medium transition hover:text-[#e7c889]"
+                        >
+                            {copy.contact.eyebrow}
+                        </Link>
+                    </nav>
                 </div>
             </SheetContent>
         </Sheet>

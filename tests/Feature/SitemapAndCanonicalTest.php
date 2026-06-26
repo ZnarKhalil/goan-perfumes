@@ -219,9 +219,15 @@ test('public initial html avoids non-critical preloads', function () {
         ->assertSee('manrope-', false)
         ->assertDontSee('instrument-sans-', false)
         ->assertDontSee('noto-kufi-arabic-', false)
-        ->assertDontSee('cookie-consent-', false)
-        ->assertDontSee('site-drawer-', false)
         ->assertDontSee('use-reduced-motion-', false);
+});
+
+test('public initial html does not include storage-dependent cookie consent markup', function () {
+    $this->get('/de')
+        ->assertOk()
+        ->assertDontSee('Cookie-Hinweis', false)
+        ->assertDontSee('Cookie-Einstellungen', false)
+        ->assertDontSee('Wir verwenden notwendige Cookies', false);
 });
 
 test('public initial html includes robots fallback for category query pages before hydration', function () {

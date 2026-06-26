@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 import { Settings2 } from '@/components/public/icons';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -20,6 +20,10 @@ import type { PublicCopy } from '@/lib/public-copy';
 import { cn } from '@/lib/utils';
 
 const consentStorageKey = 'goan_cookie_consent_v1';
+const consentLoadingSnapshot = '__goan_cookie_consent_loading__';
+const consentMissingSnapshot = '__goan_cookie_consent_missing__';
+const consentListeners = new Set<() => void>();
+let fallbackConsentSnapshot: string | null = null;
 
 type ConsentChoice = {
     necessary: true;
@@ -38,26 +42,32 @@ export default function CookieConsent({
     privacyHref,
     theme = 'light',
 }: Props) {
-    const [choice, setChoice] = useState<ConsentChoice | null>(() =>
-        readStoredChoice(),
+    const consentSnapshot = useSyncExternalStore(
+        subscribeToConsentChoice,
+        getConsentSnapshot,
+        getServerConsentSnapshot,
     );
-    const [hasLoadedChoice] = useState(true);
-    const [showBanner, setShowBanner] = useState(() => choice === null);
+    const choice = parseConsentSnapshot(consentSnapshot);
+    const hasLoadedChoice = consentSnapshot !== consentLoadingSnapshot;
     const [showSettings, setShowSettings] = useState(false);
-    const [analyticsEnabled, setAnalyticsEnabled] = useState(
-        () => choice?.analytics ?? false,
-    );
+    const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
     const isDark = theme === 'dark';
+    const analyticsConsent = choice?.analytics === true;
+    const showBanner = hasLoadedChoice && choice === null && !showSettings;
 
     useEffect(() => {
-        if (choice?.analytics) {
+        if (!hasLoadedChoice) {
+            return;
+        }
+
+        if (analyticsConsent) {
             initializeGoogleAnalytics();
 
             return;
         }
 
         disableGoogleAnalytics();
-    }, [choice]);
+    }, [analyticsConsent, hasLoadedChoice]);
 
     function saveChoice(nextAnalyticsEnabled: boolean): void {
         const nextChoice: ConsentChoice = {
@@ -66,25 +76,18 @@ export default function CookieConsent({
             updatedAt: new Date().toISOString(),
         };
 
-        localStorage.setItem(consentStorageKey, JSON.stringify(nextChoice));
-        setChoice(nextChoice);
+        writeStoredChoice(nextChoice);
         setAnalyticsEnabled(nextAnalyticsEnabled);
-        setShowBanner(false);
         setShowSettings(false);
     }
 
     function openSettings(): void {
-        setAnalyticsEnabled(choice?.analytics ?? false);
-        setShowBanner(false);
+        setAnalyticsEnabled(analyticsConsent);
         setShowSettings(true);
     }
 
     function setSettingsOpen(open: boolean): void {
         setShowSettings(open);
-
-        if (!open && choice === null) {
-            setShowBanner(true);
-        }
     }
 
     return (
@@ -247,15 +250,68 @@ export default function CookieConsent({
     );
 }
 
-function readStoredChoice(): ConsentChoice | null {
-    try {
-        const rawChoice = localStorage.getItem(consentStorageKey);
+function subscribeToConsentChoice(callback: () => void): () => void {
+    consentListeners.add(callback);
 
-        if (!rawChoice) {
-            return null;
+    const handleStorage = (event: StorageEvent): void => {
+        if (event.key === consentStorageKey) {
+            callback();
         }
+    };
 
-        const parsedChoice = JSON.parse(rawChoice) as Partial<ConsentChoice>;
+    if (typeof window !== 'undefined') {
+        window.addEventListener('storage', handleStorage);
+    }
+
+    return () => {
+        consentListeners.delete(callback);
+
+        if (typeof window !== 'undefined') {
+            window.removeEventListener('storage', handleStorage);
+        }
+    };
+}
+
+function getConsentSnapshot(): string {
+    if (typeof window === 'undefined') {
+        return consentLoadingSnapshot;
+    }
+
+    try {
+        return localStorage.getItem(consentStorageKey) ?? consentMissingSnapshot;
+    } catch {
+        return fallbackConsentSnapshot ?? consentMissingSnapshot;
+    }
+}
+
+function getServerConsentSnapshot(): string {
+    return consentLoadingSnapshot;
+}
+
+function writeStoredChoice(choice: ConsentChoice): void {
+    fallbackConsentSnapshot = JSON.stringify(choice);
+
+    try {
+        localStorage.setItem(consentStorageKey, fallbackConsentSnapshot);
+    } catch (error) {
+        if (import.meta.env.DEV) {
+            console.debug('Cookie consent storage is unavailable.', error);
+        }
+    }
+
+    consentListeners.forEach((listener) => listener());
+}
+
+function parseConsentSnapshot(snapshot: string): ConsentChoice | null {
+    if (
+        snapshot === consentLoadingSnapshot ||
+        snapshot === consentMissingSnapshot
+    ) {
+        return null;
+    }
+
+    try {
+        const parsedChoice = JSON.parse(snapshot) as Partial<ConsentChoice>;
 
         return {
             necessary: true,

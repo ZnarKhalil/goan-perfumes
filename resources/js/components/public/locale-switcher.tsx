@@ -65,6 +65,7 @@ export default function LocaleSwitcher({
     const currentLocale =
         locale.supported.find((item) => item.code === locale.current) ??
         locale.supported[0];
+    const currentLocaleLabel = currentLocale.code.toUpperCase();
 
     const visitLocale = (
         event: MouseEvent<HTMLButtonElement>,
@@ -101,17 +102,17 @@ export default function LocaleSwitcher({
                         isDark
                             ? 'border-white/15 bg-white/8 text-stone-100 backdrop-blur hover:border-[#e7c889]/50 hover:text-white'
                             : 'border-stone-200 bg-white/60 text-stone-800 hover:border-stone-300 hover:bg-white hover:text-stone-950',
-                        compact ? 'w-full' : 'min-w-32',
+                        compact ? 'w-full' : 'min-w-[3.75rem]',
                     )}
                 >
-                    <span>{currentLocale.native_label}</span>
+                    <span>{currentLocaleLabel}</span>
                     <ChevronDown className="size-3.5 text-stone-500" />
                 </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
                 align={compact ? 'start' : 'end'}
                 className={cn(
-                    'min-w-40 p-1',
+                    'min-w-24 p-1',
                     isDark
                         ? 'border-white/10 bg-[#0b0907] text-stone-100'
                         : 'border-stone-200 bg-[#fbf8f2] text-stone-950',
@@ -120,6 +121,7 @@ export default function LocaleSwitcher({
                 {locale.supported.map((item) => {
                     const active = item.code === locale.current;
                     const href = locale.switcher_urls[item.code] ?? '#';
+                    const label = item.code.toUpperCase();
 
                     return (
                         <DropdownMenuItem key={item.code} asChild>
@@ -144,7 +146,7 @@ export default function LocaleSwitcher({
                                           : 'text-stone-600 hover:text-stone-950 focus:bg-stone-100',
                                 )}
                             >
-                                <span>{item.native_label}</span>
+                                <span>{label}</span>
                                 {active && <Check className="size-4" />}
                             </button>
                         </DropdownMenuItem>
