@@ -4,6 +4,7 @@ import { Menu } from '@/components/public/icons';
 import LocaleSwitcher from '@/components/public/locale-switcher';
 import SearchForm from '@/components/public/search-form';
 import SiteDrawer from '@/components/public/site-drawer';
+import { publicHomePrefetch } from '@/lib/inertia-cache';
 import type { PublicCopy } from '@/lib/public-copy';
 import { cn } from '@/lib/utils';
 import type {
@@ -83,6 +84,7 @@ export default function SiteHeader({
 
                 <Link
                     href={homeHref}
+                    {...publicHomePrefetch}
                     className="flex max-w-[min(12rem,48vw)] min-w-0 items-center justify-center text-center"
                     aria-label={copy.aria.goHome}
                 >

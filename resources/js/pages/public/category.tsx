@@ -12,6 +12,11 @@ import {
     SheetTrigger,
 } from '@/components/ui/sheet';
 import PublicLayout from '@/layouts/public-layout';
+import {
+    publicCatalogCacheTags,
+    publicCatalogListProps,
+    publicCategoryPrefetch,
+} from '@/lib/inertia-cache';
 import { getPublicCopy, paginationLabel } from '@/lib/public-copy';
 import type { PublicCopy } from '@/lib/public-copy';
 import { cn } from '@/lib/utils';
@@ -119,6 +124,7 @@ export default function Category(page: PublicCategoryPageProps) {
                                         <Link
                                             key={category.id}
                                             href={category.href}
+                                            {...publicCategoryPrefetch}
                                             className="rounded-full border border-white/15 px-4 py-2 text-sm text-stone-300 transition hover:border-[#e7c889]/60 hover:text-[#e7c889]"
                                         >
                                             {category.name}
@@ -440,7 +446,7 @@ function FilterChip({
  */
 function applyFilterVisit(href: string): void {
     router.visit(href, {
-        only: ['products', 'filters', 'selected_filters', 'pagination', 'meta'],
+        only: publicCatalogListProps,
         preserveScroll: true,
         preserveState: true,
     });
@@ -503,7 +509,9 @@ function Pagination({
         event.preventDefault();
 
         router.visit(href, {
+            only: publicCatalogListProps,
             preserveScroll: true,
+            preserveState: true,
             onSuccess: () => {
                 window.requestAnimationFrame(() => {
                     const productResults =
@@ -527,6 +535,9 @@ function Pagination({
                 <Link
                     key={link.label}
                     href={link.href ?? '#'}
+                    prefetch={link.href ? 'hover' : false}
+                    cacheFor={['20s', '1m']}
+                    cacheTags={publicCatalogCacheTags}
                     onClick={(event) => visitPage(event, link.href)}
                     className={cn(
                         'min-w-10 rounded-full border px-3 py-2 text-center text-sm transition',

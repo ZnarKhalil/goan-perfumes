@@ -5,6 +5,7 @@ import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { adminTitle, dashboardLabels } from '@/lib/de';
+import { publicCatalogCacheTags } from '@/lib/inertia-cache';
 import attributesRoutes from '@/routes/dashboard/attributes';
 
 type AttributeRow = {
@@ -32,6 +33,7 @@ export default function AttributesIndex({ attributes }: Props) {
         }
 
         router.delete(attributesRoutes.destroy({ attribute: row.id }).url, {
+            invalidateCacheTags: publicCatalogCacheTags,
             preserveScroll: true,
         });
     };

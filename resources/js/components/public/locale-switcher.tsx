@@ -1,5 +1,5 @@
 import { router } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { MouseEvent } from 'react';
 import { Check, ChevronDown } from '@/components/public/icons';
 import {
@@ -8,6 +8,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { publicAllCacheTags } from '@/lib/inertia-cache';
 import { getPublicCopy } from '@/lib/public-copy';
 import { cn } from '@/lib/utils';
 import type { PublicLocaleProps } from '@/types/public';
@@ -30,6 +31,29 @@ export default function LocaleSwitcher({
     navigateDelayMs = 0,
 }: Props) {
     const [open, setOpen] = useState(false);
+
+    useEffect(() => {
+        if (!locale || !open || reloadDocument) {
+            return;
+        }
+
+        locale.supported.forEach((item) => {
+            const href = locale.switcher_urls[item.code] ?? '#';
+
+            if (item.code === locale.current || href === '#') {
+                return;
+            }
+
+            router.prefetch(
+                href,
+                {},
+                {
+                    cacheFor: ['30s', '2m'],
+                    cacheTags: publicAllCacheTags,
+                },
+            );
+        });
+    }, [locale, open, reloadDocument]);
 
     if (!locale) {
         return null;

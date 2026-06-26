@@ -15,6 +15,7 @@ import {
     disableGoogleAnalytics,
     initializeGoogleAnalytics,
 } from '@/lib/google-analytics';
+import { publicNavigationPrefetch } from '@/lib/inertia-cache';
 import type { PublicCopy } from '@/lib/public-copy';
 import { cn } from '@/lib/utils';
 
@@ -114,6 +115,7 @@ export default function CookieConsent({
                                 {copy.cookies.description}{' '}
                                 <Link
                                     href={privacyHref}
+                                    {...publicNavigationPrefetch}
                                     className={cn(
                                         'underline underline-offset-4',
                                         isDark

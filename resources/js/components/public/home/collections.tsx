@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 import Reveal from '@/components/public/home/reveal';
+import { publicCategoryPrefetch } from '@/lib/inertia-cache';
 import type { PublicCategoryNavItem } from '@/types/public';
 
 type Props = {
@@ -39,6 +40,7 @@ export default function Collections({ categories, eyebrow, title }: Props) {
                         >
                             <Link
                                 href={category.href}
+                                {...publicCategoryPrefetch}
                                 className="group relative block aspect-[3/4] overflow-hidden rounded-[1.4rem] border border-white/10"
                             >
                                 {category.image_url ? (

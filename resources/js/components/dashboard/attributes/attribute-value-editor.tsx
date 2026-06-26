@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { publicCatalogCacheTags } from '@/lib/inertia-cache';
 import attributesRoutes from '@/routes/dashboard/attributes';
 import valueRoutes from '@/routes/dashboard/attributes/values';
 
@@ -140,6 +141,7 @@ export default function AttributeValueEditor({
             : valueRoutes.store({ attribute: attributeId }).url;
 
         post(url, {
+            invalidateCacheTags: publicCatalogCacheTags,
             preserveScroll: true,
             onSuccess: (page) => {
                 // Read the fresh next sort order from the reloaded page so the
@@ -170,7 +172,10 @@ export default function AttributeValueEditor({
                 attribute: attributeId,
                 value: value.id,
             }).url,
-            { preserveScroll: true },
+            {
+                invalidateCacheTags: publicCatalogCacheTags,
+                preserveScroll: true,
+            },
         );
     };
 

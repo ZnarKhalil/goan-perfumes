@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { publicCatalogCacheTags } from '@/lib/inertia-cache';
 import productsRoutes from '@/routes/dashboard/products';
 
 const FIELDS: TranslationField[] = [
@@ -183,7 +184,10 @@ export default function ProductForm({
                       product: requireProductId(productId),
                   }).url;
 
-        form.post(url, { forceFormData: true });
+        form.post(url, {
+            forceFormData: true,
+            invalidateCacheTags: publicCatalogCacheTags,
+        });
     };
 
     const remainingHighlightSlots =

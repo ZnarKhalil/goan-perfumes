@@ -1,4 +1,5 @@
 import { Link } from '@inertiajs/react';
+import type { InertiaLinkProps } from '@inertiajs/react';
 import {
     motion,
     useMotionValue,
@@ -10,7 +11,12 @@ import { cn } from '@/lib/utils';
 
 const MotionInertiaLink = motion.create(Link);
 
-type Props = {
+type InertiaLinkCacheProps = Partial<Pick<
+    InertiaLinkProps,
+    'cacheFor' | 'cacheTags' | 'prefetch'
+>>;
+
+type Props = InertiaLinkCacheProps & {
     href: string;
     external?: boolean;
     children: ReactNode;
@@ -29,6 +35,9 @@ export default function MagneticLink({
     children,
     className,
     strength = 0.35,
+    cacheFor,
+    cacheTags,
+    prefetch,
 }: Props) {
     const reduceMotion = useReducedMotion();
     const x = useMotionValue(0);
@@ -75,7 +84,13 @@ export default function MagneticLink({
     }
 
     return (
-        <MotionInertiaLink href={href} {...shared}>
+        <MotionInertiaLink
+            href={href}
+            cacheFor={cacheFor}
+            cacheTags={cacheTags}
+            prefetch={prefetch}
+            {...shared}
+        >
             {children}
         </MotionInertiaLink>
     );

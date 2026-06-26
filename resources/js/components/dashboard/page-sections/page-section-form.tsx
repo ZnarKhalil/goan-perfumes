@@ -13,6 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { publicContentCacheTags } from '@/lib/inertia-cache';
 import pageSectionsRoutes from '@/routes/dashboard/page-sections';
 
 const LOCALES = [
@@ -90,6 +91,7 @@ export default function PageSectionForm({ section }: Props) {
 
         post(pageSectionsRoutes.update({ page_section: section.id }).url, {
             forceFormData: true,
+            invalidateCacheTags: publicContentCacheTags,
             preserveScroll: true,
         });
     };

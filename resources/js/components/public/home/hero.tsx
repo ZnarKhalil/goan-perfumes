@@ -7,6 +7,10 @@ import {
 } from 'motion/react';
 import { useRef } from 'react';
 import CtaLink from '@/components/public/home/cta-link';
+import {
+    publicCategoryPrefetch,
+    publicNavigationPrefetch,
+} from '@/lib/inertia-cache';
 import type { PublicCopy } from '@/lib/public-copy';
 import type { PublicHeroSection } from '@/types/public';
 
@@ -183,11 +187,12 @@ export default function Hero({ hero, copy, ctaHref, contactHref }: Props) {
                             ease: [0.16, 1, 0.3, 1],
                         }}
                     >
-                        <CtaLink href={ctaHref}>
+                        <CtaLink href={ctaHref} {...publicCategoryPrefetch}>
                             {hero.cta_text ?? copy.home.heroCta}
                         </CtaLink>
                         <Link
                             href={contactHref}
+                            {...publicNavigationPrefetch}
                             className="group/advice hidden items-center gap-2 text-xs tracking-[0.28em] text-stone-300 uppercase transition-colors duration-300 hover:text-[#e7c889] sm:inline-flex"
                         >
                             {copy.home.heroSecondary}

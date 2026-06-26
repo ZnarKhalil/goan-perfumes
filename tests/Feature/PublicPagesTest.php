@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\HandleInertiaRequests;
 use App\Models\Attribute;
 use App\Models\AttributeValue;
 use App\Models\Category;
@@ -13,7 +14,9 @@ use Database\Seeders\AttributeSeeder;
 use Database\Seeders\AttributeValueSeeder;
 use Database\Seeders\CategorySeeder;
 use Database\Seeders\DatabaseSeeder;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Inertia\Support\Header;
 use Inertia\Testing\AssertableInertia as Assert;
 
 test('home renders public props from stored content', function () {
@@ -73,6 +76,50 @@ test('public navigation uses all active root database categories for the current
             ->where('navigation.1.slug', 'first-category')
             ->where('navigation.1.name', 'First Category'),
         );
+});
+
+test('public layout props are sent as expiring once props', function () {
+    publicCategory('luxusparfums', 'Luxusparfums');
+    Setting::put('email', 'kontakt@example.test');
+    Setting::put('logo_path', 'branding/logo.webp');
+    $inertiaVersion = app(HandleInertiaRequests::class)
+        ->version(Request::create('/de'));
+    $headers = [
+        Header::INERTIA => 'true',
+        'X-Requested-With' => 'XMLHttpRequest',
+    ];
+
+    if ($inertiaVersion !== null) {
+        $headers[Header::VERSION] = $inertiaVersion;
+    }
+
+    $response = $this->get('/de', $headers)
+        ->assertOk()
+        ->assertHeader(Header::INERTIA, 'true');
+
+    $response
+        ->assertJsonPath('props.navigation.0.slug', 'luxusparfums')
+        ->assertJsonPath('props.contact.email', 'kontakt@example.test')
+        ->assertJsonPath('props.logo_url', '/storage/branding/logo.webp')
+        ->assertJsonPath('onceProps.public-layout:de:navigation.prop', 'navigation')
+        ->assertJsonPath('onceProps.public-layout:de:contact.prop', 'contact')
+        ->assertJsonPath('onceProps.public-layout:de:logo_url.prop', 'logo_url');
+
+    expect($response->json('onceProps.public-layout:de:navigation.expiresAt'))->toBeInt()
+        ->and($response->json('onceProps.public-layout:de:contact.expiresAt'))->toBeInt()
+        ->and($response->json('onceProps.public-layout:de:logo_url.expiresAt'))->toBeInt();
+
+    $repeatResponse = $this->get('/de/kontakt', [
+        ...$headers,
+        Header::EXCEPT_ONCE_PROPS => implode(',', [
+            'public-layout:de:navigation',
+            'public-layout:de:contact',
+            'public-layout:de:logo_url',
+        ]),
+    ])->assertOk();
+
+    expect($repeatResponse->json('props'))
+        ->not->toHaveKeys(['navigation', 'contact', 'logo_url']);
 });
 
 test('cached navigation links are host-relative so they survive a host change', function () {

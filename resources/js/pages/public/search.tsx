@@ -4,6 +4,10 @@ import ProductGrid from '@/components/public/product-grid';
 import PublicHead from '@/components/public/public-head';
 import SearchForm from '@/components/public/search-form';
 import PublicLayout from '@/layouts/public-layout';
+import {
+    publicCatalogCacheTags,
+    publicSearchListProps,
+} from '@/lib/inertia-cache';
 import { getPublicCopy, paginationLabel } from '@/lib/public-copy';
 import type { PublicCopy } from '@/lib/public-copy';
 import { cn } from '@/lib/utils';
@@ -95,7 +99,11 @@ function Pagination({
             return;
         }
 
-        router.visit(href, { preserveScroll: true });
+        router.visit(href, {
+            only: publicSearchListProps,
+            preserveScroll: true,
+            preserveState: true,
+        });
     }
 
     if (links.length <= 3) {
@@ -111,6 +119,9 @@ function Pagination({
                 <Link
                     key={link.label}
                     href={link.href ?? '#'}
+                    prefetch={link.href ? 'hover' : false}
+                    cacheFor={['20s', '1m']}
+                    cacheTags={publicCatalogCacheTags}
                     onClick={(event) => visitPage(event, link.href)}
                     className={cn(
                         'min-w-10 rounded-full border px-3 py-2 text-center text-sm transition',

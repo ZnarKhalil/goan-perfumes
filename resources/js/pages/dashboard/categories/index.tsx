@@ -6,6 +6,7 @@ import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { adminTitle, dashboardLabels } from '@/lib/de';
+import { publicAllCacheTags } from '@/lib/inertia-cache';
 import categoriesRoutes from '@/routes/dashboard/categories';
 
 type CategoryRow = {
@@ -33,6 +34,7 @@ export default function CategoriesIndex({ categories }: Props) {
         }
 
         router.delete(CategoryController.destroy.url({ category: row.id }), {
+            invalidateCacheTags: publicAllCacheTags,
             preserveScroll: true,
         });
     };

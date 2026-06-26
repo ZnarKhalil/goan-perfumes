@@ -1,6 +1,7 @@
 import { Link } from '@inertiajs/react';
 import Reveal from '@/components/public/home/reveal';
 import TiltCard from '@/components/public/home/tilt-card';
+import { publicCategoryPrefetch } from '@/lib/inertia-cache';
 import type { PublicCopy } from '@/lib/public-copy';
 import type { PublicPromotion } from '@/types/public';
 
@@ -32,6 +33,7 @@ export default function Offers({ offers, copy, shopHref }: Props) {
                     </div>
                     <Link
                         href={shopHref}
+                        {...publicCategoryPrefetch}
                         className="group inline-flex items-center gap-2 text-sm font-medium text-[#e7c889] transition-colors hover:text-stone-50"
                     >
                         {copy.home.luxuryLink}

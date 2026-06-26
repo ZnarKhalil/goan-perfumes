@@ -23,6 +23,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { publicAllCacheTags } from '@/lib/inertia-cache';
 import categoriesRoutes from '@/routes/dashboard/categories';
 
 const FIELDS: TranslationField[] = [
@@ -138,7 +139,10 @@ export default function CategoryForm({
                 : categoriesRoutes.update({
                       category: categoriesRoute(categoryId),
                   }).url;
-        post(url, { forceFormData: true });
+        post(url, {
+            forceFormData: true,
+            invalidateCacheTags: publicAllCacheTags,
+        });
     };
 
     const setTranslation = (

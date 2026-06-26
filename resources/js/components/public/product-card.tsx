@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 import Price from '@/components/public/price';
+import { publicProductPrefetch } from '@/lib/inertia-cache';
 import type { PublicCopy } from '@/lib/public-copy';
 import { cn } from '@/lib/utils';
 import type { PublicProductCard } from '@/types/public';
@@ -14,6 +15,7 @@ export default function ProductCard({ product, copy, className }: Props) {
     return (
         <Link
             href={product.href}
+            {...publicProductPrefetch}
             className={cn(
                 'group grid gap-3 focus-visible:outline-none',
                 className,
