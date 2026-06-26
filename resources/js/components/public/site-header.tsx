@@ -1,9 +1,8 @@
 import { Link } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { Menu } from '@/components/public/icons';
 import LocaleSwitcher from '@/components/public/locale-switcher';
 import SearchForm from '@/components/public/search-form';
-import SiteDrawer from '@/components/public/site-drawer';
 import { publicHomePrefetch } from '@/lib/inertia-cache';
 import type { PublicCopy } from '@/lib/public-copy';
 import { cn } from '@/lib/utils';
@@ -12,6 +11,8 @@ import type {
     PublicLocaleProps,
     PublicSurfaceTheme,
 } from '@/types/public';
+
+const SiteDrawer = lazy(() => import('@/components/public/site-drawer'));
 
 type Props = {
     navigation: PublicCategoryNavItem[];
@@ -32,6 +33,20 @@ export default function SiteHeader({
     const contactHref = locale ? `/${locale.current}/kontakt` : '/kontakt';
     const isDark = theme === 'dark';
     const [scrolled, setScrolled] = useState(false);
+    const drawerTrigger = (
+        <button
+            type="button"
+            className={cn(
+                'inline-flex size-10 items-center justify-center transition',
+                isDark
+                    ? 'text-stone-100 hover:text-[#e7c889]'
+                    : 'text-stone-950 hover:text-stone-500',
+            )}
+            aria-label={copy.aria.mobileMenu}
+        >
+            <Menu className="size-5" />
+        </button>
+    );
 
     useEffect(() => {
         if (!isDark) {
@@ -59,27 +74,16 @@ export default function SiteHeader({
         >
             <div className="grid h-16 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center px-4 md:h-20 md:px-8">
                 <div className="flex min-w-0 items-center">
-                    <SiteDrawer
-                        navigation={navigation}
-                        homeHref={homeHref}
-                        locale={locale}
-                        contactHref={contactHref}
-                        copy={copy}
-                        trigger={
-                            <button
-                                type="button"
-                                className={cn(
-                                    'inline-flex size-10 items-center justify-center transition',
-                                    isDark
-                                        ? 'text-stone-100 hover:text-[#e7c889]'
-                                        : 'text-stone-950 hover:text-stone-500',
-                                )}
-                                aria-label={copy.aria.mobileMenu}
-                            >
-                                <Menu className="size-5" />
-                            </button>
-                        }
-                    />
+                    <Suspense fallback={drawerTrigger}>
+                        <SiteDrawer
+                            navigation={navigation}
+                            homeHref={homeHref}
+                            locale={locale}
+                            contactHref={contactHref}
+                            copy={copy}
+                            trigger={drawerTrigger}
+                        />
+                    </Suspense>
                 </div>
 
                 <Link
@@ -92,6 +96,9 @@ export default function SiteHeader({
                         <img
                             src={logoUrl}
                             alt="Goan Perfume"
+                            loading="lazy"
+                            decoding="async"
+                            fetchPriority="low"
                             className="max-h-10 max-w-full object-contain transition"
                         />
                     ) : (

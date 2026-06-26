@@ -68,15 +68,6 @@ export default function PublicHead({ meta }: Props) {
                 </>
             )}
             <link head-key="canonical" rel="canonical" href={meta.canonical} />
-            {meta.preload_image_url && (
-                <link
-                    head-key="preload-image"
-                    rel="preload"
-                    as="image"
-                    href={meta.preload_image_url}
-                    fetchPriority="high"
-                />
-            )}
             {meta.robots && (
                 <meta head-key="robots" name="robots" content={meta.robots} />
             )}

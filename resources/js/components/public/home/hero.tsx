@@ -1,11 +1,4 @@
 import { Link } from '@inertiajs/react';
-import {
-    motion,
-    useReducedMotion,
-    useScroll,
-    useTransform,
-} from 'motion/react';
-import { useRef } from 'react';
 import CtaLink from '@/components/public/home/cta-link';
 import {
     publicCategoryPrefetch,
@@ -33,38 +26,15 @@ const PARTICLES = [
 ];
 
 export default function Hero({ hero, copy, ctaHref, contactHref }: Props) {
-    const reduceMotion = useReducedMotion();
-    const sectionRef = useRef<HTMLElement>(null);
-
-    const { scrollYProgress } = useScroll({
-        target: sectionRef,
-        offset: ['start start', 'end start'],
-    });
-    const mediaY = useTransform(scrollYProgress, [0, 1], ['0%', '16%']);
-    const mediaScale = useTransform(scrollYProgress, [0, 1], [1, 1.08]);
-    const contentY = useTransform(scrollYProgress, [0, 1], ['0%', '40%']);
-    const contentOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
-
     const words = hero.title.trim().split(/\s+/);
     const eyebrow = hero.eyebrow ?? copy.home.featuredEyebrow;
 
     return (
-        <section
-            ref={sectionRef}
-            className="relative isolate flex flex-col overflow-hidden sm:min-h-svh sm:items-end"
-        >
+        <section className="relative isolate flex flex-col overflow-hidden sm:min-h-svh sm:items-end">
             {/* full-bleed background media — always covers the viewport */}
-            <motion.div
+            <div
                 aria-hidden
                 className="relative w-full bg-[#0b0907] sm:absolute sm:inset-0 sm:-z-20"
-                style={
-                    reduceMotion
-                        ? undefined
-                        : {
-                              y: mediaY,
-                              scale: mediaScale,
-                          }
-                }
             >
                 {hero.video_url ? (
                     <video
@@ -89,7 +59,7 @@ export default function Hero({ hero, copy, ctaHref, contactHref }: Props) {
                 ) : (
                     <div className="h-[22svh] w-full bg-[radial-gradient(120%_120%_at_30%_20%,#241708,#0b0907)] sm:h-full" />
                 )}
-            </motion.div>
+            </div>
 
             {/* legibility scrims (desktop overlay only) */}
             <div className="absolute inset-0 -z-10 hidden bg-[linear-gradient(105deg,rgba(7,5,4,0.86)_0%,rgba(7,5,4,0.55)_42%,rgba(7,5,4,0.2)_70%,rgba(7,5,4,0.45)_100%)] sm:block" />
@@ -119,24 +89,12 @@ export default function Hero({ hero, copy, ctaHref, contactHref }: Props) {
                 />
             </div>
 
-            <motion.div
-                className="relative mx-auto w-full max-w-7xl px-4 pt-10 pb-20 sm:pt-28 sm:pb-24 md:px-8 md:pb-28 lg:pt-36 xl:pt-40"
-                style={
-                    reduceMotion
-                        ? undefined
-                        : { y: contentY, opacity: contentOpacity }
-                }
-            >
+            <div className="relative mx-auto w-full max-w-7xl px-4 pt-10 pb-20 sm:pt-28 sm:pb-24 md:px-8 md:pb-28 lg:pt-36 xl:pt-40">
                 <div className="max-w-3xl">
-                    <motion.p
-                        className="mb-6 flex items-center gap-3 text-[0.7rem] font-medium tracking-[0.42em] text-[#e7c889] uppercase"
-                        initial={reduceMotion ? false : { opacity: 0, y: 16 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-                    >
+                    <p className="mb-6 flex items-center gap-3 text-[0.7rem] font-medium tracking-[0.42em] text-[#e7c889] uppercase">
                         <span className="vitrine-pulse inline-block size-2 rounded-full bg-[#e7c889]" />
                         {eyebrow}
-                    </motion.p>
+                    </p>
 
                     <h1 className="font-display text-[clamp(2.5rem,5.5vw,5rem)] leading-[1.02] font-light [[dir=rtl]_&]:leading-[1.35]">
                         {words.map((word, index) => (
@@ -144,49 +102,18 @@ export default function Hero({ hero, copy, ctaHref, contactHref }: Props) {
                                 key={`${word}-${index}`}
                                 className="-my-[0.25em] mr-[0.22em] inline-block overflow-hidden py-[0.25em] align-bottom"
                             >
-                                <motion.span
-                                    className="vitrine-shimmer-text inline-block"
-                                    initial={
-                                        reduceMotion
-                                            ? false
-                                            : { y: '150%', rotate: 5 }
-                                    }
-                                    animate={{ y: 0, rotate: 0 }}
-                                    transition={{
-                                        duration: 1.1,
-                                        delay: 0.15 + index * 0.09,
-                                        ease: [0.16, 1, 0.3, 1],
-                                    }}
-                                >
+                                <span className="vitrine-shimmer-text inline-block">
                                     {word}
-                                </motion.span>
+                                </span>
                             </span>
                         ))}
                     </h1>
 
-                    <motion.p
-                        className="mt-7 max-w-xl text-base leading-8 text-stone-200 md:text-lg"
-                        initial={reduceMotion ? false : { opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{
-                            duration: 1,
-                            delay: 0.2 + words.length * 0.09,
-                            ease: [0.16, 1, 0.3, 1],
-                        }}
-                    >
+                    <p className="mt-7 max-w-xl text-base leading-8 text-stone-200 md:text-lg">
                         {hero.body}
-                    </motion.p>
+                    </p>
 
-                    <motion.div
-                        className="mt-10 flex flex-wrap items-center gap-5"
-                        initial={reduceMotion ? false : { opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{
-                            duration: 1,
-                            delay: 0.34 + words.length * 0.09,
-                            ease: [0.16, 1, 0.3, 1],
-                        }}
-                    >
+                    <div className="mt-10 flex flex-wrap items-center gap-5">
                         <CtaLink href={ctaHref} {...publicCategoryPrefetch}>
                             {hero.cta_text ?? copy.home.heroCta}
                         </CtaLink>
@@ -198,19 +125,16 @@ export default function Hero({ hero, copy, ctaHref, contactHref }: Props) {
                             {copy.home.heroSecondary}
                             <span className="h-px w-7 bg-current opacity-50 transition-all duration-300 group-hover/advice:w-10 group-hover/advice:opacity-100" />
                         </Link>
-                    </motion.div>
+                    </div>
                 </div>
-            </motion.div>
+            </div>
 
-            <motion.div
+            <div
                 aria-hidden
                 className="absolute inset-x-0 bottom-6 mx-auto flex w-fit flex-col items-center gap-2 text-[0.6rem] tracking-[0.3em] text-stone-400 uppercase"
-                initial={reduceMotion ? false : { opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 1, delay: 1.4 }}
             >
                 <span className="vitrine-float h-9 w-px bg-linear-to-b from-[#e7c889]/70 to-transparent" />
-            </motion.div>
+            </div>
         </section>
     );
 }

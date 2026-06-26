@@ -44,12 +44,9 @@ export default function Offers({ offers, copy, shopHref }: Props) {
                 </Reveal>
 
                 <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                    {visible.map((offer, index) => (
-                        <Reveal key={offer.id} delay={index * 0.1} y={44}>
-                            <TiltCard
-                                max={6}
-                                className="relative h-full overflow-hidden rounded-[1.4rem] border border-[#e7c889]/20 bg-[linear-gradient(150deg,rgba(231,200,137,0.14),rgba(255,255,255,0.02)_45%,rgba(255,255,255,0.01))] p-7 backdrop-blur-xl"
-                            >
+                    {visible.map((offer) => (
+                        <Reveal key={offer.id}>
+                            <TiltCard className="relative h-full overflow-hidden rounded-[1.4rem] border border-[#e7c889]/20 bg-[linear-gradient(150deg,rgba(231,200,137,0.14),rgba(255,255,255,0.02)_45%,rgba(255,255,255,0.01))] p-7 backdrop-blur-xl">
                                 <div className="absolute inset-x-7 top-0 h-px bg-linear-to-r from-transparent via-[#e7c889]/60 to-transparent" />
                                 <div className="absolute -top-10 right-[-10%] h-32 w-32 rounded-full bg-[#e7c889]/20 blur-3xl transition-transform duration-700 group-hover/tilt:scale-125" />
 

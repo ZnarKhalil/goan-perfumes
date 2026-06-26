@@ -1,4 +1,3 @@
-import { motion, useReducedMotion } from 'motion/react';
 import Reveal from '@/components/public/home/reveal';
 import type { PublicCopy } from '@/lib/public-copy';
 import type { PublicBulletSection, PublicTextSection } from '@/types/public';
@@ -10,8 +9,6 @@ type Props = {
 };
 
 export default function Story({ about, whyUs, copy }: Props) {
-    const reduceMotion = useReducedMotion();
-
     return (
         <section className="relative px-4 py-24 md:px-8 md:py-36">
             <div className="mx-auto grid max-w-7xl gap-16 lg:grid-cols-[0.95fr_1.05fr] lg:gap-24">
@@ -42,8 +39,6 @@ export default function Story({ about, whyUs, copy }: Props) {
                             <Reveal
                                 as="li"
                                 key={item}
-                                delay={index * 0.08}
-                                blur={false}
                                 className="group grid grid-cols-[3.5rem_1fr] items-start gap-5 py-7"
                             >
                                 <span className="font-display text-2xl text-[#e7c889]/70 tabular-nums">
@@ -53,18 +48,8 @@ export default function Story({ about, whyUs, copy }: Props) {
                                     <p className="text-lg leading-8 text-stone-200 transition-colors duration-500 group-hover:text-stone-50 md:text-xl">
                                         {item}
                                     </p>
-                                    <motion.span
+                                    <span
                                         className="mt-7 block h-px origin-left bg-linear-to-r from-[#e7c889]/50 via-white/15 to-transparent"
-                                        initial={
-                                            reduceMotion ? false : { scaleX: 0 }
-                                        }
-                                        whileInView={{ scaleX: 1 }}
-                                        viewport={{ once: true }}
-                                        transition={{
-                                            duration: 1.1,
-                                            delay: 0.1 + index * 0.08,
-                                            ease: [0.16, 1, 0.3, 1],
-                                        }}
                                     />
                                 </div>
                             </Reveal>

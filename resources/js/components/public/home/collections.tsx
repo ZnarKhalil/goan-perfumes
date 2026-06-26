@@ -32,10 +32,9 @@ export default function Collections({ categories, eyebrow, title }: Props) {
                 </Reveal>
 
                 <div className="mt-14 flex snap-x snap-mandatory gap-5 overflow-x-auto pb-4 [scrollbar-width:none] md:grid md:grid-cols-3 md:overflow-visible lg:grid-cols-4 [&::-webkit-scrollbar]:hidden">
-                    {categories.map((category, index) => (
+                    {categories.map((category) => (
                         <Reveal
                             key={category.id}
-                            delay={index * 0.07}
                             className="min-w-[78vw] snap-start sm:min-w-[44vw] md:min-w-0"
                         >
                             <Link

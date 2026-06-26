@@ -1,6 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { useEffect } from 'react';
-import CookieConsent from '@/components/public/cookie-consent';
+import { lazy, Suspense, useEffect } from 'react';
 import FloatingContactSidebar from '@/components/public/floating-contact-sidebar';
 import { Facebook, Instagram, Tiktok } from '@/components/public/icons';
 import SiteHeader from '@/components/public/site-header';
@@ -11,6 +10,8 @@ import {
 import { getPublicCopy } from '@/lib/public-copy';
 import { cn } from '@/lib/utils';
 import type { PublicLayoutProps } from '@/types/public';
+
+const CookieConsent = lazy(() => import('@/components/public/cookie-consent'));
 
 export default function PublicLayout({
     navigation,
@@ -292,11 +293,13 @@ export default function PublicLayout({
                         >
                             {copy.footer.termsLink}
                         </Link>
-                        <CookieConsent
-                            copy={copy}
-                            privacyHref={privacyHref}
-                            theme={theme}
-                        />
+                        <Suspense fallback={null}>
+                            <CookieConsent
+                                copy={copy}
+                                privacyHref={privacyHref}
+                                theme={theme}
+                            />
+                        </Suspense>
                     </div>
                 </div>
             </footer>

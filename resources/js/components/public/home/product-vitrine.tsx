@@ -59,12 +59,8 @@ export default function ProductVitrine({
                     </div>
                 ) : (
                     <div className="mt-14 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                        {products.map((product, index) => (
-                            <Reveal
-                                key={product.id}
-                                delay={index * 0.09}
-                                y={48}
-                            >
+                        {products.map((product) => (
+                            <Reveal key={product.id}>
                                 <VitrineCard product={product} copy={copy} />
                             </Reveal>
                         ))}
