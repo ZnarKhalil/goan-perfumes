@@ -18,6 +18,7 @@ function fakeAnalytics(): MockInterface
         // Any readable existing file satisfies the configured check.
         'analytics.service_account_credentials_json' => base_path('composer.json'),
     ]);
+    Cache::forget('google-analytics.dashboard.v3.30');
 
     // Bind the mock as the facade root so the real Google client is never
     // built from the (deliberately invalid) credentials path above.
@@ -92,7 +93,7 @@ test('a failed dashboard read is not cached', function () {
     $result = app(GoogleAnalyticsService::class)->dashboard(30);
 
     expect($result['status'])->toBe('unavailable')
-        ->and(Cache::has('google-analytics.dashboard.30'))->toBeFalse();
+        ->and(Cache::has('google-analytics.dashboard.v3.30'))->toBeFalse();
 
     Exceptions::assertReported(
         fn (RuntimeException $exception): bool => $exception->getMessage() === 'GA down',
@@ -103,13 +104,137 @@ test('a successful dashboard read is cached', function () {
     $analytics = fakeAnalytics();
     $analytics->shouldReceive('get')->andReturn(collect());
     $analytics->shouldReceive('getRealtime')->andReturn(collect());
-    $analytics->shouldReceive('fetchMostVisitedPages')->andReturn(collect());
     $analytics->shouldReceive('fetchTopCountries')->andReturn(collect());
 
     $result = app(GoogleAnalyticsService::class)->dashboard(30);
 
     expect($result['status'])->toBe('ready')
-        ->and(Cache::has('google-analytics.dashboard.30'))->toBeTrue();
+        ->and(Cache::has('google-analytics.dashboard.v3.30'))->toBeTrue();
+});
+
+test('dashboard includes google analytics comparison and quality reports', function () {
+    CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-06-30 12:00:00'));
+
+    $analytics = fakeAnalytics();
+    $summaryCalls = 0;
+
+    $analytics->shouldReceive('get')
+        ->andReturnUsing(function (
+            Period $period,
+            array $metrics,
+            array $dimensions = [],
+        ) use (&$summaryCalls): Collection {
+            if ($metrics === ['activeUsers', 'sessions', 'screenPageViews', 'engagementRate']) {
+                $summaryCalls++;
+
+                return collect([
+                    $summaryCalls === 1
+                        ? ['activeUsers' => 20, 'sessions' => 30, 'screenPageViews' => 60, 'engagementRate' => 0.5]
+                        : ['activeUsers' => 10, 'sessions' => 15, 'screenPageViews' => 30, 'engagementRate' => 0.25],
+                ]);
+            }
+
+            if ($dimensions === ['pageTitle', 'pagePathPlusQueryString']) {
+                return collect([
+                    ['pageTitle' => 'Rose Oud', 'pagePathPlusQueryString' => '/de/produkt/rose-oud', 'screenPageViews' => 8],
+                    ['pageTitle' => 'Rose Oud kaufen', 'pagePathPlusQueryString' => '/de/produkt/rose-oud', 'screenPageViews' => 4],
+                    ['pageTitle' => 'Startseite', 'pagePathPlusQueryString' => 'goanperfume.de/de', 'screenPageViews' => 60],
+                    ['pageTitle' => 'Arabische Parfums', 'pagePathPlusQueryString' => '/de/arabische-parfums?page=2%3Fpage%3D2', 'screenPageViews' => 13],
+                ]);
+            }
+
+            if ($dimensions === ['landingPagePlusQueryString']) {
+                return collect([
+                    [
+                        'landingPagePlusQueryString' => '/de',
+                        'sessions' => 18,
+                        'screenPageViews' => 44,
+                        'engagedSessions' => 12,
+                        'engagementRate' => 0.667,
+                    ],
+                    [
+                        'landingPagePlusQueryString' => '/de/arabische-parfums?page=2%3Fpage%3D2',
+                        'sessions' => 5,
+                        'screenPageViews' => 13,
+                        'engagedSessions' => 2,
+                        'engagementRate' => 0.4,
+                    ],
+                ]);
+            }
+
+            if ($dimensions === ['sessionSourceMedium']) {
+                return collect([
+                    [
+                        'sessionSourceMedium' => 'ig / social',
+                        'sessions' => 14,
+                        'screenPageViews' => 32,
+                        'engagedSessions' => 9,
+                        'engagementRate' => 0.643,
+                    ],
+                ]);
+            }
+
+            if ($dimensions === ['deviceCategory']) {
+                return collect([
+                    ['deviceCategory' => 'mobile', 'sessions' => 20],
+                ]);
+            }
+
+            if ($dimensions === ['date']) {
+                return collect([
+                    ['date' => '20260615', 'activeUsers' => 4, 'screenPageViews' => 9],
+                ]);
+            }
+
+            return collect();
+        });
+    $analytics->shouldReceive('getRealtime')->andReturn(collect([['activeUsers' => 3]]));
+    $analytics->shouldReceive('fetchTopCountries')->andReturn(collect([
+        ['country' => 'Germany', 'screenPageViews' => 44],
+    ]));
+
+    $result = app(GoogleAnalyticsService::class)->dashboard(30);
+
+    expect($result['current_period'])->toBe(['start' => '2026-05-31', 'end' => '2026-06-30'])
+        ->and($result['previous_period'])->toBe(['start' => '2026-04-30', 'end' => '2026-05-30'])
+        ->and($result['summary_comparison']['active_users']['change_percent'])->toBe(100.0)
+        ->and($result['summary_comparison']['engagement_rate']['change_value'])->toBe(25.0)
+        ->and($result['landing_pages'][0])->toMatchArray([
+            'path' => '/de',
+            'sessions' => 18,
+            'views' => 44,
+            'engaged_sessions' => 12,
+            'engagement_rate' => 66.7,
+            'is_suspicious' => false,
+        ])
+        ->and($result['landing_pages'][1]['is_suspicious'])->toBeTrue()
+        ->and($result['top_sources'][0])->toMatchArray([
+            'source' => 'Instagram',
+            'medium' => 'Social',
+            'raw_source_medium' => 'ig / social',
+            'sessions' => 14,
+            'views' => 32,
+            'engaged_sessions' => 9,
+            'engagement_rate' => 64.3,
+        ])
+        ->and($result['top_pages'][0])->toMatchArray([
+            'title' => 'Startseite',
+            'url' => '/de',
+            'views' => 60,
+            'title_count' => 1,
+            'is_suspicious' => false,
+        ])
+        ->and($result['top_pages'][1]['is_suspicious'])->toBeTrue()
+        ->and($result['top_product_pages'])->toHaveCount(1)
+        ->and($result['top_product_pages'][0])->toMatchArray([
+            'title' => 'Rose Oud',
+            'url' => '/de/produkt/rose-oud',
+            'views' => 12,
+            'title_count' => 2,
+            'is_suspicious' => false,
+        ]);
+
+    CarbonImmutable::setTestNow();
 });
 
 test('a failing realtime call does not blank the rest of the dashboard', function () {

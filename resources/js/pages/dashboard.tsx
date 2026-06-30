@@ -1,11 +1,16 @@
 import { Head, Link } from '@inertiajs/react';
 import {
     Activity,
+    ArrowDownRight,
+    ArrowUpRight,
     ChartNoAxesCombined,
+    CircleHelp,
     Clock3,
     Eye,
     Globe2,
     Laptop,
+    MapPin,
+    Minus,
     MousePointerClick,
     Radio,
     Users,
@@ -15,7 +20,13 @@ import type { ReactNode } from 'react';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { adminTitle, dashboardLabels } from '@/lib/de';
+import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
 
 type AnalyticsStatus = 'ready' | 'not_configured' | 'unavailable';
@@ -27,6 +38,24 @@ type MetricSummary = {
     engagement_rate: number;
 };
 
+type DatePeriod = {
+    start: string;
+    end: string;
+};
+
+type MetricComparison = {
+    previous: number;
+    change_value: number;
+    change_percent: number | null;
+};
+
+type SummaryComparison = {
+    active_users: MetricComparison;
+    sessions: MetricComparison;
+    page_views: MetricComparison;
+    engagement_rate: MetricComparison;
+};
+
 type RealtimeSummary = {
     active_users: number;
 };
@@ -35,11 +64,27 @@ type PageRow = {
     title: string;
     url: string;
     views: number;
+    title_count: number;
+    is_suspicious: boolean;
 };
 
 type SourceRow = {
     source: string;
+    medium: string | null;
+    raw_source_medium: string;
+    sessions: number;
     views: number;
+    engaged_sessions: number;
+    engagement_rate: number;
+};
+
+type LandingPageRow = {
+    path: string;
+    sessions: number;
+    views: number;
+    engaged_sessions: number;
+    engagement_rate: number;
+    is_suspicious: boolean;
 };
 
 type CountryRow = {
@@ -66,10 +111,14 @@ type AnalyticsDashboard = {
     configured: boolean;
     status: AnalyticsStatus;
     message: string | null;
+    current_period: DatePeriod;
+    previous_period: DatePeriod;
     summary: MetricSummary;
+    summary_comparison: SummaryComparison;
     realtime: RealtimeSummary;
     top_pages: PageRow[];
     top_product_pages: PageRow[];
+    landing_pages: LandingPageRow[];
     top_sources: SourceRow[];
     top_countries: CountryRow[];
     devices: DeviceRow[];
@@ -89,28 +138,46 @@ const shortDateFormatter = new Intl.DateTimeFormat('de-DE', {
     day: '2-digit',
     month: '2-digit',
 });
+const periodDateFormatter = new Intl.DateTimeFormat('de-DE', {
+    day: '2-digit',
+    month: '2-digit',
+    year: '2-digit',
+});
+const compactNumberFormatter = new Intl.NumberFormat('de-DE', {
+    notation: 'compact',
+    maximumFractionDigits: 1,
+});
 
 export default function Dashboard({ analytics, filters }: Props) {
+    const previousPeriodLabel = formatPeriod(analytics.previous_period);
     const summaryCards = [
         {
             label: 'Aktive Nutzer',
             value: numberFormatter.format(analytics.summary.active_users),
             icon: Users,
+            comparison: analytics.summary_comparison.active_users,
+            comparisonMode: 'percent' as const,
         },
         {
-            label: 'Sitzungen',
+            label: 'Besuche',
             value: numberFormatter.format(analytics.summary.sessions),
             icon: MousePointerClick,
+            comparison: analytics.summary_comparison.sessions,
+            comparisonMode: 'percent' as const,
         },
         {
             label: 'Seitenaufrufe',
             value: numberFormatter.format(analytics.summary.page_views),
             icon: Eye,
+            comparison: analytics.summary_comparison.page_views,
+            comparisonMode: 'percent' as const,
         },
         {
             label: 'Engagement-Rate',
             value: `${analytics.summary.engagement_rate.toLocaleString('de-DE')}%`,
             icon: Activity,
+            comparison: analytics.summary_comparison.engagement_rate,
+            comparisonMode: 'points' as const,
         },
     ];
 
@@ -174,6 +241,11 @@ export default function Dashboard({ analytics, filters }: Props) {
                                 <p className="mt-3 text-3xl font-semibold tracking-tight">
                                     {item.value}
                                 </p>
+                                <MetricDelta
+                                    comparison={item.comparison}
+                                    mode={item.comparisonMode}
+                                    previousPeriodLabel={previousPeriodLabel}
+                                />
                             </div>
                         );
                     })}
@@ -185,19 +257,6 @@ export default function Dashboard({ analytics, filters }: Props) {
                         icon={ChartNoAxesCombined}
                     >
                         <TrafficLineChart rows={analytics.daily} />
-                    </ReportPanel>
-
-                    <ReportPanel title="Geräte-Sitzungen" icon={Laptop}>
-                        <DeviceBarChart rows={analytics.devices} />
-                    </ReportPanel>
-                </div>
-
-                <div className="grid gap-4 xl:grid-cols-[1.4fr_1fr]">
-                    <ReportPanel title="Top-Seiten" icon={ChartNoAxesCombined}>
-                        <PageTable
-                            rows={analytics.top_pages}
-                            empty="Noch keine Seitendaten vorhanden."
-                        />
                     </ReportPanel>
 
                     <ReportPanel title="Realtime" icon={Radio}>
@@ -217,20 +276,36 @@ export default function Dashboard({ analytics, filters }: Props) {
                     </ReportPanel>
                 </div>
 
+                <div className="grid gap-4 xl:grid-cols-[1.4fr_1fr]">
+                    <ReportPanel
+                        title="Einstiegsseiten"
+                        description="Seiten, auf denen Besucher ihren Besuch begonnen haben."
+                        icon={MapPin}
+                    >
+                        <LandingPageTable rows={analytics.landing_pages} />
+                    </ReportPanel>
+
+                    <ReportPanel
+                        title="Traffic-Quellen"
+                        description="Woher die Besuche kamen, zusammengefasst aus Quelle und Kanal."
+                        icon={Globe2}
+                    >
+                        <SourceTable rows={analytics.top_sources} />
+                    </ReportPanel>
+                </div>
+
                 <div className="grid gap-4 xl:grid-cols-2">
+                    <ReportPanel title="Top-Seiten" icon={ChartNoAxesCombined}>
+                        <PageTable
+                            rows={analytics.top_pages}
+                            empty="Noch keine Seitendaten vorhanden."
+                        />
+                    </ReportPanel>
+
                     <ReportPanel title="Top-Produktseiten" icon={Eye}>
                         <PageTable
                             rows={analytics.top_product_pages}
                             empty="Noch keine Produktseiten-Daten vorhanden."
-                        />
-                    </ReportPanel>
-
-                    <ReportPanel title="Traffic-Quellen" icon={Globe2}>
-                        <SimpleRows
-                            rows={analytics.top_sources}
-                            labelKey="source"
-                            valueKey="views"
-                            empty="Noch keine Quellen-Daten vorhanden."
                         />
                     </ReportPanel>
                 </div>
@@ -278,10 +353,11 @@ function TrafficLineChart({ rows }: { rows: DailyRow[] }) {
 
     const width = 640;
     const height = 220;
-    const paddingX = 32;
+    const paddingLeft = 54;
+    const paddingRight = 20;
     const paddingTop = 22;
     const chartHeight = 150;
-    const chartWidth = width - paddingX * 2;
+    const chartWidth = width - paddingLeft - paddingRight;
     const maxValue = Math.max(
         1,
         ...rows.flatMap((row) => [row.page_views, row.active_users]),
@@ -290,7 +366,7 @@ function TrafficLineChart({ rows }: { rows: DailyRow[] }) {
         rows,
         valueKey: 'page_views',
         maxValue,
-        paddingX,
+        paddingX: paddingLeft,
         paddingTop,
         chartWidth,
         chartHeight,
@@ -299,12 +375,17 @@ function TrafficLineChart({ rows }: { rows: DailyRow[] }) {
         rows,
         valueKey: 'active_users',
         maxValue,
-        paddingX,
+        paddingX: paddingLeft,
         paddingTop,
         chartWidth,
         chartHeight,
     });
-    const dateLabels = chartDateLabels(rows);
+    const dateLabels = chartDateLabels(rows, paddingLeft, width - paddingRight);
+    const tickLabels = [0, 0.25, 0.5, 0.75, 1].map((tick) => ({
+        tick,
+        y: paddingTop + chartHeight * tick,
+        value: Math.round(maxValue * (1 - tick)),
+    }));
 
     return (
         <div className="grid gap-4">
@@ -325,21 +406,26 @@ function TrafficLineChart({ rows }: { rows: DailyRow[] }) {
                 viewBox={`0 0 ${width} ${height}`}
                 className="h-64 w-full overflow-visible"
             >
-                {[0, 0.25, 0.5, 0.75, 1].map((tick) => {
-                    const y = paddingTop + chartHeight * tick;
-
-                    return (
+                {tickLabels.map((label) => (
+                    <g key={label.tick}>
                         <line
-                            key={tick}
-                            x1={paddingX}
-                            x2={width - paddingX}
-                            y1={y}
-                            y2={y}
+                            x1={paddingLeft}
+                            x2={width - paddingRight}
+                            y1={label.y}
+                            y2={label.y}
                             className="stroke-border"
                             strokeWidth="1"
                         />
-                    );
-                })}
+                        <text
+                            x={paddingLeft - 10}
+                            y={label.y + 4}
+                            textAnchor="end"
+                            className="fill-muted-foreground text-[11px]"
+                        >
+                            {compactNumberFormatter.format(label.value)}
+                        </text>
+                    </g>
+                ))}
 
                 <polyline
                     points={pageViewPoints}
@@ -358,6 +444,61 @@ function TrafficLineChart({ rows }: { rows: DailyRow[] }) {
                     strokeLinejoin="round"
                 />
 
+                {rows.map((row, index) => {
+                    const x = chartX({
+                        index,
+                        rowsLength: rows.length,
+                        paddingX: paddingLeft,
+                        chartWidth,
+                    });
+                    const pageViewsY = chartY({
+                        value: row.page_views,
+                        maxValue,
+                        paddingTop,
+                        chartHeight,
+                    });
+                    const activeUsersY = chartY({
+                        value: row.active_users,
+                        maxValue,
+                        paddingTop,
+                        chartHeight,
+                    });
+                    const title = `${formatShortDate(row.date)}
+Seitenaufrufe: ${numberFormatter.format(row.page_views)}
+Aktive Nutzer: ${numberFormatter.format(row.active_users)}`;
+
+                    return (
+                        <g key={row.date}>
+                            <line
+                                x1={x}
+                                x2={x}
+                                y1={paddingTop}
+                                y2={paddingTop + chartHeight}
+                                stroke="transparent"
+                                strokeWidth="14"
+                            >
+                                <title>{title}</title>
+                            </line>
+                            <circle
+                                cx={x}
+                                cy={pageViewsY}
+                                r="4"
+                                className="fill-emerald-500"
+                            >
+                                <title>{title}</title>
+                            </circle>
+                            <circle
+                                cx={x}
+                                cy={activeUsersY}
+                                r="4"
+                                className="fill-sky-500"
+                            >
+                                <title>{title}</title>
+                            </circle>
+                        </g>
+                    );
+                })}
+
                 {dateLabels.map((label) => (
                     <text
                         key={`${label.date}-${label.x}`}
@@ -374,40 +515,40 @@ function TrafficLineChart({ rows }: { rows: DailyRow[] }) {
     );
 }
 
-function DeviceBarChart({ rows }: { rows: DeviceRow[] }) {
-    if (rows.length === 0) {
-        return (
-            <p className="text-sm text-muted-foreground">
-                Noch keine Geräte-Daten vorhanden.
-            </p>
-        );
-    }
-
-    const maxSessions = Math.max(1, ...rows.map((row) => row.sessions));
+function MetricDelta({
+    comparison,
+    mode,
+    previousPeriodLabel,
+}: {
+    comparison: MetricComparison;
+    mode: 'percent' | 'points';
+    previousPeriodLabel: string;
+}) {
+    const changeValue = comparison.change_value;
+    const isPositive = changeValue > 0;
+    const isNegative = changeValue < 0;
+    const Icon = isPositive ? ArrowUpRight : isNegative ? ArrowDownRight : Minus;
+    const value =
+        mode === 'points'
+            ? `${Math.abs(changeValue).toLocaleString('de-DE')} Pkt.`
+            : comparison.change_percent === null
+              ? numberFormatter.format(Math.abs(changeValue))
+              : `${Math.abs(comparison.change_percent).toLocaleString('de-DE')}%`;
 
     return (
-        <div className="grid gap-4">
-            {rows.map((row) => {
-                const width = Math.max(6, (row.sessions / maxSessions) * 100);
-
-                return (
-                    <div key={row.device} className="grid gap-2">
-                        <div className="flex items-center justify-between gap-4 text-sm">
-                            <span className="capitalize">{row.device}</span>
-                            <span className="font-medium">
-                                {numberFormatter.format(row.sessions)}
-                            </span>
-                        </div>
-                        <div className="h-2 rounded-full bg-muted">
-                            <div
-                                className="h-full rounded-full bg-emerald-500"
-                                style={{ width: `${width}%` }}
-                            />
-                        </div>
-                    </div>
-                );
-            })}
-        </div>
+        <p
+            className={cn(
+                'mt-2 flex items-center gap-1 text-xs text-muted-foreground',
+                isPositive && 'text-emerald-600 dark:text-emerald-400',
+                isNegative && 'text-red-600 dark:text-red-400',
+            )}
+        >
+            <Icon className="size-3" />
+            <span>
+                {isPositive ? '+' : isNegative ? '-' : ''}
+                {value} vs. {previousPeriodLabel}
+            </span>
+        </p>
     );
 }
 
@@ -430,28 +571,66 @@ function chartPoints({
 }) {
     return rows
         .map((row, index) => {
-            const x =
-                rows.length === 1
-                    ? paddingX + chartWidth / 2
-                    : paddingX + (index / (rows.length - 1)) * chartWidth;
-            const y =
-                paddingTop +
-                chartHeight -
-                (row[valueKey] / maxValue) * chartHeight;
+            const x = chartX({
+                index,
+                rowsLength: rows.length,
+                paddingX,
+                chartWidth,
+            });
+            const y = chartY({
+                value: row[valueKey],
+                maxValue,
+                paddingTop,
+                chartHeight,
+            });
 
             return `${x},${y}`;
         })
         .join(' ');
 }
 
+function chartX({
+    index,
+    rowsLength,
+    paddingX,
+    chartWidth,
+}: {
+    index: number;
+    rowsLength: number;
+    paddingX: number;
+    chartWidth: number;
+}) {
+    return rowsLength === 1
+        ? paddingX + chartWidth / 2
+        : paddingX + (index / (rowsLength - 1)) * chartWidth;
+}
+
+function chartY({
+    value,
+    maxValue,
+    paddingTop,
+    chartHeight,
+}: {
+    value: number;
+    maxValue: number;
+    paddingTop: number;
+    chartHeight: number;
+}) {
+    return paddingTop + chartHeight - (value / maxValue) * chartHeight;
+}
+
 function chartDateLabels(
     rows: DailyRow[],
+    leftX: number,
+    rightX: number,
 ): Array<{ date: string; x: number; anchor: ChartTextAnchor }> {
+    const middleX = leftX + (rightX - leftX) / 2;
+
     if (rows.length === 1) {
         return [
             {
                 date: rows[0].date,
-                x: 320,
+                x: middleX,
                 anchor: 'middle',
             } as const,
         ];
@@ -472,17 +651,17 @@ function chartDateLabels(
             date: rows[label.index].date,
             x:
                 label.index === 0
-                    ? 32
+                    ? leftX
                     : label.index === rows.length - 1
-                      ? 608
-                      : 320,
+                      ? rightX
+                      : middleX,
             anchor: label.anchor,
         }));
     }
 
     return labels.map((label) => ({
         date: rows[label.index].date,
-        x: label.index === 0 ? 32 : 608,
+        x: label.index === 0 ? leftX : rightX,
         anchor: label.anchor,
     }));
 }
@@ -497,19 +676,42 @@ function formatShortDate(date: string) {
     return shortDateFormatter.format(parsed);
 }
 
+function formatPeriod(period: DatePeriod) {
+    return `${formatPeriodDate(period.start)} - ${formatPeriodDate(period.end)}`;
+}
+
+function formatPeriodDate(date: string) {
+    const parsed = new Date(`${date}T00:00:00`);
+
+    if (Number.isNaN(parsed.getTime())) {
+        return date;
+    }
+
+    return periodDateFormatter.format(parsed);
+}
+
 function ReportPanel({
     title,
+    description,
     icon: Icon,
     children,
 }: {
     title: string;
+    description?: string;
     icon: LucideIcon;
     children: ReactNode;
 }) {
     return (
         <section className="rounded-lg border bg-card p-5 text-card-foreground shadow-xs">
             <div className="mb-4 flex items-center justify-between gap-4">
-                <h2 className="text-base font-semibold">{title}</h2>
+                <div className="grid gap-1">
+                    <h2 className="text-base font-semibold">{title}</h2>
+                    {description && (
+                        <p className="text-sm text-muted-foreground">
+                            {description}
+                        </p>
+                    )}
+                </div>
                 <Icon className="size-4 text-muted-foreground" />
             </div>
             {children}
@@ -526,11 +728,33 @@ function PageTable({ rows, empty }: { rows: PageRow[]; empty: string }) {
         <div className="grid gap-3">
             {rows.map((row) => (
                 <div
-                    key={`${row.title}-${row.url}`}
+                    key={row.url}
                     className="grid gap-1 rounded-md border p-3"
                 >
                     <div className="flex items-start justify-between gap-4">
-                        <p className="font-medium">{row.title || '—'}</p>
+                        <div className="min-w-0">
+                            <p className="truncate font-medium">
+                                {row.title || '—'}
+                            </p>
+                            <div className="mt-1 flex flex-wrap gap-1.5">
+                                {row.title_count > 1 && (
+                                    <Badge
+                                        variant="outline"
+                                        className="text-[0.68rem]"
+                                    >
+                                        {row.title_count} Titel in GA
+                                    </Badge>
+                                )}
+                                {row.is_suspicious && (
+                                    <Badge
+                                        variant="outline"
+                                        className="border-amber-300 bg-amber-50 text-[0.68rem] text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200"
+                                    >
+                                        URL prüfen
+                                    </Badge>
+                                )}
+                            </div>
+                        </div>
                         <p className="text-sm font-medium">
                             {numberFormatter.format(row.views)}
                         </p>
@@ -542,6 +766,148 @@ function PageTable({ rows, empty }: { rows: PageRow[]; empty: string }) {
             ))}
         </div>
     );
+}
+
+function LandingPageTable({ rows }: { rows: LandingPageRow[] }) {
+    if (rows.length === 0) {
+        return (
+            <p className="text-sm text-muted-foreground">
+                Noch keine Einstiegsseiten-Daten vorhanden.
+            </p>
+        );
+    }
+
+    return (
+        <div className="grid gap-3">
+            {rows.map((row) => (
+                <div key={row.path} className="grid gap-3 rounded-md border p-3">
+                    <div className="flex items-start justify-between gap-3">
+                        <p className="min-w-0 truncate text-sm font-medium">
+                            {row.path || '—'}
+                        </p>
+                        {row.is_suspicious && (
+                            <Badge
+                                variant="outline"
+                                className="shrink-0 border-amber-300 bg-amber-50 text-[0.68rem] text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200"
+                            >
+                                URL prüfen
+                            </Badge>
+                        )}
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                        <ReportMetric
+                            label="Besuche"
+                            value={numberFormatter.format(row.sessions)}
+                            help="Wie oft Besucher hier gestartet sind."
+                        />
+                        <ReportMetric
+                            label="Seitenaufrufe"
+                            value={numberFormatter.format(row.views)}
+                            help="Wie oft diese Seite angesehen wurde."
+                        />
+                        <ReportMetric
+                            label="Engagement"
+                            value={formatPercent(row.engagement_rate)}
+                            help="Anteil der Besuche mit echter Aktivität."
+                        />
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+}
+
+function SourceTable({ rows }: { rows: SourceRow[] }) {
+    if (rows.length === 0) {
+        return (
+            <p className="text-sm text-muted-foreground">
+                Noch keine Quellen-Daten vorhanden.
+            </p>
+        );
+    }
+
+    return (
+        <div className="grid gap-3">
+            {rows.map((row) => (
+                <div
+                    key={row.raw_source_medium}
+                    className="grid gap-3 rounded-md border p-3"
+                >
+                    <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                            <p className="truncate text-sm font-medium">
+                                {row.source || '—'}
+                            </p>
+                            {row.medium && (
+                                <Badge variant="outline" className="text-[0.68rem]">
+                                    {row.medium}
+                                </Badge>
+                            )}
+                        </div>
+                        <p className="mt-1 truncate text-xs text-muted-foreground">
+                            GA: {row.raw_source_medium}
+                        </p>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                        <ReportMetric
+                            label="Besuche"
+                            value={numberFormatter.format(row.sessions)}
+                            help="Wie oft diese Quelle Besucher gebracht hat."
+                        />
+                        <ReportMetric
+                            label="Seitenaufrufe"
+                            value={numberFormatter.format(row.views)}
+                            help="Wie viele Seitenaufrufe daraus entstanden sind."
+                        />
+                        <ReportMetric
+                            label="Engagement"
+                            value={formatPercent(row.engagement_rate)}
+                            help="Anteil der Besuche mit echter Aktivität."
+                        />
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+}
+
+function ReportMetric({
+    label,
+    value,
+    help,
+}: {
+    label: string;
+    value: string;
+    help?: string;
+}) {
+    return (
+        <div className="rounded-md bg-muted/50 px-2.5 py-2">
+            <div className="flex items-center gap-1 text-[0.7rem] text-muted-foreground">
+                <span>{label}</span>
+                {help && (
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <button
+                                type="button"
+                                className="rounded-full text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+                                aria-label={`${label}: ${help}`}
+                            >
+                                <CircleHelp className="size-3" />
+                            </button>
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-56 text-xs">
+                            {help}
+                        </TooltipContent>
+                    </Tooltip>
+                )}
+            </div>
+            <p className="mt-1 text-sm font-medium">{value}</p>
+        </div>
+    );
+}
+
+function formatPercent(value: number) {
+    return `${value.toLocaleString('de-DE')}%`;
 }
 
 function SimpleRows<T extends Record<string, string | number>>({

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 use Spatie\Analytics\Facades\Analytics;
 use Spatie\Analytics\OrderBy;
 use Spatie\Analytics\Period;
@@ -20,11 +21,20 @@ class GoogleAnalyticsService
      *     configured: bool,
      *     status: 'ready'|'not_configured'|'unavailable',
      *     message: ?string,
+     *     current_period: array{start: string, end: string},
+     *     previous_period: array{start: string, end: string},
      *     summary: array{active_users: int, sessions: int, page_views: int, engagement_rate: float},
+     *     summary_comparison: array{
+     *         active_users: array{previous: float, change_value: float, change_percent: ?float},
+     *         sessions: array{previous: float, change_value: float, change_percent: ?float},
+     *         page_views: array{previous: float, change_value: float, change_percent: ?float},
+     *         engagement_rate: array{previous: float, change_value: float, change_percent: ?float}
+     *     },
      *     realtime: array{active_users: int},
-     *     top_pages: list<array{title: string, url: string, views: int}>,
-     *     top_product_pages: list<array{title: string, url: string, views: int}>,
-     *     top_sources: list<array{source: string, views: int}>,
+     *     top_pages: list<array{title: string, url: string, views: int, title_count: int, is_suspicious: bool}>,
+     *     top_product_pages: list<array{title: string, url: string, views: int, title_count: int, is_suspicious: bool}>,
+     *     landing_pages: list<array{path: string, sessions: int, views: int, engaged_sessions: int, engagement_rate: float, is_suspicious: bool}>,
+     *     top_sources: list<array{source: string, medium: ?string, raw_source_medium: string, sessions: int, views: int, engaged_sessions: int, engagement_rate: float}>,
      *     top_countries: list<array{country: string, views: int}>,
      *     devices: list<array{device: string, sessions: int}>,
      *     daily: list<array{date: string, active_users: int, page_views: int}>
@@ -42,7 +52,7 @@ class GoogleAnalyticsService
             );
         }
 
-        $cacheKey = "google-analytics.dashboard.{$rangeDays}";
+        $cacheKey = "google-analytics.dashboard.v3.{$rangeDays}";
 
         if (is_array($cached = Cache::get($cacheKey))) {
             return $cached;
@@ -63,20 +73,28 @@ class GoogleAnalyticsService
     private function fetchDashboard(int $rangeDays): array
     {
         $period = Period::days($rangeDays);
+        $previousPeriod = $this->previousPeriod($period);
 
         try {
+            $summary = $this->summary($period);
+            $previousSummary = $this->summary($previousPeriod);
+
             return [
                 ...$this->emptyDashboard($rangeDays),
                 'status' => 'ready',
                 'message' => null,
-                'summary' => $this->summary($period),
+                'current_period' => $this->periodDates($period),
+                'previous_period' => $this->periodDates($previousPeriod),
+                'summary' => $summary,
+                'summary_comparison' => $this->summaryComparison($summary, $previousSummary),
                 'realtime' => $this->realtime(),
-                'top_pages' => $this->topPages($period),
-                'top_product_pages' => $this->topProductPages($period),
-                'top_sources' => $this->topSources($period),
-                'top_countries' => $this->topCountries($period),
-                'devices' => $this->devices($period),
-                'daily' => $this->daily($period, $rangeDays),
+                'top_pages' => $this->optionalReport(fn (): array => $this->topPages($period), []),
+                'top_product_pages' => $this->optionalReport(fn (): array => $this->topProductPages($period), []),
+                'landing_pages' => $this->optionalReport(fn (): array => $this->landingPages($period), []),
+                'top_sources' => $this->optionalReport(fn (): array => $this->topSources($period), []),
+                'top_countries' => $this->optionalReport(fn (): array => $this->topCountries($period), []),
+                'devices' => $this->optionalReport(fn (): array => $this->devices($period), []),
+                'daily' => $this->optionalReport(fn (): array => $this->daily($period, $rangeDays), []),
             ];
         } catch (Throwable $exception) {
             report($exception);
@@ -86,6 +104,20 @@ class GoogleAnalyticsService
                 status: 'unavailable',
                 message: 'Google Analytics konnte gerade nicht gelesen werden. Bitte später erneut versuchen.',
             );
+        }
+    }
+
+    /**
+     * @param  callable(): array  $callback
+     */
+    private function optionalReport(callable $callback, array $fallback): array
+    {
+        try {
+            return $callback();
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return $fallback;
         }
     }
 
@@ -106,6 +138,42 @@ class GoogleAnalyticsService
             'sessions' => (int) ($row['sessions'] ?? 0),
             'page_views' => (int) ($row['screenPageViews'] ?? 0),
             'engagement_rate' => round((float) ($row['engagementRate'] ?? 0) * 100, 1),
+        ];
+    }
+
+    /**
+     * @param  array{active_users: int, sessions: int, page_views: int, engagement_rate: float}  $current
+     * @param  array{active_users: int, sessions: int, page_views: int, engagement_rate: float}  $previous
+     * @return array{
+     *     active_users: array{previous: float, change_value: float, change_percent: ?float},
+     *     sessions: array{previous: float, change_value: float, change_percent: ?float},
+     *     page_views: array{previous: float, change_value: float, change_percent: ?float},
+     *     engagement_rate: array{previous: float, change_value: float, change_percent: ?float}
+     * }
+     */
+    private function summaryComparison(array $current, array $previous): array
+    {
+        return [
+            'active_users' => $this->metricComparison($current['active_users'], $previous['active_users']),
+            'sessions' => $this->metricComparison($current['sessions'], $previous['sessions']),
+            'page_views' => $this->metricComparison($current['page_views'], $previous['page_views']),
+            'engagement_rate' => $this->metricComparison($current['engagement_rate'], $previous['engagement_rate']),
+        ];
+    }
+
+    /**
+     * @return array{previous: float, change_value: float, change_percent: ?float}
+     */
+    private function metricComparison(float|int $current, float|int $previous): array
+    {
+        $changeValue = round($current - $previous, 1);
+
+        return [
+            'previous' => round($previous, 1),
+            'change_value' => $changeValue,
+            'change_percent' => $previous > 0
+                ? round(($changeValue / $previous) * 100, 1)
+                : null,
         ];
     }
 
@@ -137,58 +205,79 @@ class GoogleAnalyticsService
     }
 
     /**
-     * @return list<array{title: string, url: string, views: int}>
+     * @return list<array{title: string, url: string, views: int, title_count: int, is_suspicious: bool}>
      */
     private function topPages(Period $period): array
     {
-        return Analytics::fetchMostVisitedPages($period, 10)
-            ->map(fn (array $row): array => [
-                'title' => (string) ($row['pageTitle'] ?? 'Unbenannte Seite'),
-                'url' => (string) ($row['fullPageUrl'] ?? ''),
-                'views' => (int) ($row['screenPageViews'] ?? 0),
-            ])
-            ->values()
-            ->all();
+        $rows = Analytics::get(
+            period: $period,
+            metrics: ['screenPageViews'],
+            dimensions: ['pageTitle', 'pagePathPlusQueryString'],
+            maxResults: 50,
+            orderBy: [OrderBy::metric('screenPageViews', true)],
+        );
+
+        return $this->pageRows($rows, 'pagePathPlusQueryString', 'Unbenannte Seite');
     }
 
     /**
-     * @return list<array{title: string, url: string, views: int}>
+     * @return list<array{title: string, url: string, views: int, title_count: int, is_suspicious: bool}>
      */
     private function topProductPages(Period $period): array
     {
-        return Analytics::get(
+        $rows = Analytics::get(
             period: $period,
             metrics: ['screenPageViews'],
-            dimensions: ['pageTitle', 'pagePath'],
-            maxResults: 10,
+            dimensions: ['pageTitle', 'pagePathPlusQueryString'],
+            maxResults: 50,
             orderBy: [OrderBy::metric('screenPageViews', true)],
+        );
+
+        return $this->pageRows(
+            rows: $rows,
+            urlDimension: 'pagePathPlusQueryString',
+            fallbackTitle: 'Produktseite',
+            filter: fn (string $url): bool => str_contains($url, '/produkt/'),
+        );
+    }
+
+    /**
+     * @return list<array{path: string, sessions: int, views: int, engaged_sessions: int, engagement_rate: float, is_suspicious: bool}>
+     */
+    private function landingPages(Period $period): array
+    {
+        return Analytics::get(
+            period: $period,
+            metrics: ['sessions', 'screenPageViews', 'engagedSessions', 'engagementRate'],
+            dimensions: ['landingPagePlusQueryString'],
+            maxResults: 10,
+            orderBy: [OrderBy::metric('sessions', true)],
         )
-            ->filter(fn (array $row): bool => str_contains((string) ($row['pagePath'] ?? ''), '/produkt/'))
             ->map(fn (array $row): array => [
-                'title' => (string) ($row['pageTitle'] ?? 'Produktseite'),
-                'url' => (string) ($row['pagePath'] ?? ''),
+                'path' => $this->normalizeAnalyticsUrl($row['landingPagePlusQueryString'] ?? 'Unbekannt'),
+                'sessions' => (int) ($row['sessions'] ?? 0),
                 'views' => (int) ($row['screenPageViews'] ?? 0),
+                'engaged_sessions' => (int) ($row['engagedSessions'] ?? 0),
+                'engagement_rate' => round((float) ($row['engagementRate'] ?? 0) * 100, 1),
+                'is_suspicious' => $this->isSuspiciousAnalyticsUrl($row['landingPagePlusQueryString'] ?? ''),
             ])
             ->values()
             ->all();
     }
 
     /**
-     * @return list<array{source: string, views: int}>
+     * @return list<array{source: string, medium: ?string, raw_source_medium: string, sessions: int, views: int, engaged_sessions: int, engagement_rate: float}>
      */
     private function topSources(Period $period): array
     {
         return Analytics::get(
             period: $period,
-            metrics: ['screenPageViews'],
+            metrics: ['sessions', 'screenPageViews', 'engagedSessions', 'engagementRate'],
             dimensions: ['sessionSourceMedium'],
             maxResults: 5,
-            orderBy: [OrderBy::metric('screenPageViews', true)],
+            orderBy: [OrderBy::metric('sessions', true)],
         )
-            ->map(fn (array $row): array => [
-                'source' => (string) ($row['sessionSourceMedium'] ?? 'Unbekannt'),
-                'views' => (int) ($row['screenPageViews'] ?? 0),
-            ])
+            ->map(fn (array $row): array => $this->sourceRow($row))
             ->values()
             ->all();
     }
@@ -255,11 +344,20 @@ class GoogleAnalyticsService
      *     configured: bool,
      *     status: 'ready'|'not_configured'|'unavailable',
      *     message: ?string,
+     *     current_period: array{start: string, end: string},
+     *     previous_period: array{start: string, end: string},
      *     summary: array{active_users: int, sessions: int, page_views: int, engagement_rate: float},
+     *     summary_comparison: array{
+     *         active_users: array{previous: float, change_value: float, change_percent: ?float},
+     *         sessions: array{previous: float, change_value: float, change_percent: ?float},
+     *         page_views: array{previous: float, change_value: float, change_percent: ?float},
+     *         engagement_rate: array{previous: float, change_value: float, change_percent: ?float}
+     *     },
      *     realtime: array{active_users: int},
-     *     top_pages: list<array{title: string, url: string, views: int}>,
-     *     top_product_pages: list<array{title: string, url: string, views: int}>,
-     *     top_sources: list<array{source: string, views: int}>,
+     *     top_pages: list<array{title: string, url: string, views: int, title_count: int, is_suspicious: bool}>,
+     *     top_product_pages: list<array{title: string, url: string, views: int, title_count: int, is_suspicious: bool}>,
+     *     landing_pages: list<array{path: string, sessions: int, views: int, engaged_sessions: int, engagement_rate: float, is_suspicious: bool}>,
+     *     top_sources: list<array{source: string, medium: ?string, raw_source_medium: string, sessions: int, views: int, engaged_sessions: int, engagement_rate: float}>,
      *     top_countries: list<array{country: string, views: int}>,
      *     devices: list<array{device: string, sessions: int}>,
      *     daily: list<array{date: string, active_users: int, page_views: int}>
@@ -276,21 +374,195 @@ class GoogleAnalyticsService
             'configured' => $this->isConfigured(),
             'status' => $status,
             'message' => $message,
+            'current_period' => $this->periodDates(Period::days($rangeDays)),
+            'previous_period' => $this->periodDates($this->previousPeriod(Period::days($rangeDays))),
             'summary' => [
                 'active_users' => 0,
                 'sessions' => 0,
                 'page_views' => 0,
                 'engagement_rate' => 0.0,
             ],
+            'summary_comparison' => [
+                'active_users' => $this->metricComparison(0, 0),
+                'sessions' => $this->metricComparison(0, 0),
+                'page_views' => $this->metricComparison(0, 0),
+                'engagement_rate' => $this->metricComparison(0, 0),
+            ],
             'realtime' => [
                 'active_users' => 0,
             ],
             'top_pages' => [],
             'top_product_pages' => [],
+            'landing_pages' => [],
             'top_sources' => [],
             'top_countries' => [],
             'devices' => [],
             'daily' => [],
+        ];
+    }
+
+    /**
+     * @param  iterable<array<string, mixed>>  $rows
+     * @return list<array{title: string, url: string, views: int, title_count: int, is_suspicious: bool}>
+     */
+    private function pageRows(
+        iterable $rows,
+        string $urlDimension,
+        string $fallbackTitle,
+        ?callable $filter = null,
+    ): array {
+        $pages = [];
+
+        foreach ($rows as $row) {
+            $url = $this->normalizeAnalyticsUrl($row[$urlDimension] ?? '');
+
+            if ($url === '' || ($filter !== null && ! $filter($url))) {
+                continue;
+            }
+
+            $title = $this->cleanPageTitle($row['pageTitle'] ?? null, $fallbackTitle);
+
+            if (! isset($pages[$url])) {
+                $pages[$url] = [
+                    'url' => $url,
+                    'views' => 0,
+                    'title_views' => [],
+                    'is_suspicious' => $this->isSuspiciousAnalyticsUrl($row[$urlDimension] ?? ''),
+                ];
+            }
+
+            $views = (int) ($row['screenPageViews'] ?? 0);
+
+            $pages[$url]['views'] += $views;
+            $pages[$url]['title_views'][$title] = ($pages[$url]['title_views'][$title] ?? 0) + $views;
+            $pages[$url]['is_suspicious'] = $pages[$url]['is_suspicious']
+                || $this->isSuspiciousAnalyticsUrl($row[$urlDimension] ?? '');
+        }
+
+        return collect($pages)
+            ->map(function (array $page) use ($fallbackTitle): array {
+                arsort($page['title_views']);
+
+                $title = (string) array_key_first($page['title_views']);
+
+                return [
+                    'title' => $title !== '' ? $title : $fallbackTitle,
+                    'url' => (string) $page['url'],
+                    'views' => (int) $page['views'],
+                    'title_count' => count($page['title_views']),
+                    'is_suspicious' => (bool) $page['is_suspicious'],
+                ];
+            })
+            ->sortByDesc('views')
+            ->take(10)
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @param  array<string, mixed>  $row
+     * @return array{source: string, medium: ?string, raw_source_medium: string, sessions: int, views: int, engaged_sessions: int, engagement_rate: float}
+     */
+    private function sourceRow(array $row): array
+    {
+        $rawSourceMedium = (string) ($row['sessionSourceMedium'] ?? 'Unbekannt');
+        [$source, $medium] = array_pad(explode(' / ', $rawSourceMedium, 2), 2, null);
+
+        return [
+            'source' => $this->trafficSourceLabel($source),
+            'medium' => $this->trafficMediumLabel($medium),
+            'raw_source_medium' => $rawSourceMedium,
+            'sessions' => (int) ($row['sessions'] ?? 0),
+            'views' => (int) ($row['screenPageViews'] ?? 0),
+            'engaged_sessions' => (int) ($row['engagedSessions'] ?? 0),
+            'engagement_rate' => round((float) ($row['engagementRate'] ?? 0) * 100, 1),
+        ];
+    }
+
+    private function normalizeAnalyticsUrl(mixed $url): string
+    {
+        $value = trim((string) $url);
+
+        if ($value === '') {
+            return '';
+        }
+
+        if (! str_starts_with($value, '/') && preg_match('/^[a-z0-9.-]+\.[a-z]{2,}(\/.*)?$/i', $value)) {
+            $value = "https://{$value}";
+        }
+
+        $path = parse_url($value, PHP_URL_PATH);
+        $query = parse_url($value, PHP_URL_QUERY);
+
+        if (! is_string($path) || $path === '') {
+            $path = str_starts_with($value, '/') ? $value : "/{$value}";
+            $query = null;
+        }
+
+        $normalized = $path.($query ? "?{$query}" : '');
+
+        return rawurldecode($normalized);
+    }
+
+    private function isSuspiciousAnalyticsUrl(mixed $url): bool
+    {
+        $normalized = $this->normalizeAnalyticsUrl($url);
+
+        return substr_count($normalized, '?') > 1
+            || (bool) preg_match('/[?&][^=&?]+=[^&?]*\?/', $normalized);
+    }
+
+    private function cleanPageTitle(mixed $title, string $fallback): string
+    {
+        $value = trim(preg_replace('/\s+/', ' ', (string) $title) ?? '');
+
+        return $value !== '' ? $value : $fallback;
+    }
+
+    private function trafficSourceLabel(?string $source): string
+    {
+        $value = trim((string) $source);
+        $normalized = Str::lower($value);
+
+        return match (true) {
+            $normalized === '', $normalized === '(not set)' => 'Unbekannt',
+            $normalized === '(direct)', $normalized === 'direct' => 'Direkt',
+            in_array($normalized, ['ig', 'instagram', 'instagram.com', 'l.instagram.com', 'lm.instagram.com'], true) => 'Instagram',
+            in_array($normalized, ['fb', 'facebook', 'facebook.com', 'm.facebook.com', 'l.facebook.com'], true) => 'Facebook',
+            str_contains($normalized, 'google') => 'Google',
+            str_contains($normalized, 'bing') => 'Bing',
+            str_contains($normalized, 'tiktok') => 'TikTok',
+            str_contains($normalized, 'pinterest') => 'Pinterest',
+            default => Str::headline($value),
+        };
+    }
+
+    private function trafficMediumLabel(?string $medium): ?string
+    {
+        $value = trim((string) $medium);
+        $normalized = Str::lower($value);
+
+        return match ($normalized) {
+            '', '(not set)', '(none)' => null,
+            'organic' => 'Organisch',
+            'cpc', 'ppc', 'paid', 'paid_search' => 'Bezahlt',
+            'referral' => 'Verweis',
+            'social', 'organic_social', 'paid_social' => 'Social',
+            'email' => 'E-Mail',
+            'affiliate' => 'Affiliate',
+            'display' => 'Display',
+            default => Str::headline($value),
+        };
+    }
+
+    /**
+     * @return array{start: string, end: string}
+     */
+    private function periodDates(Period $period): array
+    {
+        return [
+            'start' => $period->startDate->format('Y-m-d'),
+            'end' => $period->endDate->format('Y-m-d'),
         ];
     }
 
@@ -311,6 +583,19 @@ class GoogleAnalyticsService
         } catch (Throwable) {
             return $value;
         }
+    }
+
+    private function previousPeriod(Period $period): Period
+    {
+        $currentStartDate = CarbonImmutable::parse($period->startDate->format('Y-m-d'))->startOfDay();
+        $currentEndDate = CarbonImmutable::parse($period->endDate->format('Y-m-d'))->startOfDay();
+        $periodLength = (int) $currentStartDate->diffInDays($currentEndDate);
+        $previousEndDate = $currentStartDate->subDay();
+
+        return Period::create(
+            $previousEndDate->subDays($periodLength)->startOfDay(),
+            $previousEndDate,
+        );
     }
 
     private function isConfigured(): bool
