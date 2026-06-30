@@ -2,22 +2,26 @@
 
 use App\Services\GoogleAnalyticsService;
 use Carbon\CarbonImmutable;
+use Illuminate\Cache\ArrayStore;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Exceptions;
+use Mockery\MockInterface;
+use Spatie\Analytics\AnalyticsClient;
 use Spatie\Analytics\Facades\Analytics;
 use Spatie\Analytics\Period;
 
-function fakeAnalytics(): Mockery\MockInterface
+function fakeAnalytics(): MockInterface
 {
     config([
         'analytics.property_id' => '542125730',
-        // Any existing file satisfies the file_exists() configured check.
+        // Any readable existing file satisfies the configured check.
         'analytics.service_account_credentials_json' => base_path('composer.json'),
     ]);
 
     // Bind the mock as the facade root so the real Google client is never
     // built from the (deliberately invalid) credentials path above.
-    $analytics = Mockery::mock(\Spatie\Analytics\Analytics::class);
+    $analytics = Mockery::mock(Spatie\Analytics\Analytics::class);
     app()->instance('laravel-analytics', $analytics);
 
     return $analytics;
@@ -27,6 +31,27 @@ test('google analytics service account credentials are ignored by git', function
     $gitignore = file_get_contents(base_path('.gitignore'));
 
     expect($gitignore)->toContain('/storage/app/analytics/*.json');
+});
+
+test('google analytics client uses the configured cache store', function () {
+    config([
+        'analytics.property_id' => '542125730',
+        'analytics.service_account_credentials_json' => [
+            'type' => 'service_account',
+            'project_id' => 'goan-perfume',
+            'private_key_id' => 'testing',
+            'private_key' => "-----BEGIN PRIVATE KEY-----\ntesting\n-----END PRIVATE KEY-----\n",
+            'client_email' => 'goan-perfume-analytics-reader@example.iam.gserviceaccount.com',
+        ],
+        'analytics.cache.store' => 'array',
+    ]);
+
+    app()->forgetInstance(AnalyticsClient::class);
+
+    $client = app(AnalyticsClient::class);
+    $cache = (new ReflectionProperty($client, 'cache'))->getValue($client);
+
+    expect($cache->getStore())->toBeInstanceOf(ArrayStore::class);
 });
 
 test('the realtime range is valid regardless of the current minute', function () {
@@ -62,10 +87,16 @@ test('a failed dashboard read is not cached', function () {
     $analytics = fakeAnalytics();
     $analytics->shouldReceive('get')->andThrow(new RuntimeException('GA down'));
 
+    Exceptions::fake();
+
     $result = app(GoogleAnalyticsService::class)->dashboard(30);
 
     expect($result['status'])->toBe('unavailable')
         ->and(Cache::has('google-analytics.dashboard.30'))->toBeFalse();
+
+    Exceptions::assertReported(
+        fn (RuntimeException $exception): bool => $exception->getMessage() === 'GA down',
+    );
 });
 
 test('a successful dashboard read is cached', function () {

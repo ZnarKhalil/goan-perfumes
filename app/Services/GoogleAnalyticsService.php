@@ -78,7 +78,9 @@ class GoogleAnalyticsService
                 'devices' => $this->devices($period),
                 'daily' => $this->daily($period, $rangeDays),
             ];
-        } catch (Throwable) {
+        } catch (Throwable $exception) {
+            report($exception);
+
             return $this->emptyDashboard(
                 rangeDays: $rangeDays,
                 status: 'unavailable',
@@ -317,7 +319,8 @@ class GoogleAnalyticsService
 
         return filled($this->propertyId())
             && is_string($credentials)
-            && file_exists($credentials);
+            && file_exists($credentials)
+            && is_readable($credentials);
     }
 
     private function propertyId(): ?string

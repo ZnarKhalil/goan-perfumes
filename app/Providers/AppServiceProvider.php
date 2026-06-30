@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Carbon\CarbonImmutable;
+use Illuminate\Contracts\Cache\Factory as CacheFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -11,6 +12,8 @@ use Illuminate\Validation\Rules\Password;
 use Inertia\ExceptionResponse;
 use Inertia\Inertia;
 use Opcodes\LogViewer\Facades\LogViewer;
+use Spatie\Analytics\AnalyticsClient;
+use Spatie\Analytics\AnalyticsClientFactory;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -27,9 +30,30 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->configureGoogleAnalytics();
         $this->configureDefaults();
         $this->configureErrorPages();
         $this->configureLogViewer();
+    }
+
+    /**
+     * Keep Spatie Analytics' binary protobuf cache out of the database cache.
+     */
+    protected function configureGoogleAnalytics(): void
+    {
+        $this->app->bind(AnalyticsClient::class, function (): AnalyticsClient {
+            $analyticsConfig = config('analytics');
+            $cacheStore = (string) ($analyticsConfig['cache']['store'] ?? config('cache.default'));
+
+            $client = new AnalyticsClient(
+                AnalyticsClientFactory::createAuthenticatedGoogleClient($analyticsConfig),
+                $this->app->make(CacheFactory::class)->store($cacheStore),
+            );
+
+            return $client->setCacheLifeTimeInMinutes(
+                (int) $analyticsConfig['cache_lifetime_in_minutes'],
+            );
+        });
     }
 
     /**
