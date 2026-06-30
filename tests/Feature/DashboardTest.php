@@ -33,7 +33,10 @@ test('admin users can visit the dashboard', function () {
             ->where('filters.range', 30)
             ->where('analytics.property_id', '542125730')
             ->where('analytics.summary.active_users', 12)
+            ->where('analytics.summary_comparison.active_users.change_percent', 20)
+            ->where('analytics.previous_period.start', '2026-04-30')
             ->where('analytics.daily.0.page_views', 18)
+            ->where('analytics.landing_pages.0.path', '/de')
             ->where('analytics.top_pages.0.title', 'Startseite'),
         );
 });
@@ -128,11 +131,41 @@ function dashboardAnalyticsPayload(int $rangeDays = 30): array
         'configured' => true,
         'status' => 'ready',
         'message' => null,
+        'current_period' => [
+            'start' => '2026-05-31',
+            'end' => '2026-06-30',
+        ],
+        'previous_period' => [
+            'start' => '2026-04-30',
+            'end' => '2026-05-30',
+        ],
         'summary' => [
             'active_users' => 12,
             'sessions' => 18,
             'page_views' => 42,
             'engagement_rate' => 64.5,
+        ],
+        'summary_comparison' => [
+            'active_users' => [
+                'previous' => 10.0,
+                'change_value' => 2.0,
+                'change_percent' => 20.0,
+            ],
+            'sessions' => [
+                'previous' => 15.0,
+                'change_value' => 3.0,
+                'change_percent' => 20.0,
+            ],
+            'page_views' => [
+                'previous' => 35.0,
+                'change_value' => 7.0,
+                'change_percent' => 20.0,
+            ],
+            'engagement_rate' => [
+                'previous' => 60.0,
+                'change_value' => 4.5,
+                'change_percent' => 7.5,
+            ],
         ],
         'realtime' => [
             'active_users' => 2,
@@ -142,13 +175,43 @@ function dashboardAnalyticsPayload(int $rangeDays = 30): array
             ['date' => '2026-06-16', 'active_users' => 6, 'page_views' => 24],
         ],
         'top_pages' => [
-            ['title' => 'Startseite', 'url' => 'https://goanperfume.de/de', 'views' => 20],
+            [
+                'title' => 'Startseite',
+                'url' => '/de',
+                'views' => 20,
+                'title_count' => 1,
+                'is_suspicious' => false,
+            ],
         ],
         'top_product_pages' => [
-            ['title' => 'Produkt', 'url' => '/de/produkt/test', 'views' => 10],
+            [
+                'title' => 'Produkt',
+                'url' => '/de/produkt/test',
+                'views' => 10,
+                'title_count' => 1,
+                'is_suspicious' => false,
+            ],
+        ],
+        'landing_pages' => [
+            [
+                'path' => '/de',
+                'sessions' => 14,
+                'views' => 28,
+                'engaged_sessions' => 9,
+                'engagement_rate' => 64.3,
+                'is_suspicious' => false,
+            ],
         ],
         'top_sources' => [
-            ['source' => 'google / organic', 'views' => 16],
+            [
+                'source' => 'Google',
+                'medium' => 'Organisch',
+                'raw_source_medium' => 'google / organic',
+                'sessions' => 12,
+                'views' => 16,
+                'engaged_sessions' => 8,
+                'engagement_rate' => 66.7,
+            ],
         ],
         'top_countries' => [
             ['country' => 'Germany', 'views' => 30],
