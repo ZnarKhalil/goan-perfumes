@@ -21,6 +21,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Destructive Production Seeding
+    |--------------------------------------------------------------------------
+    |
+    | Catalog seeders reconcile database content with repository fixtures and
+    | may delete production-managed records. Enable this only for an explicit,
+    | supervised initial seed or catalog refresh, then disable it immediately.
+    |
+    */
+
+    'allow_destructive_seeding' => (bool) env('ALLOW_DESTRUCTIVE_SEEDING', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | Database Connections
     |--------------------------------------------------------------------------
     |

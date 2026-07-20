@@ -16,6 +16,8 @@ class ProductCatalogSeeder extends Seeder
 {
     public function run(): void
     {
+        DestructiveSeederGuard::ensureAllowed();
+
         $products = PerfumeCatalog::products();
 
         Product::query()

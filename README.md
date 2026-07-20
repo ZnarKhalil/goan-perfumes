@@ -57,9 +57,9 @@ The seeder creates a single admin account:
 | Field    | Value                       |
 |----------|-----------------------------|
 | Email    | `admin@goanperfume.de`      |
-| Password | `ADMIN_PASSWORD` from `.env`, falling back to `config/auth.php` |
+| Password | `ADMIN_PASSWORD` from `.env` |
 
-> Configure `ADMIN_PASSWORD` before seeding production data, or change the admin password immediately after first login.
+> Configure `ADMIN_PASSWORD` before creating the admin account. Rerunning `AdminUserSeeder` never changes an existing admin password.
 
 The dashboard is at `/dashboard` and is gated by the `admin` middleware — non-admin users are redirected back to `/`.
 

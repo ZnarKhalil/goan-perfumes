@@ -53,6 +53,36 @@ test('seeded admin uses the configured strong password', function () {
         ->and(Hash::check('password', $admin->password))->toBeFalse();
 });
 
+test('admin seeding requires a configured password when creating the account', function (?string $password) {
+    config(['auth.admin_password' => $password]);
+
+    expect(fn () => $this->seed(AdminUserSeeder::class))
+        ->toThrow(RuntimeException::class, 'ADMIN_PASSWORD must be configured');
+
+    expect(User::query()->where('email', 'admin@goanperfume.de')->exists())->toBeFalse();
+})->with([
+    'missing password' => null,
+    'blank password' => '   ',
+]);
+
+test('admin seeding never resets an existing account password', function () {
+    $admin = User::factory()->create([
+        'email' => 'admin@goanperfume.de',
+        'password' => 'Existing-Admin-Password!48',
+        'is_admin' => false,
+    ]);
+
+    config(['auth.admin_password' => 'Replacement-Password-That-Must-Not-Be-Used!48']);
+
+    $this->seed(AdminUserSeeder::class);
+
+    $admin->refresh();
+
+    expect($admin->is_admin)->toBeTrue()
+        ->and(Hash::check('Existing-Admin-Password!48', $admin->password))->toBeTrue()
+        ->and(Hash::check('Replacement-Password-That-Must-Not-Be-Used!48', $admin->password))->toBeFalse();
+});
+
 test('shared auth user only exposes whitelisted fields', function () {
     $admin = User::factory()->create(['is_admin' => true]);
     $this->actingAs($admin);

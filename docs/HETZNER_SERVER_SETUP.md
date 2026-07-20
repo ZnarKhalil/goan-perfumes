@@ -593,6 +593,7 @@ INERTIA_SSR_THROW_ON_ERROR=true
 
 ANALYTICS_PROPERTY_ID=
 ADMIN_PASSWORD="REPLACE_WITH_STRONG_ADMIN_PASSWORD"
+ALLOW_DESTRUCTIVE_SEEDING=false
 ```
 
 Notes:
@@ -672,17 +673,21 @@ Run migrations:
 php artisan migrate --force
 ```
 
-Seed initial production data only on the first deployment:
+Seed initial production data only on the first deployment. Temporarily set
+`ALLOW_DESTRUCTIVE_SEEDING=true` in `.env`, then run:
 
 ```bash
+php artisan config:clear
 php artisan db:seed --force
 ```
 
-Do not run the full `DatabaseSeeder` again after the site has real production content unless you intentionally want to refresh seeded catalog/content records. To only reset the admin password later, update `ADMIN_PASSWORD` and run:
+Immediately restore `ALLOW_DESTRUCTIVE_SEEDING=false` in `.env` and run:
 
 ```bash
-php artisan db:seed --class=AdminUserSeeder --force
+php artisan config:clear
 ```
+
+The full `DatabaseSeeder` and its catalog/content seeders refuse to run in production unless this explicit opt-in is enabled. Do not enable it after the site has real production content unless you intentionally want to reconcile production records with repository fixtures. `AdminUserSeeder` may be rerun safely to restore the admin role, but it never changes the password of an existing account; change that password from the authenticated security settings page.
 
 Create the public storage symlink:
 

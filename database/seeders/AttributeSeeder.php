@@ -10,6 +10,8 @@ class AttributeSeeder extends Seeder
 {
     public function run(): void
     {
+        DestructiveSeederGuard::ensureAllowed();
+
         $attributes = PerfumeCatalog::attributes();
         $codes = collect($attributes)->pluck('code')->all();
         $translations = PerfumeCatalog::attributeTranslations();
