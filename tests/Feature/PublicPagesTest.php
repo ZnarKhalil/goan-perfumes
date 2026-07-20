@@ -44,7 +44,7 @@ test('home renders public props from stored content', function () {
             ->has('navigation', 1)
             ->where('navigation.0.slug', 'luxusparfums')
             ->where('navigation.0.image_url', null)
-            ->where('meta.preload_image_url', '/storage/page-sections/hero.jpg')
+            ->where('meta.preload_image_url', '/media/768/page-sections/hero.jpg')
             ->has('promotions', 1)
             ->where('promotions.0.title', 'Aktion')
             ->where('page_sections.hero.title', 'Goan Perfume')

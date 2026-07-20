@@ -6,6 +6,7 @@ import SearchForm from '@/components/public/search-form';
 import SiteDrawer from '@/components/public/site-drawer';
 import { publicHomePrefetch } from '@/lib/inertia-cache';
 import type { PublicCopy } from '@/lib/public-copy';
+import { responsiveImageSrcSet } from '@/lib/responsive-image';
 import { cn } from '@/lib/utils';
 import type {
     PublicCategoryNavItem,
@@ -85,17 +86,21 @@ export default function SiteHeader({
                 <Link
                     href={homeHref}
                     {...publicHomePrefetch}
-                    className="flex max-w-[min(12rem,48vw)] min-w-0 items-center justify-center text-center"
+                    className="flex h-10 w-[min(10rem,48vw)] min-w-0 items-center justify-center text-center"
                     aria-label={copy.aria.goHome}
                 >
                     {logoUrl ? (
                         <img
                             src={logoUrl}
+                            srcSet={responsiveImageSrcSet(logoUrl, [80, 160])}
+                            sizes="160px"
                             alt="Goan Perfume"
+                            width={160}
+                            height={40}
                             loading="lazy"
                             decoding="async"
                             fetchPriority="low"
-                            className="max-h-10 max-w-full object-contain transition"
+                            className="h-full w-full object-contain transition"
                         />
                     ) : (
                         <span

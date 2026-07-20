@@ -5,6 +5,7 @@ import {
     publicNavigationPrefetch,
 } from '@/lib/inertia-cache';
 import type { PublicCopy } from '@/lib/public-copy';
+import { responsiveImageSrcSet } from '@/lib/responsive-image';
 import type { PublicHeroSection } from '@/types/public';
 
 type Props = {
@@ -34,12 +35,12 @@ export default function Hero({ hero, copy, ctaHref, contactHref }: Props) {
             {/* full-bleed background media — always covers the viewport */}
             <div
                 aria-hidden
-                className="relative w-full bg-[#0b0907] sm:absolute sm:inset-0 sm:-z-20"
+                className="relative aspect-video w-full bg-[#0b0907] sm:absolute sm:inset-0 sm:-z-20 sm:aspect-auto"
             >
                 {hero.video_url ? (
                     <video
                         key={hero.video_url}
-                        className="h-auto w-full object-contain object-center sm:h-full sm:object-cover"
+                        className="h-full w-full object-cover object-center"
                         autoPlay
                         muted
                         loop
@@ -50,11 +51,18 @@ export default function Hero({ hero, copy, ctaHref, contactHref }: Props) {
                 ) : hero.image_url ? (
                     <img
                         src={hero.image_url}
+                        srcSet={responsiveImageSrcSet(
+                            hero.image_url,
+                            [480, 768, 1080],
+                        )}
+                        sizes="100vw"
                         alt=""
+                        width={16}
+                        height={9}
                         loading="eager"
                         fetchPriority="high"
                         decoding="sync"
-                        className="h-auto w-full object-contain object-center sm:h-full sm:object-cover"
+                        className="h-full w-full object-cover object-center"
                     />
                 ) : (
                     <div className="h-[22svh] w-full bg-[radial-gradient(120%_120%_at_30%_20%,#241708,#0b0907)] sm:h-full" />

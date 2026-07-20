@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Public;
 
 use App\Models\Product;
+use App\Support\ResponsiveImage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -41,7 +42,10 @@ class HomeController extends PublicController
                 $meta[0],
                 $meta[1],
                 'home',
-                preloadImageUrl: $pageSections['hero']['video_url'] ? null : $pageSections['hero']['image_url'],
+                preloadImageUrl: $pageSections['hero']['video_url']
+                    ? null
+                    : ResponsiveImage::url($pageSections['hero']['image_url'], 768),
+                imageUrl: $pageSections['hero']['image_url'],
             ),
             'promotions' => $this->promotions(),
             'page_sections' => $pageSections,

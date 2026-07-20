@@ -13,6 +13,18 @@ const scriptId = 'google-analytics-gtag';
 
 let isInitialized = false;
 let removeNavigateListener: (() => void) | null = null;
+let initializationTimer: number | null = null;
+
+export function scheduleGoogleAnalytics(): void {
+    if (!measurementId || isInitialized || initializationTimer !== null) {
+        return;
+    }
+
+    initializationTimer = window.setTimeout(() => {
+        initializationTimer = null;
+        initializeGoogleAnalytics();
+    }, 4_000);
+}
 
 export function initializeGoogleAnalytics(): void {
     if (!measurementId || isInitialized || typeof window === 'undefined') {
@@ -54,6 +66,11 @@ export function initializeGoogleAnalytics(): void {
 }
 
 export function disableGoogleAnalytics(): void {
+    if (initializationTimer !== null) {
+        window.clearTimeout(initializationTimer);
+        initializationTimer = null;
+    }
+
     if (measurementId && typeof window !== 'undefined') {
         window[`ga-disable-${measurementId}`] = true;
     }

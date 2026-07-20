@@ -208,7 +208,7 @@ test('public initial html includes lcp image preload fallback before hydration',
 
     $this->get('/de')
         ->assertOk()
-        ->assertSee('<link data-inertia="preload-image" rel="preload" as="image" href="/storage/page-sections/hero.webp" fetchpriority="high">', false);
+        ->assertSee('<link data-inertia="preload-image" rel="preload" as="image" href="/media/768/page-sections/hero.webp" fetchpriority="high">', false);
 });
 
 test('public initial html avoids non-critical preloads', function () {
