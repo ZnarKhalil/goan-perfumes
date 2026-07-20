@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\Translation;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
@@ -317,6 +318,62 @@ test('store rejects multiple values for a single-select attribute and missing de
         ->assertSessionHasErrors(['attribute_values', 'variants']);
 
     expect(Product::count())->toBe(0);
+});
+
+test('store rejects duplicate variant sizes and compare prices below the sale price', function () {
+    $category = Category::factory()->create();
+
+    $this->actingAs($this->admin)
+        ->post('/dashboard/products', [
+            'brand' => null,
+            'is_active' => true,
+            'is_featured' => false,
+            'translations' => [
+                'de' => ['name' => 'Invalid variants'],
+                'ar' => ['name' => ''],
+                'en' => ['name' => ''],
+            ],
+            'categories' => [$category->id],
+            'attribute_values' => [],
+            'variants' => [
+                [
+                    'size_ml' => 50,
+                    'price' => '60.00',
+                    'compare_at_price' => '50.00',
+                    'is_default' => true,
+                    'is_active' => true,
+                ],
+                [
+                    'size_ml' => 50,
+                    'price' => '70.00',
+                    'compare_at_price' => null,
+                    'is_default' => false,
+                    'is_active' => true,
+                ],
+            ],
+        ])
+        ->assertSessionHasErrors([
+            'variants.0.compare_at_price',
+            'variants.1.size_ml',
+        ]);
+
+    expect(Product::query()->count())->toBe(0);
+});
+
+test('database constraints prevent duplicate variant sizes for a product', function () {
+    $product = Product::factory()->create();
+    ProductVariant::factory()->for($product)->size(50)->create();
+
+    expect(fn () => ProductVariant::factory()->for($product)->size(50)->create())
+        ->toThrow(QueryException::class);
+});
+
+test('database constraints prevent multiple default variants for a product', function () {
+    $product = Product::factory()->create();
+    ProductVariant::factory()->for($product)->default()->size(30)->create();
+
+    expect(fn () => ProductVariant::factory()->for($product)->default()->size(50)->create())
+        ->toThrow(QueryException::class);
 });
 
 test('store generates product image alt text when none is provided', function () {

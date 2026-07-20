@@ -12,9 +12,11 @@ import { send } from '@/routes/verification';
 export default function Profile({
     mustVerifyEmail,
     status,
+    canDeleteAccount,
 }: {
     mustVerifyEmail: boolean;
     status?: string;
+    canDeleteAccount: boolean;
 }) {
     const { auth } = usePage().props;
 
@@ -117,7 +119,15 @@ export default function Profile({
                 </Form>
             </div>
 
-            <DeleteUser />
+            {canDeleteAccount ? (
+                <DeleteUser />
+            ) : (
+                <Heading
+                    variant="small"
+                    title="Delete account"
+                    description="The only administrator account cannot be deleted."
+                />
+            )}
         </>
     );
 }

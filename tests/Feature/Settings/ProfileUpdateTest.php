@@ -9,7 +9,18 @@ test('profile page is displayed', function () {
         ->actingAs($user)
         ->get(route('profile.edit'));
 
-    $response->assertOk();
+    $response
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->where('canDeleteAccount', true));
+});
+
+test('profile page prevents the only administrator from offering account deletion', function () {
+    $admin = User::factory()->admin()->create();
+
+    $this->actingAs($admin)
+        ->get(route('profile.edit'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->where('canDeleteAccount', false));
 });
 
 test('profile information can be updated', function () {
@@ -82,4 +93,34 @@ test('correct password must be provided to delete account', function () {
         ->assertRedirect(route('profile.edit'));
 
     expect($user->fresh())->not->toBeNull();
+});
+
+test('the only administrator cannot delete their account', function () {
+    $admin = User::factory()->admin()->create();
+
+    $this->actingAs($admin)
+        ->from(route('profile.edit'))
+        ->delete(route('profile.destroy'), [
+            'password' => 'password',
+        ])
+        ->assertSessionHasErrors('password')
+        ->assertRedirect(route('profile.edit'));
+
+    $this->assertAuthenticatedAs($admin);
+    expect($admin->fresh())->not->toBeNull();
+});
+
+test('an administrator can delete their account when another administrator exists', function () {
+    $admin = User::factory()->admin()->create();
+    User::factory()->admin()->create();
+
+    $this->actingAs($admin)
+        ->delete(route('profile.destroy'), [
+            'password' => 'password',
+        ])
+        ->assertSessionHasNoErrors()
+        ->assertRedirect('/');
+
+    $this->assertGuest();
+    expect($admin->fresh())->toBeNull();
 });

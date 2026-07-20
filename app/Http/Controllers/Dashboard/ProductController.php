@@ -163,6 +163,7 @@ class ProductController extends Controller
 
         DB::transaction(function () use ($data, $request): void {
             if ((bool) $data['is_featured']) {
+                $this->lockFeaturedProductWrites();
                 $this->assertFeaturedSlotAvailable();
             }
 
@@ -252,6 +253,13 @@ class ProductController extends Controller
         $data = $request->validated();
 
         DB::transaction(function () use ($product, $data, $request): void {
+            $product = Product::query()
+                ->whereKey($product->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $this->lockFeaturedProductWrites();
+
             if ((bool) $data['is_featured']) {
                 $this->assertFeaturedSlotAvailable($product);
             }
@@ -320,10 +328,6 @@ class ProductController extends Controller
     }
 
     /**
-     * Guard the homepage highlight limit inside the write transaction. The
-     * locked count keeps two concurrent saves from both claiming the last
-     * free slot.
-     *
      * @throws ValidationException
      */
     private function assertFeaturedSlotAvailable(?Product $product = null): void
@@ -334,8 +338,6 @@ class ProductController extends Controller
                 $product instanceof Product,
                 fn ($query) => $query->whereKeyNot($product->id),
             )
-            ->lockForUpdate()
-            ->pluck('id')
             ->count();
 
         if ($used >= self::MAX_FEATURED_PRODUCTS) {
@@ -343,6 +345,20 @@ class ProductController extends Controller
                 'is_featured' => 'Es sind bereits 4 Highlights ausgewählt. Entferne zuerst ein Highlight, um ein neues hinzuzufügen.',
             ]);
         }
+    }
+
+    private function lockFeaturedProductWrites(): void
+    {
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement("SELECT pg_advisory_xact_lock(hashtext('goan-products-featured'))");
+
+            return;
+        }
+
+        Product::query()
+            ->orderBy('id')
+            ->lockForUpdate()
+            ->pluck('id');
     }
 
     /**
@@ -470,7 +486,21 @@ class ProductController extends Controller
      */
     private function syncVariants(Product $product, array $variants): void
     {
-        $keptIds = [];
+        $requestedIds = collect($variants)
+            ->pluck('id')
+            ->filter()
+            ->map(fn (mixed $id): int => (int) $id)
+            ->values()
+            ->all();
+
+        $variantsToRemove = $product->variants();
+
+        if ($requestedIds !== []) {
+            $variantsToRemove->whereNotIn('id', $requestedIds);
+        }
+
+        $variantsToRemove->delete();
+        $product->variants()->update(['is_default' => false]);
 
         foreach ($variants as $variantData) {
             $variant = isset($variantData['id'])
@@ -487,12 +517,6 @@ class ProductController extends Controller
             ]);
             $variant->product()->associate($product);
             $variant->save();
-
-            $keptIds[] = $variant->id;
         }
-
-        $product->variants()
-            ->whereNotIn('id', $keptIds)
-            ->delete();
     }
 }
