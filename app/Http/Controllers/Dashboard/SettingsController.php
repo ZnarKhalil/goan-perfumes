@@ -7,9 +7,12 @@ use App\Http\Requests\Dashboard\UpdateSettingsRequest;
 use App\Models\Setting;
 use App\Support\StorageUrl;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
+use RuntimeException;
+use Throwable;
 
 class SettingsController extends Controller
 {
@@ -43,29 +46,40 @@ class SettingsController extends Controller
     public function update(UpdateSettingsRequest $request): RedirectResponse
     {
         $data = $request->validated();
-
-        foreach (self::TEXT_KEYS as $key) {
-            Setting::put($key, (string) ($data[$key] ?? ''));
-        }
-
         $currentLogoPath = Setting::get('logo_path', '');
+        $newLogoPath = null;
 
-        if ($request->boolean('remove_logo') && $currentLogoPath !== '') {
-            Setting::put('logo_path', '');
-            Storage::disk('public')->delete($currentLogoPath);
-            $currentLogoPath = '';
+        try {
+            if ($request->hasFile('logo')) {
+                $storedPath = $request->file('logo')->store('branding', 'public');
+
+                if (! is_string($storedPath)) {
+                    throw new RuntimeException('The uploaded logo could not be stored.');
+                }
+
+                $newLogoPath = $storedPath;
+            }
+
+            $shouldUpdateLogo = $newLogoPath !== null || $request->boolean('remove_logo');
+            $nextLogoPath = $newLogoPath ?? ($request->boolean('remove_logo') ? '' : $currentLogoPath);
+
+            DB::transaction(function () use ($data, $shouldUpdateLogo, $nextLogoPath): void {
+                foreach (self::TEXT_KEYS as $key) {
+                    Setting::put($key, (string) ($data[$key] ?? ''));
+                }
+
+                if ($shouldUpdateLogo) {
+                    Setting::put('logo_path', $nextLogoPath);
+                }
+            });
+        } catch (Throwable $exception) {
+            $this->deleteStoredFileWithoutMasking($newLogoPath);
+
+            throw $exception;
         }
 
-        if ($request->hasFile('logo')) {
-            Setting::put(
-                'logo_path',
-                $request->file('logo')->store('branding', 'public'),
-            );
-
-            // Remove the previous file only after the new path is persisted.
-            if ($currentLogoPath !== '') {
-                Storage::disk('public')->delete($currentLogoPath);
-            }
+        if ($currentLogoPath !== '' && $currentLogoPath !== $nextLogoPath) {
+            Storage::disk('public')->delete($currentLogoPath);
         }
 
         return to_route('dashboard.settings.site.edit')
@@ -75,5 +89,18 @@ class SettingsController extends Controller
     private function logoUrl(): ?string
     {
         return StorageUrl::for(Setting::get('logo_path'));
+    }
+
+    private function deleteStoredFileWithoutMasking(?string $path): void
+    {
+        if ($path === null) {
+            return;
+        }
+
+        try {
+            Storage::disk('public')->delete($path);
+        } catch (Throwable $exception) {
+            report($exception);
+        }
     }
 }

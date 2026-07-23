@@ -10,6 +10,8 @@ class CategorySeeder extends Seeder
 {
     public function run(): void
     {
+        DestructiveSeederGuard::ensureAllowed();
+
         $categories = PerfumeCatalog::categories();
         $slugs = collect($categories)->pluck('slug')->all();
         $translations = PerfumeCatalog::categoryTranslations();

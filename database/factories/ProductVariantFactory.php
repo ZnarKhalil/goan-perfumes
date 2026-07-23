@@ -18,7 +18,7 @@ class ProductVariantFactory extends Factory
     {
         return [
             'product_id' => Product::factory(),
-            'size_ml' => fake()->randomElement([30, 50, 100]),
+            'size_ml' => fake()->unique()->numberBetween(1, 1000),
             'price' => fake()->randomFloat(2, 19.99, 199.99),
             'compare_at_price' => null,
             'is_default' => false,

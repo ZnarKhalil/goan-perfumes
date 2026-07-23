@@ -5,6 +5,7 @@ namespace App\Support;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use RuntimeException;
 
 final class ImageUpload
 {
@@ -24,7 +25,13 @@ final class ImageUpload
         $extension = $upload->extension() ?: $upload->guessExtension() ?: 'jpg';
         $fallbackPath = trim($directory, '/').'/'.self::filename($basename, $extension);
 
-        return $upload->storeAs(trim($directory, '/'), basename($fallbackPath), $disk);
+        $storedPath = $upload->storeAs(trim($directory, '/'), basename($fallbackPath), $disk);
+
+        if (! is_string($storedPath)) {
+            throw new RuntimeException('The uploaded image could not be stored.');
+        }
+
+        return $storedPath;
     }
 
     private static function storeWebp(UploadedFile $upload, string $path, string $disk): bool
@@ -60,10 +67,17 @@ final class ImageUpload
             return false;
         }
 
-        Storage::disk($disk)->put($path, file_get_contents($temporary));
-        @unlink($temporary);
+        try {
+            $contents = file_get_contents($temporary);
 
-        return true;
+            if ($contents === false) {
+                return false;
+            }
+
+            return Storage::disk($disk)->put($path, $contents);
+        } finally {
+            @unlink($temporary);
+        }
     }
 
     private static function filename(string $basename, string $extension): string

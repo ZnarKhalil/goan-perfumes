@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
+use RuntimeException;
+use Throwable;
 
 class PageSectionController extends Controller
 {
@@ -76,26 +78,12 @@ class PageSectionController extends Controller
     public function update(UpdatePageSectionRequest $request, PageSection $pageSection): RedirectResponse
     {
         $data = $request->validated();
+        $newImagePath = null;
+        $newVideoPath = null;
 
-        DB::transaction(function () use ($pageSection, $data, $request): void {
-            $payload = $pageSection->payload ?? [];
-
-            if ($pageSection->key === 'hero' && $request->boolean('remove_hero_image')) {
-                $this->deleteHeroImage($payload);
-                $payload['image_path'] = null;
-            }
-
-            if ($pageSection->key === 'hero' && $request->boolean('remove_hero_video')) {
-                $this->deleteHeroVideo($payload);
-                $payload['video_path'] = null;
-            }
-
+        try {
             if ($pageSection->key === 'hero' && $request->hasFile('hero_image')) {
-                // The hero shows an image or a video, never both.
-                $this->deleteHeroImage($payload);
-                $this->deleteHeroVideo($payload);
-                $payload['video_path'] = null;
-                $payload['image_path'] = ImageUpload::storePublicImageAsWebp(
+                $newImagePath = ImageUpload::storePublicImageAsWebp(
                     $request->file('hero_image'),
                     'page-sections/hero',
                     'goan-perfume-hero',
@@ -103,23 +91,57 @@ class PageSectionController extends Controller
             }
 
             if ($pageSection->key === 'hero' && $request->hasFile('hero_video')) {
-                // The hero shows an image or a video, never both.
-                $this->deleteHeroVideo($payload);
-                $this->deleteHeroImage($payload);
-                $payload['image_path'] = null;
-                $payload['video_path'] = $request
-                    ->file('hero_video')
-                    ->store('page-sections/hero', 'public');
+                $storedPath = $request->file('hero_video')->store('page-sections/hero', 'public');
+
+                if (! is_string($storedPath)) {
+                    throw new RuntimeException('The uploaded hero video could not be stored.');
+                }
+
+                $newVideoPath = $storedPath;
             }
 
-            $pageSection->update([
-                'payload' => $payload,
-                'sort_order' => $data['sort_order'],
-                'is_active' => (bool) $data['is_active'],
-            ]);
+            DB::transaction(function () use ($pageSection, $data, $request, $newImagePath, $newVideoPath): void {
+                $payload = $pageSection->payload ?? [];
+                $pathsToDelete = [];
 
-            $this->syncTranslations($pageSection, $data['translations'] ?? []);
-        });
+                if ($pageSection->key === 'hero' && $request->boolean('remove_hero_image')) {
+                    $pathsToDelete[] = $payload['image_path'] ?? null;
+                    $payload['image_path'] = null;
+                }
+
+                if ($pageSection->key === 'hero' && $request->boolean('remove_hero_video')) {
+                    $pathsToDelete[] = $payload['video_path'] ?? null;
+                    $payload['video_path'] = null;
+                }
+
+                if ($newImagePath !== null) {
+                    $pathsToDelete[] = $payload['image_path'] ?? null;
+                    $pathsToDelete[] = $payload['video_path'] ?? null;
+                    $payload['image_path'] = $newImagePath;
+                    $payload['video_path'] = null;
+                }
+
+                if ($newVideoPath !== null) {
+                    $pathsToDelete[] = $payload['video_path'] ?? null;
+                    $pathsToDelete[] = $payload['image_path'] ?? null;
+                    $payload['video_path'] = $newVideoPath;
+                    $payload['image_path'] = null;
+                }
+
+                $pageSection->update([
+                    'payload' => $payload,
+                    'sort_order' => $data['sort_order'],
+                    'is_active' => (bool) $data['is_active'],
+                ]);
+
+                $this->syncTranslations($pageSection, $data['translations'] ?? []);
+                $this->deleteFilesAfterCommit($pathsToDelete);
+            });
+        } catch (Throwable $exception) {
+            $this->deleteStoredFilesWithoutMasking([$newImagePath, $newVideoPath]);
+
+            throw $exception;
+        }
 
         return to_route('dashboard.page-sections.index')
             ->with('toast', ['type' => 'success', 'message' => 'Seiten-Inhalt gespeichert.']);
@@ -153,29 +175,30 @@ class PageSectionController extends Controller
     }
 
     /**
-     * @param  array<string, mixed>  $payload
+     * @param  array<int, mixed>  $paths
      */
-    private function deleteHeroImage(array $payload): void
+    private function deleteFilesAfterCommit(array $paths): void
     {
-        $this->deleteFileAfterCommit($payload['image_path'] ?? null);
+        $paths = collect($paths)
+            ->filter(fn (mixed $path): bool => is_string($path) && $path !== '')
+            ->unique()
+            ->values()
+            ->all();
+
+        if ($paths !== []) {
+            DB::afterCommit(fn () => Storage::disk('public')->delete($paths));
+        }
     }
 
     /**
-     * @param  array<string, mixed>  $payload
+     * @param  array<int, ?string>  $paths
      */
-    private function deleteHeroVideo(array $payload): void
+    private function deleteStoredFilesWithoutMasking(array $paths): void
     {
-        $this->deleteFileAfterCommit($payload['video_path'] ?? null);
-    }
-
-    /**
-     * Remove the file only once the surrounding transaction has committed so
-     * a rollback never leaves a payload pointing at a deleted file.
-     */
-    private function deleteFileAfterCommit(?string $path): void
-    {
-        if (! empty($path)) {
-            DB::afterCommit(fn () => Storage::disk('public')->delete($path));
+        try {
+            Storage::disk('public')->delete(array_values(array_filter($paths)));
+        } catch (Throwable $exception) {
+            report($exception);
         }
     }
 

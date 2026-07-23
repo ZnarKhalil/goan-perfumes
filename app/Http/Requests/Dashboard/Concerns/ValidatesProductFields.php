@@ -32,7 +32,7 @@ trait ValidatesProductFields
                 'attribute_values.*' => ['integer', 'exists:attribute_values,id'],
                 'variants' => ['required', 'array', 'min:1'],
                 'variants.*.id' => ['nullable', 'integer', 'exists:product_variants,id'],
-                'variants.*.size_ml' => ['required', 'integer', 'min:1', 'max:1000'],
+                'variants.*.size_ml' => ['required', 'integer', 'min:1', 'max:1000', 'distinct'],
                 'variants.*.price' => ['required', 'numeric', 'min:0', 'max:99999999.99'],
                 'variants.*.compare_at_price' => ['nullable', 'numeric', 'min:0', 'max:99999999.99'],
                 'variants.*.is_default' => ['required', 'boolean'],
@@ -80,6 +80,7 @@ trait ValidatesProductFields
             function (Validator $validator): void {
                 $this->validateDefaultVariant($validator);
                 $this->validateActiveVariant($validator);
+                $this->validateCompareAtPrices($validator);
                 $this->validateSingleSelectAttributeValues($validator);
                 $this->validateVariantOwnership($validator);
                 $this->validateMediaOwnership($validator);
@@ -109,6 +110,25 @@ trait ValidatesProductFields
 
         if (! $hasActiveVariant) {
             $validator->errors()->add('variants', 'Aktive Produkte benötigen mindestens eine aktive Variante.');
+        }
+    }
+
+    private function validateCompareAtPrices(Validator $validator): void
+    {
+        foreach ($this->input('variants', []) as $index => $variant) {
+            $price = $variant['price'] ?? null;
+            $compareAtPrice = $variant['compare_at_price'] ?? null;
+
+            if ($compareAtPrice === null || $compareAtPrice === '' || ! is_numeric($price) || ! is_numeric($compareAtPrice)) {
+                continue;
+            }
+
+            if ((float) $compareAtPrice < (float) $price) {
+                $validator->errors()->add(
+                    "variants.{$index}.compare_at_price",
+                    'Der Vergleichspreis darf nicht niedriger als der Verkaufspreis sein.',
+                );
+            }
         }
     }
 

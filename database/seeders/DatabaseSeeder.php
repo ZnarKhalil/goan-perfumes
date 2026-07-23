@@ -12,6 +12,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        DestructiveSeederGuard::ensureAllowed();
+
         $this->call([
             AdminUserSeeder::class,
             CategorySeeder::class,

@@ -119,11 +119,11 @@ return [
     | Seeded Admin Password
     |--------------------------------------------------------------------------
     |
-    | Used by AdminUserSeeder for the initial admin-only account. Override this
-    | in deployed environments so reseeding does not restore a shared password.
+    | Used only when AdminUserSeeder creates the initial admin account. The
+    | seeder refuses to create that account when this value is missing.
     |
     */
 
-    'admin_password' => env('ADMIN_PASSWORD', 'xW9!tR4#pL7@qV2$nB6%zK3&mH8'),
+    'admin_password' => env('ADMIN_PASSWORD'),
 
 ];

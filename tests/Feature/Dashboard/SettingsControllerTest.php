@@ -3,6 +3,7 @@
 use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
@@ -141,4 +142,38 @@ test('svg logos are rejected', function () {
         ->assertSessionHasErrors('logo');
 
     expect(Setting::get('logo_path'))->toBeNull();
+});
+
+test('a failed settings transaction preserves stored settings and removes the new logo', function () {
+    Storage::fake('public');
+    Exceptions::fake();
+
+    $oldLogoPath = UploadedFile::fake()->image('old.png')->store('branding', 'public');
+    Setting::put('email', 'before@example.test');
+    Setting::put('logo_path', $oldLogoPath);
+
+    Setting::saving(function (Setting $setting): void {
+        if ($setting->key === 'phone') {
+            throw new RuntimeException('Simulated settings failure');
+        }
+    });
+
+    $this->actingAs($this->admin)
+        ->post('/dashboard/settings/site', [
+            '_method' => 'PUT',
+            'whatsapp_number' => '',
+            'email' => 'after@example.test',
+            'phone' => '+49 30 123456',
+            'instagram_url' => '',
+            'tiktok_url' => '',
+            'facebook_url' => '',
+            'default_locale' => 'de',
+            'logo' => UploadedFile::fake()->image('new.png'),
+        ])
+        ->assertServerError();
+
+    expect(Setting::get('email'))->toBe('before@example.test')
+        ->and(Setting::get('logo_path'))->toBe($oldLogoPath);
+    Storage::disk('public')->assertExists($oldLogoPath);
+    Storage::disk('public')->assertCount('branding', 1);
 });

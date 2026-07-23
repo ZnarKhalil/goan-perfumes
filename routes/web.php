@@ -7,6 +7,7 @@ use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\ImpressumController;
 use App\Http\Controllers\Public\PrivacyPolicyController;
 use App\Http\Controllers\Public\ProductController;
+use App\Http\Controllers\Public\ResponsiveImageController;
 use App\Http\Controllers\Public\SearchController;
 use App\Http\Controllers\Public\SitemapController;
 use App\Http\Controllers\Public\TermsController;
@@ -38,6 +39,11 @@ Route::get('/robots.txt', fn () => response(
     200,
     ['Content-Type' => 'text/plain; charset=UTF-8'],
 ));
+
+Route::get('/media/{width}/{path}', ResponsiveImageController::class)
+    ->whereNumber('width')
+    ->where('path', '.*')
+    ->name('responsive-image');
 
 Route::prefix('{locale}')
     ->whereIn('locale', PublicLocale::codes())

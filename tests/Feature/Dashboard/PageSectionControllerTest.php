@@ -4,6 +4,7 @@ use App\Models\PageSection;
 use App\Models\User;
 use Database\Seeders\PageSectionSeeder;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
@@ -271,6 +272,43 @@ test('hero rejects an image and a video uploaded together', function () {
         ->assertSessionHasErrors('hero_image');
 
     expect($section->refresh()->payload)->toBe([]);
+});
+
+test('a failed page section transaction preserves the old media and removes the new upload', function () {
+    Storage::fake('public');
+    Exceptions::fake();
+
+    $oldImagePath = UploadedFile::fake()
+        ->image('old.jpg')
+        ->store('page-sections/hero', 'public');
+    $section = PageSection::query()->create([
+        'key' => 'hero',
+        'type' => 'image',
+        'payload' => ['image_path' => $oldImagePath],
+        'sort_order' => 0,
+        'is_active' => true,
+    ]);
+
+    PageSection::updating(fn () => throw new RuntimeException('Simulated page section failure'));
+
+    $this->actingAs($this->admin)
+        ->post("/dashboard/page-sections/{$section->id}", [
+            '_method' => 'PUT',
+            'hero_image' => UploadedFile::fake()->image('new.jpg', 1600, 900),
+            'sort_order' => 2,
+            'is_active' => true,
+            'translations' => [
+                'de' => ['title' => 'GOAN Parfums'],
+                'ar' => ['title' => ''],
+                'en' => ['title' => ''],
+            ],
+        ])
+        ->assertServerError();
+
+    expect($section->refresh()->payload['image_path'])->toBe($oldImagePath)
+        ->and($section->sort_order)->toBe(0);
+    Storage::disk('public')->assertExists($oldImagePath);
+    Storage::disk('public')->assertCount('page-sections/hero', 1);
 });
 
 test('admin can update about title and body', function () {

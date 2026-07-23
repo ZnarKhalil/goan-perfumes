@@ -11,6 +11,8 @@ class AttributeValueSeeder extends Seeder
 {
     public function run(): void
     {
+        DestructiveSeederGuard::ensureAllowed();
+
         $values = PerfumeCatalog::attributeValues();
         $translations = PerfumeCatalog::attributeValueTranslations();
         $attributes = Attribute::query()->whereIn('code', array_keys($values))->get()->keyBy('code');

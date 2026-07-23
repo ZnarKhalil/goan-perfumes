@@ -9,6 +9,8 @@ class SettingSeeder extends Seeder
 {
     public function run(): void
     {
+        DestructiveSeederGuard::ensureAllowed();
+
         foreach ($this->settings() as $key => $value) {
             Setting::put($key, $value);
         }

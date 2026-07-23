@@ -593,6 +593,7 @@ INERTIA_SSR_THROW_ON_ERROR=true
 
 ANALYTICS_PROPERTY_ID=
 ADMIN_PASSWORD="REPLACE_WITH_STRONG_ADMIN_PASSWORD"
+ALLOW_DESTRUCTIVE_SEEDING=false
 ```
 
 Notes:
@@ -656,9 +657,12 @@ composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
 Install frontend dependencies and build browser plus SSR bundles:
 
 ```bash
-npm ci
+npm ci --include=dev
 npm run build
+npm prune --omit=dev
 ```
+
+The build tools are development dependencies, so they are installed explicitly for the build and removed afterward. Runtime dependencies required by the generated SSR bundle remain installed.
 
 Generate the Laravel key if this is the first deploy and `APP_KEY` is empty:
 
@@ -672,17 +676,21 @@ Run migrations:
 php artisan migrate --force
 ```
 
-Seed initial production data only on the first deployment:
+Seed initial production data only on the first deployment. Temporarily set
+`ALLOW_DESTRUCTIVE_SEEDING=true` in `.env`, then run:
 
 ```bash
+php artisan config:clear
 php artisan db:seed --force
 ```
 
-Do not run the full `DatabaseSeeder` again after the site has real production content unless you intentionally want to refresh seeded catalog/content records. To only reset the admin password later, update `ADMIN_PASSWORD` and run:
+Immediately restore `ALLOW_DESTRUCTIVE_SEEDING=false` in `.env` and run:
 
 ```bash
-php artisan db:seed --class=AdminUserSeeder --force
+php artisan config:clear
 ```
+
+The full `DatabaseSeeder` and its catalog/content seeders refuse to run in production unless this explicit opt-in is enabled. Do not enable it after the site has real production content unless you intentionally want to reconcile production records with repository fixtures. `AdminUserSeeder` may be rerun safely to restore the admin role, but it never changes the password of an existing account; change that password from the authenticated security settings page.
 
 Create the public storage symlink:
 
@@ -843,14 +851,19 @@ Before creating or starting the service, confirm the SSR bundle exists and the r
 
 ```bash
 cd /var/www/goan-perfumes
-npm run build
 test -f bootstrap/ssr/app.js
 node -v
 command -v node
 php artisan config:show inertia.ssr.runtime
 ```
 
-If `bootstrap/ssr/app.js` is missing, `php artisan inertia:start-ssr` cannot serve SSR. Run `npm ci` and `npm run build` again before continuing.
+If `bootstrap/ssr/app.js` is missing, `php artisan inertia:start-ssr` cannot serve SSR. Reinstall the build dependencies, rebuild, and prune them again before continuing:
+
+```bash
+npm ci --include=dev
+npm run build
+npm prune --omit=dev
+```
 
 Create a systemd service:
 
@@ -976,8 +989,9 @@ cd "$APP_DIR"
 git pull --ff-only
 
 composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
-npm ci
+npm ci --include=dev
 npm run build
+npm prune --omit=dev
 
 php artisan migrate --force
 php artisan storage:link
@@ -1010,8 +1024,9 @@ cd /var/www/goan-perfumes
 git fetch --all --tags
 git checkout TAG_OR_COMMIT
 composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
-npm ci
+npm ci --include=dev
 npm run build
+npm prune --omit=dev
 php artisan optimize
 ```
 
@@ -1152,7 +1167,7 @@ Common fixes:
 - `502 Bad Gateway`: check the PHP-FPM service, confirm it is listening on `127.0.0.1:9000`, and check Caddy logs.
 - Blank initial HTML: check `goan-perfumes-ssr` and run `php artisan inertia:check-ssr`.
 - Missing images: check `FILESYSTEM_DISK=public`, `php artisan storage:link`, and `storage/app/public` permissions.
-- Old frontend assets: run `npm ci`, `npm run build`, reload Caddy, and clear browser cache.
+- Old frontend assets: run `npm ci --include=dev`, `npm run build`, `npm prune --omit=dev`, reload Caddy, and clear browser cache.
 - Config changes ignored: run `php artisan optimize:clear` then `php artisan optimize`.
 - Queue jobs not processing: this only applies if you later switch to `QUEUE_CONNECTION=database`; then check `goan-perfumes-queue` and `failed_jobs`.
 

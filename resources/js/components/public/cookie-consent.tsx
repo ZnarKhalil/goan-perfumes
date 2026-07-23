@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/dialog';
 import {
     disableGoogleAnalytics,
-    initializeGoogleAnalytics,
+    scheduleGoogleAnalytics,
 } from '@/lib/google-analytics';
 import { publicNavigationPrefetch } from '@/lib/inertia-cache';
 import type { PublicCopy } from '@/lib/public-copy';
@@ -61,7 +61,7 @@ export default function CookieConsent({
         }
 
         if (analyticsConsent) {
-            initializeGoogleAnalytics();
+            scheduleGoogleAnalytics();
 
             return;
         }
@@ -278,7 +278,9 @@ function getConsentSnapshot(): string {
     }
 
     try {
-        return localStorage.getItem(consentStorageKey) ?? consentMissingSnapshot;
+        return (
+            localStorage.getItem(consentStorageKey) ?? consentMissingSnapshot
+        );
     } catch {
         return fallbackConsentSnapshot ?? consentMissingSnapshot;
     }

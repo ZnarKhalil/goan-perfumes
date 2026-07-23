@@ -7,6 +7,7 @@ import {
     publicProductPrefetch,
 } from '@/lib/inertia-cache';
 import type { PublicCopy } from '@/lib/public-copy';
+import { responsiveImageSrcSet } from '@/lib/responsive-image';
 import type { PublicProductCard } from '@/types/public';
 
 type Props = {
@@ -93,6 +94,11 @@ function VitrineCard({
                     {product.image_url ? (
                         <img
                             src={product.image_url}
+                            srcSet={responsiveImageSrcSet(
+                                product.image_url,
+                                [320, 480, 640],
+                            )}
+                            sizes="(min-width: 1024px) 284px, (min-width: 640px) calc(50vw - 2rem), calc(100vw - 2rem)"
                             alt={product.image_alt}
                             width={800}
                             height={1000}

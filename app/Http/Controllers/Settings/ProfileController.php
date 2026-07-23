@@ -5,10 +5,13 @@ namespace App\Http\Controllers\Settings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\ProfileDeleteRequest;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
+use App\Models\User;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -22,6 +25,7 @@ class ProfileController extends Controller
         return Inertia::render('settings/profile', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => $request->session()->get('status'),
+            'canDeleteAccount' => $this->canDeleteAccount($request->user()),
         ]);
     }
 
@@ -50,13 +54,42 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
-        Auth::logout();
+        DB::transaction(function () use ($user): void {
+            $lockedUser = User::query()
+                ->whereKey($user->id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        $user->delete();
+            if ($lockedUser->is_admin) {
+                $adminIds = User::query()
+                    ->where('is_admin', true)
+                    ->orderBy('id')
+                    ->lockForUpdate()
+                    ->pluck('id');
+
+                if ($adminIds->count() <= 1) {
+                    throw ValidationException::withMessages([
+                        'password' => 'The only administrator account cannot be deleted.',
+                    ]);
+                }
+            }
+
+            $lockedUser->delete();
+        }, attempts: 5);
+
+        Auth::logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
         return redirect('/');
+    }
+
+    private function canDeleteAccount(User $user): bool
+    {
+        return ! $user->is_admin || User::query()
+            ->where('is_admin', true)
+            ->whereKeyNot($user->id)
+            ->exists();
     }
 }

@@ -10,6 +10,8 @@ class PageSectionSeeder extends Seeder
 {
     public function run(): void
     {
+        DestructiveSeederGuard::ensureAllowed();
+
         $sections = $this->sections();
         $keys = collect($sections)->pluck('key')->all();
 

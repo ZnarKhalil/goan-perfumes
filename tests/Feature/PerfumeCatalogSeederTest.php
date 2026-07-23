@@ -15,6 +15,7 @@ use Database\Seeders\CategorySeeder;
 use Database\Seeders\DatabaseSeeder;
 use Database\Seeders\PerfumeCatalog;
 use Database\Seeders\ProductCatalogSeeder;
+use Database\Seeders\SettingSeeder;
 
 test('the perfume catalog seeds products attributes and variants', function () {
     $this->seed([
@@ -163,4 +164,33 @@ test('database seeder keeps catalog data fixed page sections users and settings'
         ->and(AttributeValue::query()->count())->toBe(
             collect(PerfumeCatalog::attributeValues())->sum(fn (array $values): int => count($values)),
         );
+});
+
+test('destructive seeders are blocked in production by default', function () {
+    Setting::put('email', 'production@example.test');
+    config(['database.allow_destructive_seeding' => false]);
+    $this->app->detectEnvironment(fn (): string => 'production');
+
+    try {
+        expect(fn () => app(SettingSeeder::class)->run())
+            ->toThrow(RuntimeException::class, 'Destructive database seeding is disabled in production');
+
+        expect(Setting::get('email'))->toBe('production@example.test');
+    } finally {
+        $this->app->detectEnvironment(fn (): string => 'testing');
+    }
+});
+
+test('destructive seeders require an explicit production opt in', function () {
+    Setting::put('email', 'production@example.test');
+    config(['database.allow_destructive_seeding' => true]);
+    $this->app->detectEnvironment(fn (): string => 'production');
+
+    try {
+        app(SettingSeeder::class)->run();
+
+        expect(Setting::get('email'))->toBe('kontakt@goanperfume.de');
+    } finally {
+        $this->app->detectEnvironment(fn (): string => 'testing');
+    }
 });
