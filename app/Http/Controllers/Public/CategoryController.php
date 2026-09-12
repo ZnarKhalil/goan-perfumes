@@ -25,18 +25,25 @@ class CategoryController extends PublicController
             ),
             $selectedFilters,
         )->paginate(12)->withQueryString();
-        $canonical = route('categories.show', [
+        $contentParameters = collect($request->query())->reject(
+            fn (mixed $value, string $key): bool => $key === 'page'
+                || str_starts_with($key, 'utm_')
+                || in_array($key, ['gclid', 'dclid', 'fbclid', 'msclkid'], true),
+        );
+        $hasFilters = $contentParameters->isNotEmpty();
+        $canonicalParameters = [
             'locale' => $this->locale(),
             'slug' => $category->slug,
-        ]);
-        $hasQueryParameters = $request->query() !== [];
+            ...(! $hasFilters && $products->currentPage() > 1 ? ['page' => $products->currentPage()] : []),
+        ];
+        $canonical = route('categories.show', $canonicalParameters);
 
         return Inertia::render('public/category', [
             ...$this->layoutProps(),
             'meta' => $this->modelMeta(
                 $category,
                 canonical: $canonical,
-                alternates: $this->localizedRouteUrls('categories.show', ['slug' => $category->slug]),
+                alternates: $this->localizedRouteUrls('categories.show', array_diff_key($canonicalParameters, ['locale' => true])),
                 structuredData: [
                     $this->breadcrumbStructuredData([
                         [
@@ -49,11 +56,11 @@ class CategoryController extends PublicController
                         ],
                     ]),
                 ],
-                robots: $hasQueryParameters ? 'noindex, follow' : null,
+                robots: $hasFilters ? 'noindex, follow' : null,
             ),
             'category' => [
                 ...$this->categoryNavItem($category),
-                'description' => $this->translation($category, 'description') ?? '',
+                'description' => $this->categoryIntroduction($category),
             ],
             'related_categories' => $this->relatedCategoryNavItems($category),
             'filters' => $this->filterGroups($selectedFilters, $category->slug),

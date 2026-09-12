@@ -7,6 +7,7 @@ import {
     Video,
 } from '@/components/public/icons';
 import PublicHead from '@/components/public/public-head';
+import StoreMap from '@/components/public/store-map';
 import PublicLayout from '@/layouts/public-layout';
 import { getPublicCopy } from '@/lib/public-copy';
 import type {
@@ -43,6 +44,10 @@ export default function Contact(page: PublicContactPageProps) {
                         {copy.contact.intro}
                     </p>
                 </div>
+            </section>
+
+            <section className="px-4 pb-12 md:px-8">
+                <StoreMap copy={copy} />
             </section>
 
             <section className="px-4 pb-16 md:px-8 md:pb-24">

@@ -4,6 +4,7 @@ import CookieConsent from '@/components/public/cookie-consent';
 import FloatingContactSidebar from '@/components/public/floating-contact-sidebar';
 import { Facebook, Instagram, Tiktok } from '@/components/public/icons';
 import SiteHeader from '@/components/public/site-header';
+import StoreDetails from '@/components/public/store-details';
 import {
     publicCategoryPrefetch,
     publicNavigationPrefetch,
@@ -94,7 +95,7 @@ export default function PublicLayout({
                         : 'border-t border-stone-200 text-stone-500',
                 )}
             >
-                <div className="mx-auto grid max-w-7xl gap-10 md:grid-cols-[1.4fr_1fr_1fr] md:gap-8">
+                <div className="mx-auto grid max-w-7xl items-start gap-10 md:grid-cols-2 md:gap-8 lg:grid-cols-[1.2fr_0.85fr_1fr_1.15fr]">
                     <div className="max-w-sm">
                         <p
                             className={cn(
@@ -244,6 +245,15 @@ export default function PublicLayout({
                             </div>
                         )}
                     </div>
+                    <StoreDetails
+                        copy={copy}
+                        className={cn(
+                            'grid max-w-sm gap-6 [&_h2]:text-[0.65rem] [&_h2]:tracking-[0.3em]',
+                            isDark
+                                ? '[&_h2]:text-stone-300'
+                                : '[&_h2]:text-stone-600',
+                        )}
+                    />
                 </div>
 
                 <div

@@ -82,7 +82,10 @@ export function disableGoogleAnalytics(): void {
     if (typeof document !== 'undefined') {
         document.getElementById(scriptId)?.remove();
         deleteCookie('_ga');
-        deleteCookie(`_ga_${measurementId.replace('G-', '')}`);
+
+        if (measurementId) {
+            deleteCookie(`_ga_${measurementId.replace('G-', '')}`);
+        }
     }
 }
 

@@ -318,6 +318,17 @@ test('category pagination links use href and products are sorted by catalog numb
         );
 });
 
+test('catalog pages accept product names with numbers beyond integer limits', function (string $name) {
+    $category = publicCategory('damenparfums', 'Damenparfums');
+    publicProduct('large-number', $name, $category);
+
+    foreach (['/de/damenparfums', '/de/suche?q=D'] as $url) {
+        $this->get($url)->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->has('products', 1)
+            ->where('products.0.name', $name));
+    }
+})->with(['D12345678901', 'D'.str_repeat('9', 254)]);
+
 test('category filters use AND within a group and AND across groups', function () {
     $category = publicCategory('damenparfums', 'Damenparfums');
     $familie = Attribute::factory()->multiple()->create(['code' => 'familie']);
@@ -376,7 +387,7 @@ test('public payloads use active locale with German fallback', function () {
             ->component('public/category')
             ->where('locale.current', 'en')
             ->where('category.name', 'Women Perfumes')
-            ->where('category.description', 'Damenparfums Beschreibung')
+            ->where('category.description', fn (string $description): bool => str_starts_with($description, 'Damenparfums Beschreibung Explore Women Perfumes'))
             ->where('filters.0.name', 'Family')
             ->where('filters.0.values.0.name', 'Blumig')
             ->where('filters.0.values.0.href', fn (string $href) => str_contains($href, '/en/damenparfums'))

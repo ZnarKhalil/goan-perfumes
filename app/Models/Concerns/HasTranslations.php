@@ -67,7 +67,8 @@ trait HasTranslations
                     $this->translations()
                         ->where('locale', $locale)
                         ->where('field', $field)
-                        ->delete();
+                        ->get()
+                        ->each(fn (Translation $translation): ?bool => $translation->delete());
 
                     continue;
                 }

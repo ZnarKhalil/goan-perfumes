@@ -687,6 +687,32 @@ test('admin can update product graph variants and media', function () {
     expect($product->media()->primary()->sole()->translate('de', 'alt_text'))->toBe('Neu Parfum von Neu');
 });
 
+test('admin can swap variant sizes while preserving their identities', function () {
+    $category = Category::factory()->create();
+    $product = Product::factory()->create();
+    $first = ProductVariant::factory()->for($product)->create(['size_ml' => 50, 'is_default' => true]);
+    $second = ProductVariant::factory()->for($product)->create(['size_ml' => 100]);
+
+    $this->actingAs($this->admin)->put("/dashboard/products/{$product->id}", [
+        'is_active' => true,
+        'is_featured' => false,
+        'translations' => ['de' => ['name' => 'Swapped sizes']],
+        'categories' => [$category->id],
+        'variants' => [
+            ['id' => $first->id, 'size_ml' => 100, 'price' => '90.00', 'is_default' => false, 'is_active' => true],
+            ['id' => $second->id, 'size_ml' => 50, 'price' => '50.00', 'is_default' => true, 'is_active' => true],
+        ],
+    ])->assertSessionHasNoErrors()->assertRedirect('/dashboard/products');
+
+    expect($first->refresh()->size_ml)->toBe(100)
+        ->and($first->price)->toBe('90.00')
+        ->and($first->is_default)->toBeFalse()
+        ->and($second->refresh()->size_ml)->toBe(50)
+        ->and($second->price)->toBe('50.00')
+        ->and($second->is_default)->toBeTrue()
+        ->and($product->variants()->count())->toBe(2);
+});
+
 test('admin can delete a product and clean up media translations variants and pivots', function () {
     Storage::fake('public');
 
