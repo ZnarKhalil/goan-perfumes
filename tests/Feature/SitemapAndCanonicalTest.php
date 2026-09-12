@@ -291,7 +291,7 @@ test('category pages expose breadcrumb structured data', function () {
         );
 });
 
-test('product pages expose product and breadcrumb structured data without unreliable offers', function () {
+test('product pages expose product offers and breadcrumbs without invented availability', function () {
     $category = Category::factory()->create([
         'slug' => 'damenparfums',
         'is_active' => true,
@@ -329,7 +329,10 @@ test('product pages expose product and breadcrumb structured data without unreli
                     ->and($productSchema['category'])->toBe('Damenparfums')
                     ->and($productSchema['url'])->toBe(url('/de/produkt/rose-oud'))
                     ->and($productSchema['image'][0])->toBe(url('/storage/media/products/rose-oud.jpg'));
-                expect($productSchema)->not->toHaveKey('offers');
+                expect($productSchema['offers'])->toHaveCount(1)
+                    ->and($productSchema['offers'][0]['priceCurrency'])->toBe('EUR')
+                    ->and($productSchema['offers'][0])->not->toHaveKey('availability')
+                    ->and($productSchema)->not->toHaveKey('aggregateRating');
 
                 $breadcrumb = $structuredData[1];
                 expect($breadcrumb['@type'])->toBe('BreadcrumbList')
@@ -366,5 +369,5 @@ test('public initial html includes structured data fallback before hydration', f
         ->assertSee('"@type":"Product"', false)
         ->assertSee('"name":"Rose Oud"', false)
         ->assertSee('"@type":"BreadcrumbList"', false)
-        ->assertDontSee('"offers"', false);
+        ->assertSee('"offers"', false);
 });

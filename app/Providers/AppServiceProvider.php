@@ -2,9 +2,14 @@
 
 namespace App\Providers;
 
+use App\Models\PageSection;
+use App\Models\Promotion;
+use App\Models\Setting;
+use App\Models\Translation;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Cache\Factory as CacheFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
@@ -30,10 +35,35 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->configureHomepageFreshness();
         $this->configureGoogleAnalytics();
         $this->configureDefaults();
         $this->configureErrorPages();
         $this->configureLogViewer();
+    }
+
+    private function configureHomepageFreshness(): void
+    {
+        $recordChange = function (Model $model): void {
+            if ($model instanceof Translation
+                && ! in_array($model->translatable_type, [PageSection::class, Promotion::class], true)) {
+                return;
+            }
+
+            Setting::put('home_content_updated_at', now()->toIso8601String());
+            Cache::forget('public.sitemap.xml');
+            DB::afterCommit(fn (): bool => Cache::forget('public.sitemap.xml'));
+        };
+
+        foreach ([PageSection::class, Promotion::class, Translation::class] as $model) {
+            $model::created($recordChange);
+            $model::updated(function (Model $model) use ($recordChange): void {
+                if (array_diff_key($model->getChanges(), ['updated_at' => true]) !== []) {
+                    $recordChange($model);
+                }
+            });
+            $model::deleted($recordChange);
+        }
     }
 
     /**

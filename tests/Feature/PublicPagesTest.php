@@ -387,7 +387,7 @@ test('public payloads use active locale with German fallback', function () {
             ->component('public/category')
             ->where('locale.current', 'en')
             ->where('category.name', 'Women Perfumes')
-            ->where('category.description', 'Damenparfums Beschreibung')
+            ->where('category.description', fn (string $description): bool => str_starts_with($description, 'Damenparfums Beschreibung Explore Women Perfumes'))
             ->where('filters.0.name', 'Family')
             ->where('filters.0.values.0.name', 'Blumig')
             ->where('filters.0.values.0.href', fn (string $href) => str_contains($href, '/en/damenparfums'))

@@ -86,6 +86,7 @@ class ProductController extends PublicController
     private function productDetail(Product $product): array
     {
         $name = $this->translation($product, 'name') ?? $product->slug;
+        $title = $this->productTitle($product);
         $primaryCategory = $product->categories->first();
         $media = $product->media
             ->map(fn (Media $media) => [
@@ -111,7 +112,7 @@ class ProductController extends PublicController
             'slug' => $product->slug,
             'name' => $name,
             'brand' => $product->brand,
-            'short_description' => $this->translation($product, 'short_description') ?? '',
+            'short_description' => $this->translation($product, 'short_description') ?: ($title !== $name ? $title : ''),
             'description' => $this->translation($product, 'description') ?? '',
             'media' => $media,
             'variants' => $product->variants

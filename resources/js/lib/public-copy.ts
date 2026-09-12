@@ -63,6 +63,14 @@ export type PublicCopy = {
         settingsTitle: string;
         title: string;
     };
+    store: {
+        address: string;
+        openingHours: string;
+        openMap: string;
+        weekdays: string;
+        sunday: string;
+        closed: string;
+    };
     footer: {
         brand: string;
         summary: string;
@@ -197,6 +205,14 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
             settingsTitle: 'Cookie-Einstellungen',
             title: 'Cookies und Datenschutz',
         },
+        store: {
+            address: 'Adresse',
+            openingHours: 'Öffnungszeiten',
+            openMap: 'In Google Maps öffnen',
+            weekdays: 'Montag–Samstag',
+            sunday: 'Sonntag',
+            closed: 'Geschlossen',
+        },
         footer: {
             brand: 'Goan Perfume',
             summary:
@@ -327,6 +343,14 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
                 'You can enable or disable analytics at any time. Necessary cookies always remain active.',
             settingsTitle: 'Cookie settings',
             title: 'Cookies and privacy',
+        },
+        store: {
+            address: 'Address',
+            openingHours: 'Opening hours',
+            openMap: 'Open in Google Maps',
+            weekdays: 'Monday–Saturday',
+            sunday: 'Sunday',
+            closed: 'Closed',
         },
         footer: {
             brand: 'Goan Perfume',
@@ -459,6 +483,14 @@ const publicCopy: Record<PublicLocaleCode, PublicCopy> = {
                 'يمكنك تفعيل التحليلات أو إيقافها في أي وقت. تبقى الملفات الضرورية مفعلة دائمًا.',
             settingsTitle: 'إعدادات ملفات تعريف الارتباط',
             title: 'ملفات تعريف الارتباط والخصوصية',
+        },
+        store: {
+            address: 'العنوان',
+            openingHours: 'ساعات العمل',
+            openMap: 'فتح في خرائط Google',
+            weekdays: 'الاثنين–السبت',
+            sunday: 'الأحد',
+            closed: 'مغلق',
         },
         footer: {
             brand: 'Goan Perfume',

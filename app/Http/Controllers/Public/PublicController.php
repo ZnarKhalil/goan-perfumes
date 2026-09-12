@@ -9,6 +9,7 @@ use App\Models\Category;
 use App\Models\Media;
 use App\Models\PageSection;
 use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\Promotion;
 use App\Models\Setting;
 use App\Support\CategoryFallbackImages;
@@ -363,11 +364,20 @@ abstract class PublicController extends Controller
             ?? $this->cleanMetaText($this->translation($model, 'name'))
             ?? $this->modelSlug($model);
 
+        if ($model instanceof Product) {
+            $title = $this->productTitle($model);
+        }
+
         $description = $this->cleanMetaText($this->translation($model, 'meta_description'))
             ?? ($descriptionField !== null
                 ? $this->cleanMetaText($this->translation($model, $descriptionField))
                 : null)
             ?? $this->modelFallbackDescription($title);
+
+        if ($model instanceof Category && ($this->cleanMetaText($this->translation($model, 'meta_description')) === null
+            || $this->translation($model, 'meta_description') === $this->translation($model, 'description'))) {
+            $description = $this->categoryIntroduction($model);
+        }
 
         return $this->meta($title, $description, $canonical, $alternates, $structuredData, $robots, $preloadImageUrl, $imageUrl, $ogType);
     }
@@ -489,7 +499,61 @@ abstract class PublicController extends Controller
                 ? ($this->cleanMetaText($this->translation($primaryCategory, 'name')) ?? $primaryCategory->slug)
                 : null,
             'url' => $canonical,
+            'offers' => $product->variants
+                ->filter(fn (ProductVariant $variant): bool => $variant->is_active)
+                ->map(fn (ProductVariant $variant): array => [
+                    '@type' => 'Offer',
+                    'name' => "{$name} – {$variant->size_ml} ml",
+                    'url' => $canonical,
+                    'price' => Price::decimal($variant->price),
+                    'priceCurrency' => 'EUR',
+                    'seller' => ['@type' => 'Organization', 'name' => self::SITE_NAME],
+                ])
+                ->values()
+                ->all(),
         ]);
+    }
+
+    protected function productTitle(Product $product): string
+    {
+        $name = $this->cleanMetaText($this->translation($product, 'name')) ?? $product->slug;
+        $customTitle = $this->cleanMetaText($this->translation($product, 'meta_title'));
+
+        if (($customTitle !== null && $customTitle !== $name) || preg_match('/^[a-z]{1,3}[0-9]+$/i', $name) !== 1) {
+            return $customTitle ?? $name;
+        }
+
+        $category = $product->categories->first();
+        $categoryName = $category ? $this->translation($category, 'name') : null;
+        $notes = $product->attributeValues
+            ->filter(fn (AttributeValue $value): bool => $value->attribute->code === 'noten' && $value->is_active)
+            ->map(fn (AttributeValue $value): ?string => $this->translation($value, 'name'))
+            ->filter()->unique()->take(3)->implode(', ');
+        $with = match ($this->locale()) {
+            'en' => 'with',
+            'ar' => 'بنفحات',
+            default => 'mit',
+        };
+
+        return $name.($categoryName ? " – {$categoryName}" : '').($notes !== '' ? " {$with} {$notes}" : '');
+    }
+
+    protected function categoryIntroduction(Category $category): string
+    {
+        $description = $this->cleanMetaText($this->translation($category, 'description'));
+        $name = $this->translation($category, 'name') ?? $category->slug;
+
+        if ($description !== null && mb_strlen($description) >= 180) {
+            return $description;
+        }
+
+        $guidance = match ($this->locale()) {
+            'en' => "Explore {$name} by fragrance family and notes. Compare the scent profiles, sizes and prices on each product page. Ask us for personal advice and current availability before choosing.",
+            'ar' => "اكتشف {$name} حسب العائلة العطرية والنفحات. قارن الطابع العطري والأحجام والأسعار في صفحة كل منتج. تواصل معنا للاستشارة الشخصية والتأكد من التوفر قبل الاختيار.",
+            default => "Entdecken Sie {$name} nach Duftfamilie und Noten. Vergleichen Sie Duftprofile, Größen und Preise auf den Produktseiten. Lassen Sie sich vor der Auswahl persönlich beraten und fragen Sie die aktuelle Verfügbarkeit an.",
+        };
+
+        return trim(($description ? $description.' ' : '').$guidance);
     }
 
     /**
