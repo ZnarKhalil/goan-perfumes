@@ -3,15 +3,17 @@
 namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use League\Flysystem\WhitespacePathNormalizer;
+use Symfony\Component\HttpFoundation\Response;
 
 class ResponsiveImageController extends Controller
 {
     private const AllowedWidths = [80, 160, 320, 480, 640, 768, 1080];
 
-    public function __invoke(int $width, string $path): BinaryFileResponse
+    public function __invoke(int $width, string $path): Response
     {
         abort_unless(in_array($width, self::AllowedWidths, true), 404);
         abort_unless($this->isSafePublicImagePath($path), 404);
@@ -23,7 +25,17 @@ class ResponsiveImageController extends Controller
         $cachePath = 'responsive-images/'.sha1($path)."-{$width}.webp";
 
         if (! $disk->exists($cachePath)) {
-            $this->createVariant($path, $cachePath, $width);
+            $generated = Cache::lock('responsive-image:'.$cachePath, 120)->get(function () use ($disk, $path, $cachePath, $width): bool {
+                if (! $disk->exists($cachePath)) {
+                    $this->createVariant($path, $cachePath, $width);
+                }
+
+                return true;
+            });
+
+            if (! $generated) {
+                return response('Image generation is in progress.', 503, ['Retry-After' => '1']);
+            }
         }
 
         return response()->file($disk->path($cachePath), [
@@ -37,7 +49,8 @@ class ResponsiveImageController extends Controller
         return $path !== ''
             && ! Str::contains($path, ['..', "\0"])
             && ! Str::startsWith($path, ['/', 'responsive-images/'])
-            && preg_match('/\A[A-Za-z0-9._\/-]+\z/', $path) === 1;
+            && preg_match('/\A[A-Za-z0-9._\/-]+\z/', $path) === 1
+            && (new WhitespacePathNormalizer)->normalizePath($path) === $path;
     }
 
     private function createVariant(string $sourcePath, string $cachePath, int $targetWidth): void

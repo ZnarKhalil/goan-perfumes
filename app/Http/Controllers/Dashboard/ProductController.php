@@ -500,7 +500,12 @@ class ProductController extends Controller
         }
 
         $variantsToRemove->delete();
-        $product->variants()->update(['is_default' => false]);
+        // Temporarily move retained sizes outside the validated positive range
+        // so swaps cannot collide with the immediate unique constraint.
+        $product->variants()->update([
+            'is_default' => false,
+            'size_ml' => DB::raw('-size_ml'),
+        ]);
 
         foreach ($variants as $variantData) {
             $variant = isset($variantData['id'])

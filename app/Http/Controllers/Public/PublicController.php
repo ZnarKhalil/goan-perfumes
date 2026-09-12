@@ -165,7 +165,7 @@ abstract class PublicController extends Controller
         if (DB::connection()->getDriverName() === 'pgsql') {
             return $query
                 ->orderByRaw("regexp_replace({$nameExpression}, '[0-9].*$', '')")
-                ->orderByRaw("nullif(regexp_replace({$nameExpression}, '[^0-9]', '', 'g'), '')::integer asc nulls last")
+                ->orderByRaw("nullif(regexp_replace({$nameExpression}, '[^0-9]', '', 'g'), '')::numeric asc nulls last")
                 ->orderByRaw($nameExpression)
                 ->orderBy('products.id');
         }

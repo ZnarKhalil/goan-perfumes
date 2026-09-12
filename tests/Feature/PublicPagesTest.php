@@ -318,6 +318,17 @@ test('category pagination links use href and products are sorted by catalog numb
         );
 });
 
+test('catalog pages accept product names with numbers beyond integer limits', function (string $name) {
+    $category = publicCategory('damenparfums', 'Damenparfums');
+    publicProduct('large-number', $name, $category);
+
+    foreach (['/de/damenparfums', '/de/suche?q=D'] as $url) {
+        $this->get($url)->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->has('products', 1)
+            ->where('products.0.name', $name));
+    }
+})->with(['D12345678901', 'D'.str_repeat('9', 254)]);
+
 test('category filters use AND within a group and AND across groups', function () {
     $category = publicCategory('damenparfums', 'Damenparfums');
     $familie = Attribute::factory()->multiple()->create(['code' => 'familie']);
